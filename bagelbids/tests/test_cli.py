@@ -7,3 +7,7 @@ def test_hello_world():
     result = runner.invoke(main, ["Peter"])
     assert result.exit_code == 0
     assert result.output == "Bagels are good for you, Peter!\n"
+
+
+def test_fail():
+    assert False

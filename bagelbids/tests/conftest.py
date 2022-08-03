@@ -15,3 +15,12 @@ def bids_path(tmp_path_factory):
 @pytest.fixture(scope="session")
 def bids_synthetic(bids_path):
     return bids_path / "synthetic"
+
+
+@pytest.fixture(scope="session")
+def bids_invalid_synthetic(bids_path, bids_synthetic):
+    invalid_path = bids_path / "synthetic_invalid"
+    # We make a copy of the valid BIDS dataset and delete a required file to make it invalid
+    shutil.copytree(bids_synthetic, invalid_path)
+    (invalid_path / "dataset_description.json").unlink()
+    return invalid_path

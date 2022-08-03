@@ -3,7 +3,7 @@ from pathlib import Path
 import click
 from bids import BIDSLayout
 
-from bagelbids.models import Subject, Session, Imaging, Dataset
+from bagelbids.models import Dataset, Imaging, Session, Subject
 
 
 @click.command(
@@ -25,10 +25,11 @@ from bagelbids.models import Subject, Session, Imaging, Dataset
     required=True,
 )
 @click.option("--analysis_level", "level", type=click.Choice(["group"]))
-def bagel(bids_dir, output_dir, level):
+@click.option('--validate/--skip-validate', default=True)
+def bagel(bids_dir, output_dir, level, validate):
     # TODO setup logger
     bids_dataset_name = Path(bids_dir).name
-    layout = BIDSLayout(bids_dir)
+    layout = BIDSLayout(bids_dir, validate=validate)
     subjects = layout.get_subjects()
 
     subject_list = []

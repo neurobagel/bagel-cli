@@ -8,18 +8,18 @@ class Imaging(BaseModel):
 
 
 class Session(BaseModel):
-    id: str
+    identifier: str
     hasAcquisition: List[Imaging]
     schemaKey: Literal["Session"] = Field("Session", readOnly=True)
 
 
 class Subject(BaseModel):
-    id: str
+    identifier: str
     hasSession: List[Session] = []
     schemaKey: Literal["Subject"] = Field("Subject", readOnly=True)
 
 
 class Dataset(BaseModel):
-    id: str
+    identifier: str
     hasSamples: List[Subject]
     schemaKey: Literal["Dataset"] = Field("Dataset", readOnly=True)

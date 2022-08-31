@@ -3,6 +3,7 @@ Test the command line interface function to merge a BIDS and demographic json fi
 """
 import json
 from pathlib import Path
+import warnings
 
 import pytest
 from click.testing import CliRunner
@@ -26,8 +27,18 @@ def bids_json():
 
 
 @pytest.fixture
+def bids_json_long(bids_json):
+    return {"hasSamples": bids_json["hasSamples"] + [{"identifier": 3, "extra_key": "three"}]}
+
+
+@pytest.fixture
 def demo_json():
     return {"subjects": [{"id": 1, "special_key": "one"}, {"id": 2, "special_key": "two"}]}
+
+
+@pytest.fixture
+def demo_json_long(demo_json):
+    return {"subjects": demo_json["subjects"] + [{"id": 99, "special_key": "three"}]}
 
 
 @pytest.fixture
@@ -111,3 +122,22 @@ def test_merge_json(bids_json, demo_json):
     }
     result = merge_json(bids_json, demo_json)
     assert result == target_json
+
+
+def test_merge_if_demo_has_additional_subjects(bids_json, demo_json_long):
+    target_json = {
+        "hasSamples": [
+            {"identifier": 1, "extra_key": "one", "special_key": "one"},
+            {"identifier": 2, "extra_key": "two", "special_key": "two"},
+        ]
+    }
+    # If there are more subjects in the demo file than the BIDS dataset
+    # we expect a warning that includes the subject IDs that will be stripped
+    with pytest.warns(UserWarning, match=r'99'):
+        result = merge_json(bids_json, demo_json_long)
+    assert result == target_json
+
+
+def test_merge_if_bids_has_additional_subjects(bids_json_long, demo_json):
+    with pytest.raises(NotImplementedError):
+        merge_json(bids_json_long, demo_json)

@@ -1,6 +1,12 @@
 import json
+from typing import List
+import warnings
 
 import click
+
+
+def is_subset(sample: List, reference: List) -> bool:
+    return set(sample).issubset(set(reference))
 
 
 def get_id(data: dict, mode: str = "bids") -> dict:
@@ -28,7 +34,19 @@ def merge_on_subject(bids_json: dict, demo_json: dict) -> list:
     Returns:
         dict: _description_
     """
-    # TODO: ensure mismatched IDs can error out nicely
+    if not is_subset(bids_json.keys(), demo_json.keys()):
+        raise NotImplementedError("The BIDS file contains subjects that don't exist in the demographc file. This is not supported")
+    elif not is_subset(demo_json.keys(), bids_json.keys()):
+        warnings.warn(
+            UserWarning(
+                "There are subjects in the demographics file that do not exist in the BIDS dataset! " 
+                "Their IDs are:\n"
+                + "\n".join(
+                    [str(val) for val in set(demo_json.keys()).difference(set(bids_json.keys()))]
+                    )
+                )
+            )
+
     return [dict(sub_obj, **demo_json[sub_id]) for (sub_id, sub_obj) in bids_json.items()]
 
 

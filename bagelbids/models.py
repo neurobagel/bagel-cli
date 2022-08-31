@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -16,6 +16,9 @@ class Session(BaseModel):
 class Subject(BaseModel):
     identifier: str
     hasSession: List[Session] = []
+    age: Optional[float] = None
+    sex: Optional[str] = None
+    diagnosis: Optional[str] = None
     schemaKey: Literal["Subject"] = Field("Subject", readOnly=True)
 
 

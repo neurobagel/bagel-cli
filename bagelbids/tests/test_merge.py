@@ -133,7 +133,7 @@ def test_merge_if_demo_has_additional_subjects(bids_json, demo_json_long):
     }
     # If there are more subjects in the demo file than the BIDS dataset
     # we expect a warning that includes the subject IDs that will be stripped
-    with pytest.warns(UserWarning, match=r'99'):
+    with pytest.warns(UserWarning, match=r"99"):
         result = merge_json(bids_json, demo_json_long)
     assert result == target_json
 

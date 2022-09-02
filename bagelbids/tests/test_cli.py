@@ -30,3 +30,11 @@ def test_processing_bids_synth_creates_json(runner, bids_synthetic, tmp_path):
     result = runner.invoke(bagel, ["--bids_dir", bids_synthetic, "--output_dir", tmp_path])
     assert result.exit_code == 0
     assert (tmp_path / "synthetic.json").is_file()
+
+
+def test_that_subject_id_includes_the_full_sub_prefix(runner, bids_synthetic, tmp_path):
+    runner.invoke(bagel, ["--bids_dir", bids_synthetic, "--output_dir", tmp_path])
+    with open(tmp_path / "synthetic.json", 'r') as f:
+        bids_txt = f.read()
+    
+    assert "sub-02" in bids_txt

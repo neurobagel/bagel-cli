@@ -54,7 +54,8 @@ def bagel(bids_dir, output_dir, level, validate):
     # TODO setup logger
     bids_dataset_name = Path(bids_dir).name
     layout = BIDSLayout(bids_dir, validate=validate)
-    subjects = layout.get_subjects()
+    # pyBIDS strips the "sub-" prefix, but we want to add it back
+    subjects = map(lambda sub: f"sub-{sub}", layout.get_subjects())
 
     subject_list = []
     for subject in subjects:

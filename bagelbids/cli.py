@@ -54,11 +54,9 @@ def bagel(bids_dir, output_dir, level, validate):
     # TODO setup logger
     bids_dataset_name = Path(bids_dir).name
     layout = BIDSLayout(bids_dir, validate=validate)
-    # pyBIDS strips the "sub-" prefix, but we want to add it back
-    subjects = map(lambda sub: f"sub-{sub}", layout.get_subjects())
 
     subject_list = []
-    for subject in subjects:
+    for subject in layout.get_subjects():
         session_list = []
         for session in layout.get_sessions(subject=subject):
             image_list = []
@@ -69,7 +67,8 @@ def bagel(bids_dir, output_dir, level, validate):
                     models.Imaging(hasContrastType=bids_file.get_entities().get("suffix"))
                 )
             session_list.append(models.Session(identifier=session, hasAcquisition=image_list))
-        subject_list.append(models.Subject(identifier=subject, hasSession=session_list))
+        # pyBIDS strips the "sub-" prefix, but we want to add it back
+        subject_list.append(models.Subject(identifier=f"sub-{subject}", hasSession=session_list))
     dataset = models.Dataset(identifier=str(bids_dataset_name), hasSamples=subject_list)
 
     context = generate_context()

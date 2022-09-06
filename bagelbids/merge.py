@@ -4,6 +4,31 @@ import warnings
 
 import click
 
+from bagelbids import models
+
+
+def generate_context():
+    # Direct copy of the dandi-schema context generation function
+    # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
+    import pydantic
+
+    field_preamble = {"bagel": "http://neurobagel.org/vocab"}
+    fields = {}
+    for val in dir(models):
+        klass = getattr(models, val)
+        if not isinstance(klass, pydantic.main.ModelMetaclass):
+            continue
+        fields[klass.__name__] = "bagel:" + klass.__name__
+        for name, field in klass.__fields__.items():
+            if name == "schemaKey":
+                fields[name] = "@type"
+            elif name not in fields:
+                fields[name] = {"@id": "bagel:" + name}
+
+    field_preamble.update(**fields)
+
+    return {"@context": field_preamble}
+
 
 def is_subset(sample: List, reference: List) -> bool:
     return set(sample).issubset(set(reference))
@@ -89,9 +114,12 @@ def merge_json(bids_json: dict, demo_json: dict) -> dict:
 def cli(bids_path, demo_path, out_path):
     bids_json = json.load(open(bids_path))
     demo_json = json.load(open(demo_path))
+    
+    context = generate_context()
+    context.update(**merge_json(bids_json, demo_json))
 
     with open(out_path, "w") as f:
-        f.write(json.dumps(merge_json(bids_json, demo_json), indent=2))
+        f.write(json.dumps(context, indent=2))
 
 
 if __name__ == "__main__":

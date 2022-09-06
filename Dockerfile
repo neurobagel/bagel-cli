@@ -5,4 +5,4 @@ WORKDIR /app
 COPY . /app/src
 RUN pip install  --no-cache-dir /app/src[all]
 
-ENTRYPOINT [ "bagelbids" ]
+CMD [ "bagelbids"]

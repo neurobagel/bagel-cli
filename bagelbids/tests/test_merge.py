@@ -155,9 +155,9 @@ def test_merge_if_bids_has_additional_subjects(bids_json_long, demo_json):
     
     
 def test_merge_if_bids_and_demo_have_additional_subjects(bids_json_long, demo_json_long):
-    # If there are more subjects in the BIDS dataset than in the demographic file
-    # We will strip these subjects and we expect a warning that includes the 
-    # subject IDs that will be stripped.
+    # If both the BIDS and the demographic file have additional subjects,
+    # then we expect to get their intersection and remove any subject that is
+    # unique to either file. Every time subjects are removed, a warning is expected
     target_json = {
         "hasSamples": [
             {"identifier": 1, "extra_key": "one", "special_key": "one"},

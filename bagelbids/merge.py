@@ -66,8 +66,8 @@ def merge_on_subject(bids_json: dict, demo_json: dict) -> list:
                 "The following subjects are only present in the BIDS data, "
                 "but not in the demographic data. They will be removed:\n"
                 + "\n".join(
-                [str(val) for val in set(bids_json.keys()).difference(set(demo_json.keys()))]
-            )
+                    [str(val) for val in set(bids_json.keys()).difference(set(demo_json.keys()))]
+                )
             )
         )
         for diff_sub in set(bids_json.keys()).difference(demo_json.keys()):
@@ -120,7 +120,7 @@ def merge_json(bids_json: dict, demo_json: dict) -> dict:
 def cli(bids_path, demo_path, out_path):
     bids_json = json.load(open(bids_path))
     demo_json = json.load(open(demo_path))
-    
+
     context = generate_context()
     context.update(**merge_json(bids_json, demo_json))
 

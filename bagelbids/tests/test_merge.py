@@ -141,7 +141,7 @@ def test_merge_if_demo_has_additional_subjects(bids_json, demo_json_long):
 
 def test_merge_if_bids_has_additional_subjects(bids_json_long, demo_json):
     # If there are more subjects in the BIDS dataset than in the demographic file
-    # We will strip these subjects and we expect a warning that includes the 
+    # We will strip these subjects and we expect a warning that includes the
     # subject IDs that will be stripped.
     target_json = {
         "hasSamples": [
@@ -149,11 +149,14 @@ def test_merge_if_bids_has_additional_subjects(bids_json_long, demo_json):
             {"identifier": 2, "extra_key": "two", "special_key": "two"},
         ]
     }
-    with pytest.warns(Warning, match=r"(?P<mismatch>There is a mismatch)(?:.+\n+.+)(?P<type>only present in the BIDS data)(?:.+\n+)(?P<sub>3)"):
+    with pytest.warns(
+        Warning,
+        match=r"(?P<mismatch>There is a mismatch)(?:.+\n+.+)(?P<type>only present in the BIDS data)(?:.+\n+)(?P<sub>3)",
+    ):
         result = merge_json(bids_json_long, demo_json)
     assert result == target_json
-    
-    
+
+
 def test_merge_if_bids_and_demo_have_additional_subjects(bids_json_long, demo_json_long):
     # If both the BIDS and the demographic file have additional subjects,
     # then we expect to get their intersection and remove any subject that is
@@ -166,7 +169,10 @@ def test_merge_if_bids_and_demo_have_additional_subjects(bids_json_long, demo_js
     }
     with pytest.warns(Warning) as warning_record:
         result = merge_json(bids_json_long, demo_json_long)
-        
-    assert re.match(r"(?P<mismatch>There is a mismatch)(?:.+\n+.+)(?P<type>only present in the BIDS data)(?:.+\n+)(?P<sub>3)", warning_record[0].message.args[0])
+
+    assert re.match(
+        r"(?P<mismatch>There is a mismatch)(?:.+\n+.+)(?P<type>only present in the BIDS data)(?:.+\n+)(?P<sub>3)",
+        warning_record[0].message.args[0],
+    )
     assert re.match(r"(.+\n+)(99)", warning_record[1].message.args[0])
     assert result == target_json

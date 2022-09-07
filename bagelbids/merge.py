@@ -60,16 +60,22 @@ def merge_on_subject(bids_json: dict, demo_json: dict) -> list:
         dict: _description_
     """
     if not is_subset(bids_json.keys(), demo_json.keys()):
-        raise NotImplementedError(
-            "The BIDS file contains subjects that don't exist in the demographc file. "
-            "This is not supported. Here are the IDs:\n"
-            + "\n".join(
+        warnings.warn(
+            Warning(
+                "There is a mismatch between the BIDS and the demographic data.\n"
+                "The following subjects are only present in the BIDS data, "
+                "but not in the demographic data. They will be removed:\n"
+                + "\n".join(
                 [str(val) for val in set(bids_json.keys()).difference(set(demo_json.keys()))]
             )
+            )
         )
-    elif not is_subset(demo_json.keys(), bids_json.keys()):
+        for diff_sub in set(bids_json.keys()).difference(demo_json.keys()):
+            bids_json.pop(diff_sub)
+
+    if not is_subset(demo_json.keys(), bids_json.keys()):
         warnings.warn(
-            UserWarning(
+            Warning(
                 "There are subjects in the demographics file that do not exist in the BIDS dataset! "
                 "Their IDs are:\n"
                 + "\n".join(

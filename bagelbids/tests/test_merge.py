@@ -2,6 +2,7 @@
 Test the command line interface function to merge a BIDS and demographic json file.
 """
 import json
+import re
 from pathlib import Path
 import warnings
 
@@ -133,11 +134,39 @@ def test_merge_if_demo_has_additional_subjects(bids_json, demo_json_long):
     }
     # If there are more subjects in the demo file than the BIDS dataset
     # we expect a warning that includes the subject IDs that will be stripped
-    with pytest.warns(UserWarning, match=r"99"):
+    with pytest.warns(Warning, match=r"99"):
         result = merge_json(bids_json, demo_json_long)
     assert result == target_json
 
 
 def test_merge_if_bids_has_additional_subjects(bids_json_long, demo_json):
-    with pytest.raises(NotImplementedError):
-        merge_json(bids_json_long, demo_json)
+    # If there are more subjects in the BIDS dataset than in the demographic file
+    # We will strip these subjects and we expect a warning that includes the 
+    # subject IDs that will be stripped.
+    target_json = {
+        "hasSamples": [
+            {"identifier": 1, "extra_key": "one", "special_key": "one"},
+            {"identifier": 2, "extra_key": "two", "special_key": "two"},
+        ]
+    }
+    with pytest.warns(Warning, match=r"(?P<mismatch>There is a mismatch)(?:.+\n+.+)(?P<type>only present in the BIDS data)(?:.+\n+)(?P<sub>3)"):
+        result = merge_json(bids_json_long, demo_json)
+    assert result == target_json
+    
+    
+def test_merge_if_bids_and_demo_have_additional_subjects(bids_json_long, demo_json_long):
+    # If there are more subjects in the BIDS dataset than in the demographic file
+    # We will strip these subjects and we expect a warning that includes the 
+    # subject IDs that will be stripped.
+    target_json = {
+        "hasSamples": [
+            {"identifier": 1, "extra_key": "one", "special_key": "one"},
+            {"identifier": 2, "extra_key": "two", "special_key": "two"},
+        ]
+    }
+    with pytest.warns(Warning) as warning_record:
+        result = merge_json(bids_json_long, demo_json_long)
+        
+    assert re.match(r"(?P<mismatch>There is a mismatch)(?:.+\n+.+)(?P<type>only present in the BIDS data)(?:.+\n+)(?P<sub>3)", warning_record[0].message.args[0])
+    assert re.match(r"(.+\n+)(99)", warning_record[1].message.args[0])
+    assert result == target_json

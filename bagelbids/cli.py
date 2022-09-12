@@ -1,5 +1,4 @@
 from pathlib import Path
-import json
 
 import click
 from bids import BIDSLayout
@@ -41,12 +40,14 @@ def bagel(bids_dir, output_dir, level, validate):
                 subject=subject, session=session, extension=[".nii", ".nii.gz"]
             ):
                 image_list.append(
-                    models.Imaging(hasContrastType=bids_file.get_entities().get("suffix"))
+                    models.Imaging(
+                        hasContrastType=bids_file.get_entities().get("suffix"),
+                    )
                 )
-            session_list.append(models.Session(identifier=session, hasAcquisition=image_list))
+            session_list.append(models.Session(label=session, hasAcquisition=image_list))
         # pyBIDS strips the "sub-" prefix, but we want to add it back
-        subject_list.append(models.Subject(identifier=f"sub-{subject}", hasSession=session_list))
-    dataset = models.Dataset(identifier=str(bids_dataset_name), hasSamples=subject_list)
+        subject_list.append(models.Subject(label=f"sub-{subject}", hasSession=session_list))
+    dataset = models.Dataset(label=str(bids_dataset_name), hasSamples=subject_list)
 
     with open(Path(output_dir) / f"{bids_dataset_name}.json", "w") as f:
         f.write(dataset.json(indent=2))

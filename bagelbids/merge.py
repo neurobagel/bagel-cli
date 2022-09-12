@@ -36,12 +36,12 @@ def is_subset(sample: List, reference: List) -> bool:
 
 def get_id(data: dict, mode: str = "bids") -> dict:
     if mode == "bids":
-        return {sub["identifier"]: sub for sub in data["hasSamples"]}
+        return {sub["label"]: sub for sub in data["hasSamples"]}
     elif mode == "demo":
         # TODO: replace this hack and instead change the annotator output model
         return {
             sub["id"]: dict(
-                identifier=sub["id"], **{key: val for (key, val) in sub.items() if not "id" in key}
+                label=sub["id"], **{key: val for (key, val) in sub.items() if not "id" in key}
             )
             for sub in data["subjects"]
         }

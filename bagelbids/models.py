@@ -1,20 +1,25 @@
+from uuid import UUID
+
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 
 
 class Imaging(BaseModel):
+    identifier: Optional[UUID] = None
     hasContrastType: str
     schemaKey: Literal["Imaging"] = Field("Imaging", readOnly=True)
 
 
 class Session(BaseModel):
-    identifier: str
+    identifier: Optional[UUID] = None
+    label: str
     hasAcquisition: List[Imaging]
     schemaKey: Literal["Session"] = Field("Session", readOnly=True)
 
 
 class Subject(BaseModel):
-    identifier: str
+    identifier: Optional[UUID] = None
+    label: str
     hasSession: List[Session] = []
     age: Optional[float] = None
     sex: Optional[str] = None
@@ -23,6 +28,7 @@ class Subject(BaseModel):
 
 
 class Dataset(BaseModel):
-    identifier: str
+    identifier: Optional[UUID] = None
+    label: str
     hasSamples: List[Subject]
     schemaKey: Literal["Dataset"] = Field("Dataset", readOnly=True)

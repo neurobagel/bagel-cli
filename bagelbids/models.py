@@ -20,7 +20,7 @@ class Session(BaseModel):
 class Subject(BaseModel):
     identifier: Optional[UUID] = None
     label: str
-    hasSession: List[Session] = []
+    hasSession: Optional[List[Session]] = None
     age: Optional[float] = None
     sex: Optional[str] = None
     diagnosis: Optional[str] = None

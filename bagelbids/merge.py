@@ -43,7 +43,7 @@ def get_id(data: dict, mode: str = "bids") -> dict:
         # TODO: replace this hack and instead change the annotator output model
         return {
             sub["id"]: dict(
-                label=sub["id"], **{key: val for (key, val) in sub.items() if not "id" in key}
+                label=sub["id"], **{key: val for (key, val) in sub.items() if "id" not in key}
             )
             for sub in data["subjects"]
         }
@@ -78,8 +78,8 @@ def merge_on_subject(bids_json: dict, demo_json: dict) -> list:
     if not is_subset(demo_json.keys(), bids_json.keys()):
         warnings.warn(
             Warning(
-                "There are subjects in the demographics file that do not exist in the BIDS dataset! "
-                "Their IDs are:\n"
+                "There are subjects in the demographics file that aren't exist in the BIDS dataset"
+                "! Their IDs are:\n"
                 + "\n".join(
                     [str(val) for val in set(demo_json.keys()).difference(set(bids_json.keys()))]
                 )
@@ -127,7 +127,8 @@ def cli(bids_path, demo_path, out_path):
     context = generate_context()
 
     # TODO: revisit this implementation. It is concerningly implicit
-    # we instantiate the datamodel here for two purposes: validation, and to add uuids if they don't exist yet
+    # we instantiate the datamodel here for two purposes: validation,
+    # and to add uuids if they don't exist yet
     model = models.Dataset.parse_obj(merge_json(bids_json, demo_json))
     context.update(**model.dict())
 

@@ -3,8 +3,6 @@ Test the command line interface function to merge a BIDS and demographic json fi
 """
 import json
 import re
-from pathlib import Path
-import warnings
 
 import pytest
 from click.testing import CliRunner
@@ -162,7 +160,8 @@ def test_merge_if_bids_has_additional_subjects(bids_json_long, demo_json, target
 
     with pytest.warns(
         Warning,
-        match=r"(?P<mismatch>There is a mismatch)(?:.+\n+.+)(?P<type>only present in the BIDS data)(?:.+\n+)(?P<sub>3)",
+        match=r"(?P<mismatch>There is a mismatch)(?:.+\n+.+)"
+        r"(?P<type>only present in the BIDS data)(?:.+\n+)(?P<sub>3)",
     ):
         result = merge_json(bids_json_long, demo_json)
     assert result == target_json
@@ -178,7 +177,8 @@ def test_merge_if_bids_and_demo_have_additional_subjects(
         result = merge_json(bids_json_long, demo_json_long)
 
     assert re.match(
-        r"(?P<mismatch>There is a mismatch)(?:.+\n+.+)(?P<type>only present in the BIDS data)(?:.+\n+)(?P<sub>3)",
+        r"(?P<mismatch>There is a mismatch)(?:.+\n+.+)"
+        r"(?P<type>only present in the BIDS data)(?:.+\n+)(?P<sub>3)",
         warning_record[0].message.args[0],
     )
     assert re.match(r"(.+\n+)(99)", warning_record[1].message.args[0])

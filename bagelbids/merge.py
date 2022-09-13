@@ -78,8 +78,8 @@ def merge_on_subject(bids_json: dict, demo_json: dict) -> list:
     if not is_subset(demo_json.keys(), bids_json.keys()):
         warnings.warn(
             Warning(
-                "There are subjects in the demographics file that aren't exist in the BIDS dataset"
-                "! Their IDs are:\n"
+                "There are subjects in the demographics file "
+                "that do not exist in the BIDS dataset! Their IDs are:\n"
                 + "\n".join(
                     [str(val) for val in set(demo_json.keys()).difference(set(bids_json.keys()))]
                 )

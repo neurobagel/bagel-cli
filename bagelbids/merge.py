@@ -23,7 +23,7 @@ def generate_context():
             if name == "schemaKey":
                 fields[name] = "@type"
             elif name == "identifier":
-                fields[name] = "@type"
+                fields[name] = "@id"
             elif name not in fields:
                 fields[name] = {"@id": "bagel:" + name}
 

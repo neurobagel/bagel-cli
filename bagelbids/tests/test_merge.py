@@ -8,8 +8,11 @@ import warnings
 
 import pytest
 from click.testing import CliRunner
+from pydantic import ValidationError
+import uuid
 
 from bagelbids.merge import cli, get_id, merge_on_subject, merge_json
+from bagelbids import models
 
 
 @pytest.fixture
@@ -21,14 +24,18 @@ def runner():
 def bids_json():
     return {
         "hasSamples": [
-            {"identifier": 1, "extra_key": "one"},
-            {"identifier": 2, "extra_key": "two"},
-        ]
+            {"label": 1, "extra_key": "one"},
+            {"label": 2, "extra_key": "two"},
+        ],
+        "schemaKey": "Dataset",
+        "label": "BIDS dataset",
     }
 
 
 @pytest.fixture
 def bids_json_long(bids_json):
+    return dict(
+        bids_json, **{"hasSamples": bids_json["hasSamples"] + [{"label": 3, "extra_key": "three"}]}
     )
 
 
@@ -77,6 +84,8 @@ def target_json():
 
 
 def test_merge_creates_valid_data_model(runner, bids_json_path, demo_json_path, tmp_path):
+    """When I load the output of the merge CLI and use it to instantiate the pydantic
+    model, then the pydantic model will not raise a validation error / will be valid."""
     result = runner.invoke(
         cli,
         [
@@ -174,3 +183,30 @@ def test_merge_if_bids_and_demo_have_additional_subjects(
     )
     assert re.match(r"(.+\n+)(99)", warning_record[1].message.args[0])
     assert result == target_json
+
+
+def test_merged_subjects_have_uuid_identifiers(runner, bids_json_path, demo_json_path, tmp_path):
+    """In the merged jsonld file every entity should have a UUID with a bagel namespace
+    so that it does not get a blank node in the graph.
+    """
+    result = runner.invoke(
+        cli,
+        [
+            "--bids_path",
+            bids_json_path,
+            "--demo_path",
+            demo_json_path,
+            "--out_path",
+            tmp_path / "my_output.jsonld",
+        ],
+    )
+    with open(tmp_path / "my_output.jsonld", "r") as f:
+        result = json.load(f)
+
+    # We just confirm that the identifier exists and contains the right name space
+    try:
+        for subject in result["hasSamples"]:
+            # If the identifier string is a valid UUID then we can cast it to a UUID object
+            uuid.UUID(subject.get("identifier").split(":")[1], version=4)
+    except ValueError:
+        pytest.fail("At least one subject does not have a valid UUID identifier")

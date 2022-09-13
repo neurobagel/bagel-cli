@@ -22,6 +22,8 @@ def generate_context():
         for name, field in klass.__fields__.items():
             if name == "schemaKey":
                 fields[name] = "@type"
+            elif name == "identifier":
+                fields[name] = "@type"
             elif name not in fields:
                 fields[name] = {"@id": "bagel:" + name}
 
@@ -91,6 +93,7 @@ def merge_json(bids_json: dict, demo_json: dict) -> dict:
     bids_index = get_id(bids_json, mode="bids")
     demo_index = get_id(demo_json, mode="demo")
     bids_json["hasSamples"] = merge_on_subject(bids_index, demo_index)
+
     return bids_json
 
 
@@ -122,7 +125,11 @@ def cli(bids_path, demo_path, out_path):
     demo_json = json.load(open(demo_path))
 
     context = generate_context()
-    context.update(**merge_json(bids_json, demo_json))
+
+    # TODO: revisit this implementation. It is concerningly implicit
+    # we instantiate the datamodel here for two purposes: validation, and to add uuids if they don't exist yet
+    model = models.Dataset.parse_obj(merge_json(bids_json, demo_json))
+    context.update(**model.dict())
 
     with open(out_path, "w") as f:
         f.write(json.dumps(context, indent=2))

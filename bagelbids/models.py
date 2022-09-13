@@ -1,7 +1,7 @@
 import uuid
 
 from typing import List, Literal, Optional
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, Field
 
 
 UUID_PATTERN = (
@@ -14,7 +14,9 @@ class Bagel(BaseModel):
     """identifier has to be a valid UUID prepended by the bagel: namespace
     by default, a random (uuid4) string UUID will be created"""
 
-    identifier: constr(regex=BAGEL_UUID_PATTERN) = "bagel:" + str(uuid.uuid4())
+    identifier: str = Field(
+        regex=BAGEL_UUID_PATTERN, default_factory=lambda: "bagel:" + str(uuid.uuid4())
+    )
 
 
 class Imaging(Bagel):
@@ -33,7 +35,7 @@ class Subject(Bagel):
     hasSession: Optional[List[Session]] = None
     age: Optional[float] = None
     sex: Optional[str] = None
-    diagnosis: Optional[str] = None
+    diagnosis: Optional[List[str]] = None
     schemaKey: Literal["Subject"] = Field("Subject", readOnly=True)
 
 

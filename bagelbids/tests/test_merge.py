@@ -205,8 +205,14 @@ def test_merged_subjects_have_uuid_identifiers(runner, bids_json_path, demo_json
 
     # We just confirm that the identifier exists and contains the right name space
     try:
-        for subject in result["hasSamples"]:
-            # If the identifier string is a valid UUID then we can cast it to a UUID object
+        # If the identifier string is a valid UUID then we can cast it to a UUID object
+        subject_uuids = [
             uuid.UUID(subject.get("identifier").split(":")[1], version=4)
+            for subject in result["hasSamples"]
+        ]
     except ValueError:
         pytest.fail("At least one subject does not have a valid UUID identifier")
+
+    assert len(set(subject_uuids)) == len(
+        result["hasSamples"]
+    ), "The subject identifier UUIDs are not unique"

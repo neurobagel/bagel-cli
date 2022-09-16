@@ -36,9 +36,11 @@ def test_processing_bids_synth_creates_json(runner, bids_synthetic, tmp_path):
 
 def test_that_subject_id_includes_the_full_sub_prefix(runner, bids_synthetic, tmp_path):
     runner.invoke(bagel, ["--bids_dir", bids_synthetic, "--output_dir", tmp_path])
-    with open(tmp_path / "synthetic.json", 'r') as f:
+    with open(tmp_path / "synthetic.json", "r") as f:
         bids_json = json.load(f)
-    
-    subs = [sub for sub in bids_json['hasSamples'] if "sub-04" in sub['identifier']]
-    assert len(subs) == 1, "We did not find a subject with the name of"
-    assert set(["01", "02"]).issubset([ses["identifier"] for ses in subs[0]["hasSession"]]), "The expected sessions are not found for subject 04"
+
+    subs = [sub for sub in bids_json["hasSamples"] if "sub-04" in sub["label"]]
+    assert len(subs) == 1, "We did not find a subject with the name of sub-04"
+    assert set(["01", "02"]).issubset(
+        [ses["label"] for ses in subs[0]["hasSession"]]
+    ), "The expected sessions are not found for subject 04"

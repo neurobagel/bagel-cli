@@ -22,6 +22,8 @@ def generate_context():
         for name, field in klass.__fields__.items():
             if name == "schemaKey":
                 fields[name] = "@type"
+            elif name == "identifier":
+                fields[name] = "@id"
             elif name not in fields:
                 fields[name] = {"@id": "bagel:" + name}
 
@@ -36,12 +38,12 @@ def is_subset(sample: List, reference: List) -> bool:
 
 def get_id(data: dict, mode: str = "bids") -> dict:
     if mode == "bids":
-        return {sub["identifier"]: sub for sub in data["hasSamples"]}
+        return {sub["label"]: sub for sub in data["hasSamples"]}
     elif mode == "demo":
         # TODO: replace this hack and instead change the annotator output model
         return {
             sub["id"]: dict(
-                identifier=sub["id"], **{key: val for (key, val) in sub.items() if not "id" in key}
+                label=sub["id"], **{key: val for (key, val) in sub.items() if "id" not in key}
             )
             for sub in data["subjects"]
         }
@@ -76,8 +78,8 @@ def merge_on_subject(bids_json: dict, demo_json: dict) -> list:
     if not is_subset(demo_json.keys(), bids_json.keys()):
         warnings.warn(
             Warning(
-                "There are subjects in the demographics file that do not exist in the BIDS dataset! "
-                "Their IDs are:\n"
+                "There are subjects in the demographics file "
+                "that do not exist in the BIDS dataset! Their IDs are:\n"
                 + "\n".join(
                     [str(val) for val in set(demo_json.keys()).difference(set(bids_json.keys()))]
                 )
@@ -91,6 +93,7 @@ def merge_json(bids_json: dict, demo_json: dict) -> dict:
     bids_index = get_id(bids_json, mode="bids")
     demo_index = get_id(demo_json, mode="demo")
     bids_json["hasSamples"] = merge_on_subject(bids_index, demo_index)
+
     return bids_json
 
 
@@ -122,7 +125,12 @@ def cli(bids_path, demo_path, out_path):
     demo_json = json.load(open(demo_path))
 
     context = generate_context()
-    context.update(**merge_json(bids_json, demo_json))
+
+    # TODO: revisit this implementation. It is concerningly implicit
+    # we instantiate the datamodel here for two purposes: validation,
+    # and to add uuids if they don't exist yet
+    model = models.Dataset.parse_obj(merge_json(bids_json, demo_json))
+    context.update(**model.dict())
 
     with open(out_path, "w") as f:
         f.write(json.dumps(context, indent=2))

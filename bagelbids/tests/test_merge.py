@@ -41,8 +41,21 @@ def bids_json_long(bids_json):
 def demo_json():
     return {
         "subjects": [
-            {"id": "sub-1", "age": 55, "sex": "male", "diagnosis": ["snomed:123456"]},
-            {"id": "sub-2", "age": 23, "sex": "female", "diagnosis": ["http://purl.org/someterm"]},
+            {
+                "id": "sub-1",
+                "age": 55,
+                "sex": "male",
+                "diagnosis": [{"identifier": "snomed:123456"}, {"identifier": "snomed:654321"}],
+            },
+            {
+                "id": "sub-2",
+                "age": 23,
+                "sex": "female",
+                "diagnosis": [
+                    {"identifier": "http://purl.org/someterm"},
+                    {"identifier": "https://purl.org/someotherterm"},
+                ],
+            },
         ]
     }
 
@@ -56,7 +69,7 @@ def demo_json_long(demo_json):
                 "id": "sub-99",
                 "age": 100,
                 "sex": "other",
-                "diagnosis": ["http://purl.org/otherterm"],
+                "diagnosis": [{"identifier": "http://purl.org/otherterm"}],
             }
         ]
     }
@@ -92,14 +105,17 @@ def target_json():
                 "label": "sub-1",
                 "age": 55,
                 "sex": "male",
-                "diagnosis": ["snomed:123456"],
+                "diagnosis": [{"identifier": "snomed:123456"}, {"identifier": "snomed:654321"}],
                 "extra_key": "one",
             },
             {
                 "label": "sub-2",
                 "age": 23,
                 "sex": "female",
-                "diagnosis": ["http://purl.org/someterm"],
+                "diagnosis": [
+                    {"identifier": "http://purl.org/someterm"},
+                    {"identifier": "https://purl.org/someotherterm"},
+                ],
                 "extra_key": "two",
             },
         ],
@@ -143,12 +159,20 @@ def test_get_id(bids_json, demo_json):
         "sub-2": {"label": "sub-2", "extra_key": "two"},
     }
     target_demo = {
-        "sub-1": {"label": "sub-1", "age": 55, "sex": "male", "diagnosis": ["snomed:123456"]},
+        "sub-1": {
+            "label": "sub-1",
+            "age": 55,
+            "sex": "male",
+            "diagnosis": [{"identifier": "snomed:123456"}, {"identifier": "snomed:654321"}],
+        },
         "sub-2": {
             "label": "sub-2",
             "age": 23,
             "sex": "female",
-            "diagnosis": ["http://purl.org/someterm"],
+            "diagnosis": [
+                {"identifier": "http://purl.org/someterm"},
+                {"identifier": "https://purl.org/someotherterm"},
+            ],
         },
     }
     result_bids = get_id(bids_json, mode="bids")

@@ -1,7 +1,7 @@
 import uuid
 
-from typing import List, Literal, Optional
-from pydantic import BaseModel, Field
+from typing import List, Literal, Optional, Union
+from pydantic import BaseModel, Field, HttpUrl
 
 
 UUID_PATTERN = (
@@ -24,6 +24,10 @@ class Imaging(Bagel):
     schemaKey: Literal["Imaging"] = Field("Imaging", readOnly=True)
 
 
+class Diagnosis(BaseModel):
+    identifier: Union[str, HttpUrl]
+
+
 class Session(Bagel):
     label: str
     hasAcquisition: List[Imaging]
@@ -35,7 +39,7 @@ class Subject(Bagel):
     hasSession: Optional[List[Session]] = None
     age: Optional[float] = None
     sex: Optional[str] = None
-    diagnosis: Optional[List[str]] = None
+    diagnosis: Optional[List[Diagnosis]] = None
     schemaKey: Literal["Subject"] = Field("Subject", readOnly=True)
 
 

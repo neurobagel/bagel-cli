@@ -12,7 +12,10 @@ def generate_context():
     # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
     import pydantic
 
-    field_preamble = {"bagel": "http://neurobagel.org/vocab/"}
+    field_preamble = {
+        "bagel": "http://neurobagel.org/vocab/",
+        "snomed": "https://identifiers.org/snomedct:",
+    }
     fields = {}
     for val in dir(models):
         klass = getattr(models, val)

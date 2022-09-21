@@ -22,8 +22,8 @@ def runner():
 def bids_json():
     return {
         "hasSamples": [
-            {"label": 1, "extra_key": "one"},
-            {"label": 2, "extra_key": "two"},
+            {"label": "sub-1", "extra_key": "one"},
+            {"label": "sub-2", "extra_key": "two"},
         ],
         "schemaKey": "Dataset",
         "label": "BIDS dataset",
@@ -39,12 +39,27 @@ def bids_json_long(bids_json):
 
 @pytest.fixture
 def demo_json():
-    return {"subjects": [{"id": 1, "special_key": "one"}, {"id": 2, "special_key": "two"}]}
+    return {
+        "subjects": [
+            {"id": "sub-1", "age": 55, "sex": "male", "diagnosis": ["snomed:123456"]},
+            {"id": "sub-2", "age": 23, "sex": "female", "diagnosis": ["http://purl.org/someterm"]},
+        ]
+    }
 
 
 @pytest.fixture
 def demo_json_long(demo_json):
-    return {"subjects": demo_json["subjects"] + [{"id": 99, "special_key": "three"}]}
+    return {
+        "subjects": demo_json["subjects"]
+        + [
+            {
+                "id": "sub-99",
+                "age": 100,
+                "sex": "other",
+                "diagnosis": ["http://purl.org/otherterm"],
+            }
+        ]
+    }
 
 
 @pytest.fixture
@@ -73,8 +88,20 @@ def demo_json_path(demo_json, tmp_path):
 def target_json():
     return {
         "hasSamples": [
-            {"label": 1, "extra_key": "one", "special_key": "one"},
-            {"label": 2, "extra_key": "two", "special_key": "two"},
+            {
+                "label": "sub-1",
+                "age": 55,
+                "sex": "male",
+                "diagnosis": ["snomed:123456"],
+                "extra_key": "one",
+            },
+            {
+                "label": "sub-2",
+                "age": 23,
+                "sex": "female",
+                "diagnosis": ["http://purl.org/someterm"],
+                "extra_key": "two",
+            },
         ],
         "schemaKey": "Dataset",
         "label": "BIDS dataset",
@@ -112,12 +139,17 @@ def test_get_id_unsupported_mode_fails():
 
 def test_get_id(bids_json, demo_json):
     target_bids = {
-        1: {"label": 1, "extra_key": "one"},
-        2: {"label": 2, "extra_key": "two"},
+        "sub-1": {"label": "sub-1", "extra_key": "one"},
+        "sub-2": {"label": "sub-2", "extra_key": "two"},
     }
     target_demo = {
-        1: {"label": 1, "special_key": "one"},
-        2: {"label": 2, "special_key": "two"},
+        "sub-1": {"label": "sub-1", "age": 55, "sex": "male", "diagnosis": ["snomed:123456"]},
+        "sub-2": {
+            "label": "sub-2",
+            "age": 23,
+            "sex": "female",
+            "diagnosis": ["http://purl.org/someterm"],
+        },
     }
     result_bids = get_id(bids_json, mode="bids")
     result_demo = get_id(demo_json, mode="demo")
@@ -148,7 +180,7 @@ def test_merge_json(bids_json, demo_json, target_json):
 def test_merge_if_demo_has_additional_subjects(bids_json, demo_json_long, target_json):
     # If there are more subjects in the demo file than the BIDS dataset
     # we expect a warning that includes the subject IDs that will be stripped
-    with pytest.warns(Warning, match=r"99"):
+    with pytest.warns(Warning, match=r"sub-99"):
         result = merge_json(bids_json, demo_json_long)
     assert result == target_json
 
@@ -181,7 +213,7 @@ def test_merge_if_bids_and_demo_have_additional_subjects(
         r"(?P<type>only present in the BIDS data)(?:.+\n+)(?P<sub>3)",
         warning_record[0].message.args[0],
     )
-    assert re.match(r"(.+\n+)(99)", warning_record[1].message.args[0])
+    assert re.match(r"(.+\n+)(sub-99)", warning_record[1].message.args[0])
     assert result == target_json
 
 

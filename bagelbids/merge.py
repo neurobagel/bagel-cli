@@ -39,19 +39,8 @@ def is_subset(sample: List, reference: List) -> bool:
     return set(sample).issubset(set(reference))
 
 
-def get_id(data: dict, mode: str = "bids") -> dict:
-    if mode == "bids":
-        return {sub["label"]: sub for sub in data["hasSamples"]}
-    elif mode == "demo":
-        # TODO: replace this hack and instead change the annotator output model
-        return {
-            sub["id"]: dict(
-                label=sub["id"], **{key: val for (key, val) in sub.items() if "id" not in key}
-            )
-            for sub in data["subjects"]
-        }
-    else:
-        raise NotImplementedError(f"Mode {mode} is not supported.")
+def get_data_by_label(data: dict) -> dict:
+    return {sub["label"]: sub for sub in data["hasSamples"]}
 
 
 def merge_on_subject(bids_json: dict, demo_json: dict) -> list:
@@ -93,8 +82,8 @@ def merge_on_subject(bids_json: dict, demo_json: dict) -> list:
 
 
 def merge_json(bids_json: dict, demo_json: dict) -> dict:
-    bids_index = get_id(bids_json, mode="bids")
-    demo_index = get_id(demo_json, mode="demo")
+    bids_index = get_data_by_label(bids_json)
+    demo_index = get_data_by_label(demo_json)
     bids_json["hasSamples"] = merge_on_subject(bids_index, demo_index)
 
     return bids_json

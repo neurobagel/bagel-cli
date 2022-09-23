@@ -9,7 +9,7 @@ from click.testing import CliRunner
 from pydantic import ValidationError
 import uuid
 
-from bagelbids.merge import cli, get_id, merge_on_subject, merge_json
+from bagelbids.merge import cli, get_data_by_label, merge_on_subject, merge_json
 from bagelbids import models
 
 
@@ -40,15 +40,15 @@ def bids_json_long(bids_json):
 @pytest.fixture
 def demo_json():
     return {
-        "subjects": [
+        "hasSamples": [
             {
-                "id": "sub-1",
+                "label": "sub-1",
                 "age": 55,
                 "sex": "male",
                 "diagnosis": [{"identifier": "snomed:123456"}, {"identifier": "snomed:654321"}],
             },
             {
-                "id": "sub-2",
+                "label": "sub-2",
                 "age": 23,
                 "sex": "female",
                 "diagnosis": [
@@ -63,10 +63,10 @@ def demo_json():
 @pytest.fixture
 def demo_json_long(demo_json):
     return {
-        "subjects": demo_json["subjects"]
+        "hasSamples": demo_json["hasSamples"]
         + [
             {
-                "id": "sub-99",
+                "label": "sub-99",
                 "age": 100,
                 "sex": "other",
                 "diagnosis": [{"identifier": "http://purl.org/otherterm"}],
@@ -148,12 +148,7 @@ def test_merge_creates_valid_data_model(runner, bids_json_path, demo_json_path, 
         pytest.fail(f"The output of the merge CLI was not a valid dataset model: {e}")
 
 
-def test_get_id_unsupported_mode_fails():
-    with pytest.raises(NotImplementedError):
-        get_id({}, "does_not_exist_mode")
-
-
-def test_get_id(bids_json, demo_json):
+def test_get_data_by_label(bids_json, demo_json):
     target_bids = {
         "sub-1": {"label": "sub-1", "extra_key": "one"},
         "sub-2": {"label": "sub-2", "extra_key": "two"},
@@ -175,8 +170,8 @@ def test_get_id(bids_json, demo_json):
             ],
         },
     }
-    result_bids = get_id(bids_json, mode="bids")
-    result_demo = get_id(demo_json, mode="demo")
+    result_bids = get_data_by_label(bids_json)
+    result_demo = get_data_by_label(demo_json)
     assert result_bids == target_bids
     assert result_demo == target_demo
 

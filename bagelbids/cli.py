@@ -1,9 +1,16 @@
 from pathlib import Path
+from typing import Dict
 
 import click
 from bids import BIDSLayout
 
-from bagelbids import models
+from bagelbids import models, mappings
+
+
+def map_term_to_namespace(term: str, namespace: Dict):
+    """
+    Returns the mapped namespace term if it exists, or False otherwise"""
+    return namespace.get(term, False)
 
 
 @click.command(
@@ -39,11 +46,16 @@ def bagel(bids_dir, output_dir, level, validate):
             for bids_file in layout.get(
                 subject=subject, session=session, extension=[".nii", ".nii.gz"]
             ):
-                image_list.append(
-                    models.Imaging(
-                        hasContrastType=bids_file.get_entities().get("suffix"),
-                    )
+                # If the suffix of a BIDS file is not recognized, then ignore
+                mapped_term = map_term_to_namespace(
+                    bids_file.get_entities().get("suffix"), namespace=mappings.NIDM
                 )
+                if mapped_term:
+                    image_list.append(
+                        models.Acquisition(
+                            hasContrastType=models.Image(identifier=mapped_term),
+                        )
+                    )
             session_list.append(models.Session(label=session, hasAcquisition=image_list))
         # pyBIDS strips the "sub-" prefix, but we want to add it back
         subject_list.append(models.Subject(label=f"sub-{subject}", hasSession=session_list))

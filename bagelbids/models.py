@@ -19,18 +19,24 @@ class Bagel(BaseModel):
     )
 
 
-class Imaging(Bagel):
-    hasContrastType: str
-    schemaKey: Literal["Imaging"] = Field("Imaging", readOnly=True)
+class Image(BaseModel):
+    identifier: str
+    schemaKey: Literal["Image"] = Field("Image", readOnly=True)
+
+
+class Acquisition(Bagel):
+    hasContrastType: Image
+    schemaKey: Literal["Acquisition"] = Field("Acquisition", readOnly=True)
 
 
 class Diagnosis(BaseModel):
     identifier: Union[str, HttpUrl]
+    schemaKey: Literal["Diagnosis"] = Field("Diagnosis", readOnly=True)
 
 
 class Session(Bagel):
     label: str
-    hasAcquisition: List[Imaging]
+    hasAcquisition: List[Acquisition]
     schemaKey: Literal["Session"] = Field("Session", readOnly=True)
 
 

@@ -15,6 +15,7 @@ def generate_context():
     field_preamble = {
         "bagel": "http://neurobagel.org/vocab/",
         "snomed": "https://identifiers.org/snomedct:",
+        "nidm": "http://purl.org/nidash/nidm#",
     }
     fields = {}
     for val in dir(models):

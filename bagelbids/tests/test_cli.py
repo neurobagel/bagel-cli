@@ -23,9 +23,12 @@ def test_processing_invalid_bids_data_fails(runner, tmp_path, bids_invalid_synth
 
 
 def test_disabling_validation(runner, tmp_path, bids_invalid_synthetic):
-    result = runner.invoke(
-        bagel, ["--bids_dir", bids_invalid_synthetic, "--output_dir", tmp_path, "--skip-validate"]
-    )
+
+    with pytest.warns(Warning, match=r"dataset_description.json file is missing"):
+        result = runner.invoke(
+            bagel,
+            ["--bids_dir", bids_invalid_synthetic, "--output_dir", tmp_path, "--skip-validate"],
+        )
     assert result.exit_code == 0
 
 
@@ -45,6 +48,14 @@ def test_that_subject_id_includes_the_full_sub_prefix(runner, bids_synthetic, tm
     assert set(["01", "02"]).issubset(
         [ses["label"] for ses in subs[0]["hasSession"]]
     ), "The expected sessions are not found for subject 04"
+
+
+def test_that_dataset_name_matches_BIDS(runner, bids_synthetic, tmp_path):
+    runner.invoke(bagel, ["--bids_dir", bids_synthetic, "--output_dir", tmp_path])
+    with open(tmp_path / "synthetic.json", "r") as f:
+        bids_json = json.load(f)
+
+    assert bids_json.get("label") == "Synthetic dataset for inclusion in BIDS-examples"
 
 
 def test_BIDS_suffix_gets_mapped_to_NIDM():

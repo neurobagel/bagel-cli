@@ -38,10 +38,10 @@ def bagel(bids_dir, output_dir, level, validate):
     # TODO setup logger
     file_name = Path(bids_dir).name
     layout = BIDSLayout(bids_dir, validate=validate)
-    if layout.get_file("dataset_description.tsv") is None and not validate:
+    if layout.description is None and not validate:
         warnings.warn(
-            "The BIDS dataset_description.json file is missing."
-            "We can therefore not read the BIDS dataset name."
+            "The BIDS dataset_description.json file is missing.\n"
+            "We can therefore not read the BIDS dataset name.\n"
             f"We will use the name of the BIDS directory as the dataset name: {file_name}."
         )
         bids_dataset_name = file_name

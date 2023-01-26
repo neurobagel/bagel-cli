@@ -19,7 +19,7 @@ class Neurobagel(BaseModel):
     missingValues: conlist(str, unique_items=True) = Field(..., description="A list of unique values that represent "
                                                                             "invalid responses, typos, or missing data",
                                                            alias="MissingValues")
-    isPartOf: Optional[Identifier] = Field(..., description="If the column is a subscale or item of an assessment tool"
+    isPartOf: Optional[Identifier] = Field(..., description="If the column is a subscale or item of an assessment tool "
                                                             "then the assessment tool should be specified here.",
                                            alias="IsPartOf")
 

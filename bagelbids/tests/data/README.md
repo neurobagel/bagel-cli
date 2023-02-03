@@ -33,3 +33,10 @@ Example inputs to the CLI
     - has additional unique value, not documented in .json
   - .json
     - same as example1
+- example6: valid data, .json includes missingValues attribute -> pass
+  - .tsv
+    - valid
+    - same as example5
+  - .json
+    - valid
+    - contains MissingValues attribute for categorical variable

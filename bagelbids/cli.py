@@ -15,4 +15,12 @@ def pheno(
         output: Path = typer.Option(..., help="The directory where outputs should be created",
                                     exists=True, file_okay=False, dir_okay=True)
 ):
-    pass
+    """
+    Process a tabular phenotypic file (.tsv) that has been successfully annotated
+    with the Neurobagel annotation tool. The annotations are expected to be stored
+    in a data dictionary (.json).
+
+    This tool will create a valid, subject-level instance of the Neurobagel
+    graph datamodel for the provided phenotypic file in the .jsonld format.
+    You can upload this .jsonld file to the Neurobagel graph.
+    """

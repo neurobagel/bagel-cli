@@ -21,3 +21,9 @@ Example inputs to the CLI
   - .json
     - is valid as BIDS
     - BUT: is not valid as Neurobagel (no `"Annotations"` field)
+- example4
+  - .tsv
+    - is valid
+    - BUT: has more columns than are annotated in the .json
+  - .json
+    - same as example 1

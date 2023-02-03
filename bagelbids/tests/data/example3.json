@@ -1,0 +1,9 @@
+{
+    "group": {
+        "Description": "Group variable",
+        "Levels": {
+            "PAT": "Patient",
+            "CTRL": "Control subject"
+        }
+    }
+}

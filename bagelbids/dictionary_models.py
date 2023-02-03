@@ -16,10 +16,10 @@ class Neurobagel(BaseModel):
     """The base model for a Neurobagel column annotation"""
     isAbout: Identifier = Field(..., description="The concept or controlled term that describes this column",
                                 alias="IsAbout")
-    missingValues: conlist(str, unique_items=True) = Field(..., description="A list of unique values that represent "
+    missingValues: conlist(str, unique_items=True) = Field([], description="A list of unique values that represent "
                                                                             "invalid responses, typos, or missing data",
                                                            alias="MissingValues")
-    isPartOf: Optional[Identifier] = Field(..., description="If the column is a subscale or item of an assessment tool "
+    isPartOf: Optional[Identifier] = Field(None, description="If the column is a subscale or item of an assessment tool "
                                                             "then the assessment tool should be specified here.",
                                            alias="IsPartOf")
 
@@ -34,7 +34,7 @@ class CategoricalNeurobagel(Neurobagel):
 
 class ContinuousNeurobagel(Neurobagel):
     """A Neurobagel annotation for a continuous column"""
-    transformation: Identifier = Field(..., description="For continuous columns this field can be used to describe"
+    transformation: Identifier = Field(None, description="For continuous columns this field can be used to describe"
                                                         "a transformation that can be applied to the values in this"
                                                         "column in order to match the desired format of a standardized"
                                                         "data element referenced in the IsAbout attribute.",
@@ -59,7 +59,7 @@ class CategoricalColumn(Column):
 
 class ContinuousColumn(Column):
     """A BIDS column annotation for a continuous column"""
-    units: str = Field(..., description="Measurement units for the values in this column. "
+    units: str = Field(None, description="Measurement units for the values in this column. "
                                         "SI units in CMIXF formatting are RECOMMENDED (see Units)",
                        alias="Units")
 

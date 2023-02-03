@@ -27,3 +27,9 @@ Example inputs to the CLI
     - BUT: has more columns than are annotated in the .json
   - .json
     - same as example 1
+- example5: categorical variable has extra values not in dictionary -> fail
+  - .tsv
+    - valid
+    - has additional unique value, not documented in .json
+  - .json
+    - same as example1

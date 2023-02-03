@@ -1,0 +1,5 @@
+participant_id	session_id	group
+sub-01	ses-01	PAT
+sub-01	ses-02	PAT
+sub-02	ses-01	OTHER
+sub-02	ses-02	CTRL

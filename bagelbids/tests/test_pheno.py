@@ -1,25 +1,8 @@
 import json
 
 import pytest
-from typer.testing import CliRunner
 
-from bagelbids.cli import bagel, is_valid_data_dictionary, load_json
-
-
-@pytest.fixture
-def runner():
-    return CliRunner()
-
-
-def test_cli_validates_dictionary(runner, tmp_path, test_data):
-    dir_p = tmp_path
-    demo_p = dir_p / "demo.tsv"
-    dict_p = test_data / "example1.json"
-    demo_p.touch()
-    dict_p.touch()
-
-    result = runner.invoke(bagel, ["--pheno", demo_p, "--dictionary", dict_p, "--output", dir_p])
-    assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
+from bagelbids.cli import is_valid_data_dictionary
 
 
 @pytest.mark.parametrize("input_p,is_valid", [

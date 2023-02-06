@@ -1,8 +1,42 @@
 from pathlib import Path
+import json
+import jsonschema
 
 import typer
 
+from bagelbids import dictionary_models
+
+
 bagel = typer.Typer()
+
+DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
+
+
+def load_json(data_dict_path: Path) -> dict:
+    with open(data_dict_path, "r") as f:
+        return json.load(f)
+
+
+def has_neurobagel_annotations(data_dict: dict) -> bool:
+    """Determines whether a data dictionary contains Neurobagel specific "Annotations"."""
+    return all([description.get("Annotations") is not None
+                for col, description in data_dict.items()
+                if not col == "@context"])
+
+
+def is_valid_data_dictionary(data_dict: dict) -> bool:
+    """
+    Check if a data dictionary complies with the Neurobagel schema for data dictionaries
+    Parameters
+    ----------
+    data_dict: dict
+        A loaded data dictionary.
+    """
+    try:
+        jsonschema.validate(data_dict, DICTIONARY_SCHEMA)
+        return has_neurobagel_annotations(data_dict)
+    except jsonschema.ValidationError:
+        return False
 
 
 @bagel.command()
@@ -24,3 +58,5 @@ def pheno(
     graph datamodel for the provided phenotypic file in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
+    data_dictionary = load_json(dictionary)
+    print(is_valid_data_dictionary(data_dictionary))

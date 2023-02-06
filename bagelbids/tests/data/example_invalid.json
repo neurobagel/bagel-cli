@@ -1,0 +1,38 @@
+{
+    "participant_id": {
+        "Description": "A participant ID",
+        "Annotations": {
+            "IsAbout": {
+                "Label": "Unique participant identifier"
+            }
+        }
+    },
+    "session_id": {
+        "Description": "A session ID",
+        "Annotations": {
+            "IsAbout": {
+                "Label": "Unique session identifier"
+            }
+        }
+    },
+    "group": {
+        "Description": "Group variable",
+        "Levels": {
+            "PAT": "Patient",
+            "CTRL": "Control subject"
+        },
+        "Annotations": {
+            "IsAbout": {
+                "Label": "Diagnosis"
+            },
+            "Levels": {
+                "PAT": {
+                    "Label": "Parkinson's disease"
+                },
+                "CTRL": {
+                    "Label": "Healthy Control"
+                }
+            }
+        }
+    }
+}

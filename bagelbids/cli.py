@@ -17,6 +17,13 @@ def load_json(data_dict_path: Path) -> dict:
         return json.load(f)
 
 
+def are_inputs_compatible(data_dict: dict, pheno_df: pd.DataFrame) -> bool:
+    """
+    Determines whether the provided data dictionary and phenotypic file make sense together
+    """
+    return all([key in pheno_df.columns for key in data_dict.keys()])
+
+
 def has_neurobagel_annotations(data_dict: dict) -> bool:
     """Determines whether a data dictionary contains Neurobagel specific "Annotations"."""
     return all([description.get("Annotations") is not None

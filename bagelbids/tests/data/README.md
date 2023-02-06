@@ -11,3 +11,4 @@ Example inputs to the CLI
 | 5       | valid, has additional unique value, not documented in `.json` | same as example 1                                                                | fail   |
 | 6       | valid, same as example 5                                      | valid, contains `"MissingValues"` attribute for categorical variable             | pass   |
 | invalid | -                                                             | invalid, missing the `"TermURL"` attribute for identifiers                       | fail   |
+| 7       | has fewer columns than are annotated in `.json`               | same as example 1                                                                | fail   |

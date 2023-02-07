@@ -9,12 +9,12 @@ def runner():
     return CliRunner()
 
 
-def test_cli_can_be_invoked(runner, tmp_path):
-    dir_p = tmp_path
-    demo_p = dir_p / "demo.tsv"
-    dict_p = dir_p / "dict.json"
-    demo_p.touch()
-    dict_p.touch()
+def test_cli_can_run_pheno_subcommand(runner, test_data, tmp_path):
+    """Basic smoke test for the "pheno" subcommand"""
+    # TODO: when we have more than one subcommand, the CLI runner will have
+    # to specify the subcommand - until then the CLI behaves as if there was no subcommand
 
-    result = runner.invoke(bagel, ["--pheno", demo_p, "--dictionary", dict_p, "--output", dir_p])
-    assert result.exit_code == 0
+    result = runner.invoke(bagel, ["--pheno", test_data / "example2.tsv",
+                                   "--dictionary", test_data / "example2.json",
+                                   "--output", tmp_path])
+    assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"

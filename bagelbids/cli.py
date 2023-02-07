@@ -3,6 +3,7 @@ import json
 import jsonschema
 
 import typer
+import pandas as pd
 
 from bagelbids import dictionary_models
 
@@ -46,6 +47,19 @@ def is_valid_data_dictionary(data_dict: dict) -> bool:
         return False
 
 
+def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
+    """Determines whether input data are valid"""
+    if not is_valid_data_dictionary(data_dict):
+        raise ValueError("The provided data dictionary is not a valid Neurobagel data dictionary. "
+                         "Make sure that each annotated column contains an 'Annotations' key.")
+    if not are_inputs_compatible(data_dict, pheno_df):
+        raise LookupError("The provided data dictionary and phenotypic file are individually valid, "
+                          "but are not compatible. Make sure that you selected the correct data "
+                          "dictionary for your phenotyic file. Every column described in the data "
+                          "dictionary has to have a corresponding column with the same name in the "
+                          "phenotypic file")
+
+
 @bagel.command()
 def pheno(
         pheno: Path = typer.Option(..., help="The path to a phenotypic .tsv file.",
@@ -66,4 +80,5 @@ def pheno(
     You can upload this .jsonld file to the Neurobagel graph.
     """
     data_dictionary = load_json(dictionary)
-    print(is_valid_data_dictionary(data_dictionary))
+    pheno_df = pd.read_csv(pheno, sep="\t")
+    validate_inputs(data_dictionary, pheno_df)

@@ -4,7 +4,8 @@ import pandas as pd
 import pytest
 from typer.testing import CliRunner
 
-from bagelbids.cli import bagel, are_inputs_compatible
+from bagelbids import mappings
+from bagelbids.cli import bagel, are_inputs_compatible, get_columns_about
 
 
 @pytest.fixture
@@ -62,3 +63,13 @@ def test_validate_input(test_data, example, is_valid):
 
     result = are_inputs_compatible(data_dict=data_dict, pheno_df=pheno)
     assert result == is_valid
+
+
+def test_get_columns_that_are_about_concept(test_data):
+    """Test that matching annotated columns are returned as a list, 
+    and that empty list is returned if nothing matches"""
+    with open(test_data / f"example1.json", "r") as f:
+        data_dict = json.load(f)
+    
+    assert ["participant_id"] == get_columns_about(data_dict, concept=mappings.NEUROBAGEL["participant"])
+    assert [] == get_columns_about(data_dict, concept="does not exist concept")

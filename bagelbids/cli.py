@@ -13,8 +13,29 @@ bagel = typer.Typer()
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
 
 
-def load_json(data_dict_path: Path) -> dict:
-    with open(data_dict_path, "r") as f:
+def get_columns_about(data_dict: dict, concept: str) -> list:
+    """
+    Returns column names that have been annotated as "IsAbout" the desired concept.
+    Parameters
+    ----------
+    data_dict: dict
+        A valid Neurobagel annotated data dictionary must be provided.
+    concept: str
+        A (shorthand) IRI for a concept that a column can be "about"
+
+    Returns
+    list
+        List of column names that are "about" the desired concept
+
+    -------
+
+    """
+    return [col for col, annotations in data_dict.items()
+            if annotations["Annotations"]["IsAbout"]["TermURL"] == concept]
+
+
+def load_json(input_p: Path) -> dict:
+    with open(input_p, "r") as f:
         return json.load(f)
 
 

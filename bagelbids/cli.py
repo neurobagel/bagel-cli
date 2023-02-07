@@ -25,7 +25,6 @@ def are_inputs_compatible(data_dict: dict, pheno_df: pd.DataFrame) -> bool:
     return all([key in pheno_df.columns for key in data_dict.keys()])
 
 
-
 def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     """Determines whether input data are valid"""
     try:

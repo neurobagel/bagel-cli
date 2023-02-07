@@ -44,9 +44,9 @@ class ContinuousNeurobagel(Neurobagel):
 class Column(BaseModel):
     """The base model for a BIDS column description"""
     description: str = Field(..., description="Free-form natural language description", alias="Description")
-    annotations: Optional[Union[CategoricalNeurobagel, ContinuousNeurobagel]] = Field(None,
-                                                                                      description="Semantic annotations",
-                                                                                      alias="Annotations")
+    annotations: Union[CategoricalNeurobagel, ContinuousNeurobagel] = Field(...,
+                                                                            description="Semantic annotations",
+                                                                            alias="Annotations")
 
 
 class CategoricalColumn(Column):

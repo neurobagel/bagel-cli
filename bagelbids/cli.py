@@ -3,6 +3,7 @@ import json
 import jsonschema
 
 import typer
+import pandas as pd
 
 from bagelbids import dictionary_models
 
@@ -17,26 +18,27 @@ def load_json(data_dict_path: Path) -> dict:
         return json.load(f)
 
 
-def has_neurobagel_annotations(data_dict: dict) -> bool:
-    """Determines whether a data dictionary contains Neurobagel specific "Annotations"."""
-    return all([description.get("Annotations") is not None
-                for col, description in data_dict.items()
-                if not col == "@context"])
+def are_inputs_compatible(data_dict: dict, pheno_df: pd.DataFrame) -> bool:
+    """
+    Determines whether the provided data dictionary and phenotypic file make sense together
+    """
+    return all([key in pheno_df.columns for key in data_dict.keys()])
 
 
-def is_valid_data_dictionary(data_dict: dict) -> bool:
-    """
-    Check if a data dictionary complies with the Neurobagel schema for data dictionaries
-    Parameters
-    ----------
-    data_dict: dict
-        A loaded data dictionary.
-    """
+def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
+    """Determines whether input data are valid"""
     try:
         jsonschema.validate(data_dict, DICTIONARY_SCHEMA)
-        return has_neurobagel_annotations(data_dict)
-    except jsonschema.ValidationError:
-        return False
+    except jsonschema.ValidationError as e:
+        raise ValueError("The provided data dictionary is not a valid Neurobagel data dictionary. "
+                         "Make sure that each annotated column contains an 'Annotations' key.") from e
+    
+    if not are_inputs_compatible(data_dict, pheno_df):
+        raise LookupError("The provided data dictionary and phenotypic file are individually valid, "
+                          "but are not compatible. Make sure that you selected the correct data "
+                          "dictionary for your phenotyic file. Every column described in the data "
+                          "dictionary has to have a corresponding column with the same name in the "
+                          "phenotypic file")
 
 
 @bagel.command()
@@ -59,4 +61,5 @@ def pheno(
     You can upload this .jsonld file to the Neurobagel graph.
     """
     data_dictionary = load_json(dictionary)
-    print(is_valid_data_dictionary(data_dictionary))
+    pheno_df = pd.read_csv(pheno, sep="\t")
+    validate_inputs(data_dictionary, pheno_df)

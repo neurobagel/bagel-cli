@@ -5,7 +5,7 @@ import jsonschema
 import typer
 import pandas as pd
 
-from bagelbids import dictionary_models
+from bagelbids import dictionary_models, mappings
 
 
 bagel = typer.Typer()
@@ -51,15 +51,27 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     try:
         jsonschema.validate(data_dict, DICTIONARY_SCHEMA)
     except jsonschema.ValidationError as e:
-        raise ValueError("The provided data dictionary is not a valid Neurobagel data dictionary. "
-                         "Make sure that each annotated column contains an 'Annotations' key.") from e
-    
+        raise ValueError(
+            "The provided data dictionary is not a valid Neurobagel data dictionary. "
+            "Make sure that each annotated column contains an 'Annotations' key."
+        ) from e
+
+    # TODO: remove this validation when we start handling multiple participant and / or session ID columns
+    if ((len(get_columns_about(data_dict, concept=mappings.NEUROBAGEL["participant"])) > 1) |
+            (len(get_columns_about(data_dict, concept=mappings.NEUROBAGEL["session"])) > 1)):
+        raise ValueError(
+            "The provided data dictionary has more than one column about participant ID or session ID."
+            "Please make sure that only one column is annotated for participant and session IDs."
+        )
+
     if not are_inputs_compatible(data_dict, pheno_df):
-        raise LookupError("The provided data dictionary and phenotypic file are individually valid, "
-                          "but are not compatible. Make sure that you selected the correct data "
-                          "dictionary for your phenotyic file. Every column described in the data "
-                          "dictionary has to have a corresponding column with the same name in the "
-                          "phenotypic file")
+        raise LookupError(
+            "The provided data dictionary and phenotypic file are individually valid, "
+            "but are not compatible. Make sure that you selected the correct data "
+            "dictionary for your phenotyic file. Every column described in the data "
+            "dictionary has to have a corresponding column with the same name in the "
+            "phenotypic file"
+        )
 
 
 @bagel.command()

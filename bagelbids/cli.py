@@ -5,7 +5,7 @@ import jsonschema
 import typer
 import pandas as pd
 
-from bagelbids import dictionary_models, mappings
+from bagelbids import dictionary_models, mappings, models
 
 
 bagel = typer.Typer()
@@ -82,7 +82,10 @@ def pheno(
                                                   "corresponding to the phenotypic .tsv file.",
                                         exists=True, file_okay=True, dir_okay=False),
         output: Path = typer.Option(..., help="The directory where outputs should be created",
-                                    exists=True, file_okay=False, dir_okay=True)
+                                    exists=True, file_okay=False, dir_okay=True),
+        name: str = typer.Option(..., help="A descriptive name for the dataset the input belongs to. "
+                                           "This name is expected to match the name field in the BIDS "
+                                           "dataset_description.json file.")
 ):
     """
     Process a tabular phenotypic file (.tsv) that has been successfully annotated
@@ -96,3 +99,20 @@ def pheno(
     data_dictionary = load_json(dictionary)
     pheno_df = pd.read_csv(pheno, sep="\t")
     validate_inputs(data_dictionary, pheno_df)
+
+    subject_list = []
+
+    # TODO: needs refactoring once we handle multiple participant IDs
+    participants = get_columns_about(data_dictionary, concept=mappings.NEUROBAGEL["participant"])[0]
+    for participant in pheno_df[participants].unique():
+        _sub_pheno = pheno_df.query(f"{participants} == '{str(participant)}'")
+        # TODO: needs refactoring once we handle phenotypic information at the session level
+        # for the moment we are not creating any session instances in the phenotypic graph
+        # we treat the phenotypic information in the first row of the _sub_pheno dataframe
+        # as reflecting the subject level phenotypic information
+        subject_list.append(models.Subject(label=str(participant)))
+
+    dataset = models.Dataset(label=name, hasSamples=subject_list)
+
+    with open(output / "pheno.jsonld", "w") as f:
+        f.write(dataset.json(indent=2))

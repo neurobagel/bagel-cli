@@ -1,12 +1,9 @@
 import uuid
-
 from typing import List, Literal, Optional, Union
+
 from pydantic import BaseModel, Field, HttpUrl
 
-
-UUID_PATTERN = (
-    r"[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$"
-)
+UUID_PATTERN = r"[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$"
 BAGEL_UUID_PATTERN = r"^bagel:" + UUID_PATTERN
 
 
@@ -15,7 +12,8 @@ class Bagel(BaseModel):
     by default, a random (uuid4) string UUID will be created"""
 
     identifier: str = Field(
-        regex=BAGEL_UUID_PATTERN, default_factory=lambda: "bagel:" + str(uuid.uuid4())
+        regex=BAGEL_UUID_PATTERN,
+        default_factory=lambda: "bagel:" + str(uuid.uuid4()),
     )
 
 

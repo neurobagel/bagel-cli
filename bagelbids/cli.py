@@ -1,12 +1,11 @@
-from pathlib import Path
 import json
-import jsonschema
+from pathlib import Path
 
-import typer
+import jsonschema
 import pandas as pd
+import typer
 
 from bagelbids import dictionary_models, mappings, models
-
 
 bagel = typer.Typer()
 
@@ -30,8 +29,11 @@ def get_columns_about(data_dict: dict, concept: str) -> list:
     -------
 
     """
-    return [col for col, annotations in data_dict.items()
-            if annotations["Annotations"]["IsAbout"]["TermURL"] == concept]
+    return [
+        col
+        for col, annotations in data_dict.items()
+        if annotations["Annotations"]["IsAbout"]["TermURL"] == concept
+    ]
 
 
 def load_json(input_p: Path) -> dict:
@@ -57,8 +59,21 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
         ) from e
 
     # TODO: remove this validation when we start handling multiple participant and / or session ID columns
-    if ((len(get_columns_about(data_dict, concept=mappings.NEUROBAGEL["participant"])) > 1) |
-            (len(get_columns_about(data_dict, concept=mappings.NEUROBAGEL["session"])) > 1)):
+    if (
+        len(
+            get_columns_about(
+                data_dict, concept=mappings.NEUROBAGEL["participant"]
+            )
+        )
+        > 1
+    ) | (
+        len(
+            get_columns_about(
+                data_dict, concept=mappings.NEUROBAGEL["session"]
+            )
+        )
+        > 1
+    ):
         raise ValueError(
             "The provided data dictionary has more than one column about participant ID or session ID."
             "Please make sure that only one column is annotated for participant and session IDs."
@@ -76,16 +91,34 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
 
 @bagel.command()
 def pheno(
-        pheno: Path = typer.Option(..., help="The path to a phenotypic .tsv file.",
-                                   exists=True, file_okay=True, dir_okay=False),
-        dictionary: Path = typer.Option(..., help="The path to the .json data dictionary "
-                                                  "corresponding to the phenotypic .tsv file.",
-                                        exists=True, file_okay=True, dir_okay=False),
-        output: Path = typer.Option(..., help="The directory where outputs should be created",
-                                    exists=True, file_okay=False, dir_okay=True),
-        name: str = typer.Option(..., help="A descriptive name for the dataset the input belongs to. "
-                                           "This name is expected to match the name field in the BIDS "
-                                           "dataset_description.json file.")
+    pheno: Path = typer.Option(
+        ...,
+        help="The path to a phenotypic .tsv file.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+    ),
+    dictionary: Path = typer.Option(
+        ...,
+        help="The path to the .json data dictionary "
+        "corresponding to the phenotypic .tsv file.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+    ),
+    output: Path = typer.Option(
+        ...,
+        help="The directory where outputs should be created",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+    name: str = typer.Option(
+        ...,
+        help="A descriptive name for the dataset the input belongs to. "
+        "This name is expected to match the name field in the BIDS "
+        "dataset_description.json file.",
+    ),
 ):
     """
     Process a tabular phenotypic file (.tsv) that has been successfully annotated
@@ -103,9 +136,11 @@ def pheno(
     subject_list = []
 
     # TODO: needs refactoring once we handle multiple participant IDs
-    participants = get_columns_about(data_dictionary, concept=mappings.NEUROBAGEL["participant"])[0]
+    participants = get_columns_about(
+        data_dictionary, concept=mappings.NEUROBAGEL["participant"]
+    )[0]
     for participant in pheno_df[participants].unique():
-        _sub_pheno = pheno_df.query(f"{participants} == '{str(participant)}'")
+        pheno_df.query(f"{participants} == '{str(participant)}'")
         # TODO: needs refactoring once we handle phenotypic information at the session level
         # for the moment we are not creating any session instances in the phenotypic graph
         # we treat the phenotypic information in the first row of the _sub_pheno dataframe

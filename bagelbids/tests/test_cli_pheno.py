@@ -1,10 +1,16 @@
 import json
 
+import pandas as pd
 import pytest
 from typer.testing import CliRunner
 
 from bagelbids import mappings
-from bagelbids.cli import bagel, get_columns_about, map_categories_to_columns
+from bagelbids.cli import (
+    bagel,
+    get_cat_transf_val,
+    get_columns_about,
+    map_categories_to_columns,
+)
 
 
 @pytest.fixture
@@ -96,6 +102,18 @@ def test_map_columns(test_data):
     assert ["participant_id"] == result["participant"]
     assert ["session_id"] == result["session"]
     assert ["sex"] == result["sex"]
+
+
+def test_get_transformed_categorical_value(test_data):
+    """Test that the correct transformed value is returned for a categorical variable"""
+    with open(test_data / "example2.json", "r") as f:
+        data_dict = json.load(f)
+
+    assert "bids:Male" == get_cat_transf_val(
+        columns=["sex"],
+        row=pd.Series({"sex": "M"}, index=["sex"]),
+        data_dict=data_dict,
+    )
 
 
 def test_that_output_file_contains_name(runner, test_data, tmp_path):

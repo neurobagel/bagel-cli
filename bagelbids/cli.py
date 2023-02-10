@@ -45,6 +45,14 @@ def map_categories_to_columns(data_dict: dict) -> dict:
     }
 
 
+def get_cat_transf_val(columns: list, row: pd.Series, data_dict: dict) -> str:
+    """Return a transformed categorical value"""
+    # TODO: implement a way to handle cases where more than one column contains information
+    return data_dict[columns[0]]["Annotations"]["Levels"][row[columns[0]]][
+        "TermURL"
+    ]
+
+
 def load_json(input_p: Path) -> dict:
     with open(input_p, "r") as f:
         return json.load(f)
@@ -149,12 +157,20 @@ def pheno(
     participants = column_mapping.get("participant")[0]
 
     for participant in pheno_df[participants].unique():
-        pheno_df.query(f"{participants} == '{str(participant)}'")
         # TODO: needs refactoring once we handle phenotypic information at the session level
         # for the moment we are not creating any session instances in the phenotypic graph
         # we treat the phenotypic information in the first row of the _sub_pheno dataframe
         # as reflecting the subject level phenotypic information
-        subject_list.append(models.Subject(label=str(participant)))
+        _sub_pheno = pheno_df.query(
+            f"{participants} == '{str(participant)}'"
+        ).iloc[0]
+
+        subject = models.Subject(label=str(participant))
+        if "sex" in column_mapping.keys():
+            subject.sex = get_cat_transf_val(
+                column_mapping["sex"], _sub_pheno, data_dictionary
+            )
+        subject_list.append(subject)
 
     dataset = models.Dataset(label=name, hasSamples=subject_list)
 

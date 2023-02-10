@@ -4,7 +4,7 @@ import pytest
 from typer.testing import CliRunner
 
 from bagelbids import mappings
-from bagelbids.cli import bagel, get_columns_about
+from bagelbids.cli import bagel, get_columns_about, map_categories_to_columns
 
 
 @pytest.fixture
@@ -83,6 +83,19 @@ def test_get_columns_that_are_about_concept(test_data):
         data_dict, concept=mappings.NEUROBAGEL["participant"]
     )
     assert [] == get_columns_about(data_dict, concept="does not exist concept")
+
+
+def test_map_columns(test_data):
+    """Test that inverse mapping of concepts to columns is correctly created"""
+    with open(test_data / "example2.json", "r") as f:
+        data_dict = json.load(f)
+
+    result = map_categories_to_columns(data_dict)
+
+    assert set(["participant", "session", "sex"]).issubset(result.keys())
+    assert ["participant_id"] == result["participant"]
+    assert ["session_id"] == result["session"]
+    assert ["sex"] == result["sex"]
 
 
 def test_that_output_file_contains_name(runner, test_data, tmp_path):

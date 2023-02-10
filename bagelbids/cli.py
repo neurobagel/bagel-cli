@@ -36,6 +36,15 @@ def get_columns_about(data_dict: dict, concept: str) -> list:
     ]
 
 
+def map_categories_to_columns(data_dict: dict) -> dict:
+    """Create a mapping of categories to columns for a given data dictionary"""
+    return {
+        cat_name: get_columns_about(data_dict, cat_iri)
+        for cat_name, cat_iri in mappings.NEUROBAGEL.items()
+        if get_columns_about(data_dict, cat_iri)
+    }
+
+
 def load_json(input_p: Path) -> dict:
     with open(input_p, "r") as f:
         return json.load(f)
@@ -135,10 +144,10 @@ def pheno(
 
     subject_list = []
 
+    column_mapping = map_categories_to_columns(data_dictionary)
     # TODO: needs refactoring once we handle multiple participant IDs
-    participants = get_columns_about(
-        data_dictionary, concept=mappings.NEUROBAGEL["participant"]
-    )[0]
+    participants = column_mapping.get("participant")[0]
+
     for participant in pheno_df[participants].unique():
         pheno_df.query(f"{participants} == '{str(participant)}'")
         # TODO: needs refactoring once we handle phenotypic information at the session level

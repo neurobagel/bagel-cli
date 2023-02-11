@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Union
 
 import jsonschema
 import pandas as pd
@@ -45,12 +46,46 @@ def map_categories_to_columns(data_dict: dict) -> dict:
     }
 
 
-def get_cat_transf_val(columns: list, row: pd.Series, data_dict: dict) -> str:
-    """Return a transformed categorical value"""
+def is_missing_value(
+    value: Union[str, int], column: str, data_dict: dict
+) -> bool:
+    """Determine if a raw value is listed as a missing value in the data dictionary entry for this column"""
+    return value in data_dict[column]["Annotations"].get("MissingValues", [])
+
+
+def is_column_categorical(column: str, data_dict: dict) -> bool:
+    """Determine whether a column in a Neurobagel data dictionary is categorical"""
+    if "Levels" in data_dict[column]:
+        return True
+    return False
+
+
+def transform_categorical_value(
+    value: Union[str, int], column: str, data_dict: dict
+) -> str:
+    return data_dict[column]["Annotations"]["Levels"][value]["TermURL"]
+
+
+def get_transformed_values(
+    columns: list, row: pd.Series, data_dict: dict
+) -> Union[str, None]:
+    """Convert a raw phenotypic value to the corresponding controlled term"""
+    _transf_val = []
     # TODO: implement a way to handle cases where more than one column contains information
-    return data_dict[columns[0]]["Annotations"]["Levels"][row[columns[0]]][
-        "TermURL"
-    ]
+    for col in columns[:1]:
+        value = row[col]
+        if is_missing_value(value, col, data_dict):
+            continue
+        if is_column_categorical(col, data_dict):
+            _transf_val.append(
+                transform_categorical_value(value, col, data_dict)
+            )
+
+    # TODO: once we can handle multiple columns, this section shoud be removed
+    # and we should just return an empty list if no transform can be generated
+    if not _transf_val:
+        return None
+    return _transf_val[0]
 
 
 def load_json(input_p: Path) -> dict:
@@ -167,7 +202,7 @@ def pheno(
 
         subject = models.Subject(label=str(participant))
         if "sex" in column_mapping.keys():
-            subject.sex = get_cat_transf_val(
+            subject.sex = get_transformed_values(
                 column_mapping["sex"], _sub_pheno, data_dictionary
             )
         subject_list.append(subject)

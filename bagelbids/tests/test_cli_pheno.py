@@ -7,8 +7,9 @@ from typer.testing import CliRunner
 from bagelbids import mappings
 from bagelbids.cli import (
     bagel,
-    get_cat_transf_val,
     get_columns_about,
+    get_transformed_values,
+    is_missing_value,
     map_categories_to_columns,
 )
 
@@ -98,7 +99,7 @@ def test_map_columns(test_data):
 
     result = map_categories_to_columns(data_dict)
 
-    assert set(["participant", "session", "sex"]).issubset(result.keys())
+    assert {"participant", "session", "sex"}.issubset(result.keys())
     assert ["participant_id"] == result["participant"]
     assert ["session_id"] == result["session"]
     assert ["sex"] == result["sex"]
@@ -109,10 +110,29 @@ def test_get_transformed_categorical_value(test_data):
     with open(test_data / "example2.json", "r") as f:
         data_dict = json.load(f)
 
-    assert "bids:Male" == get_cat_transf_val(
+    assert "bids:Male" == get_transformed_values(
         columns=["sex"],
         row=pd.Series({"sex": "M"}, index=["sex"]),
         data_dict=data_dict,
+    )
+
+
+def test_missing_values():
+    """Test that missing values are correctly detected"""
+    test_data_dict = {
+        "test_column": {"Annotations": {"MissingValues": ["test_value"]}},
+        "empty_column": {"Annotations": {}},
+    }
+
+    assert (
+        is_missing_value("test_value", "test_column", test_data_dict) is True
+    )
+    assert (
+        is_missing_value("does not exist", "test_column", test_data_dict)
+        is False
+    )
+    assert (
+        is_missing_value("my_value", "empty_column", test_data_dict) is False
     )
 
 

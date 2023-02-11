@@ -217,6 +217,16 @@ def pheno(
                 subject.isSubjectGroup = mappings.NEUROBAGEL["healthy_control"]
             else:
                 subject.diagnosis = [models.Diagnosis(identifier=_dx_val)]
+        if "assessment_tool" in column_mapping.keys():
+            subject.assessment = [
+                models.Assessment(
+                    identifier=get_transformed_values(
+                        column_mapping["assessment_tool"],
+                        _sub_pheno,
+                        data_dictionary,
+                    )
+                )
+            ]
 
         subject_list.append(subject)
 

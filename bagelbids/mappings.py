@@ -17,4 +17,5 @@ NEUROBAGEL = {
     "sex": "bg:sex",
     "diagnosis": "bg:diagnosis",
     "healthy_control": "purl:NCIT_C94342",
+    "assessment_tool": "bg:Assessment",
 }

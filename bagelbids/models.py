@@ -43,6 +43,7 @@ class Subject(Bagel):
     hasSession: Optional[List[Session]] = None
     age: Optional[float] = None
     sex: Optional[str] = None
+    isSubjectGroup: Optional[str] = None
     diagnosis: Optional[List[Diagnosis]] = None
     schemaKey: Literal["Subject"] = Field("Subject", readOnly=True)
 

@@ -214,7 +214,7 @@ def pheno(
             if _dx_val is None:
                 pass
             elif _dx_val == mappings.NEUROBAGEL["healthy_control"]:
-                pass
+                subject.isSubjectGroup = mappings.NEUROBAGEL["healthy_control"]
             else:
                 subject.diagnosis = [models.Diagnosis(identifier=_dx_val)]
 

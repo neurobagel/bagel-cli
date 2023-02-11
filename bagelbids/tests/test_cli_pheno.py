@@ -181,3 +181,4 @@ def test_diagnosis_and_control_status_handled(runner, test_data, tmp_path):
     )
     assert "diagnosis" not in pheno["hasSamples"][1].keys()
     assert "diagnosis" not in pheno["hasSamples"][2].keys()
+    assert pheno["hasSamples"][2]["isSubjectGroup"] == "purl:NCIT_C94342"

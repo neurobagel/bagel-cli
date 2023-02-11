@@ -16,4 +16,5 @@ NEUROBAGEL = {
     "session": "bg:SessionID",
     "sex": "bg:sex",
     "diagnosis": "bg:diagnosis",
+    "healthy_control": "purl:NCIT_C94342",
 }

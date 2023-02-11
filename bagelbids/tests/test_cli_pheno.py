@@ -155,3 +155,29 @@ def test_that_output_file_contains_name(runner, test_data, tmp_path):
         pheno = json.load(f)
 
     assert pheno.get("label") == "my_dataset_name"
+
+
+def test_diagnosis_and_control_status_handled(runner, test_data, tmp_path):
+    runner.invoke(
+        bagel,
+        [
+            "--pheno",
+            test_data / "example6.tsv",
+            "--dictionary",
+            test_data / "example6.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "my_dataset_name",
+        ],
+    )
+
+    with open(tmp_path / "pheno.jsonld", "r") as f:
+        pheno = json.load(f)
+
+    assert (
+        pheno["hasSamples"][0]["diagnosis"][0]["identifier"]
+        == "snomed:49049000"
+    )
+    assert "diagnosis" not in pheno["hasSamples"][1].keys()
+    assert "diagnosis" not in pheno["hasSamples"][2].keys()

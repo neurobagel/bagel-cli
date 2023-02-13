@@ -218,6 +218,8 @@ def pheno(
     subject_list = []
 
     column_mapping = map_categories_to_columns(data_dictionary)
+    tool_mapping = map_tools_to_columns(data_dictionary)
+
     # TODO: needs refactoring once we handle multiple participant IDs
     participants = column_mapping.get("participant")[0]
 
@@ -245,16 +247,15 @@ def pheno(
                 subject.isSubjectGroup = mappings.NEUROBAGEL["healthy_control"]
             else:
                 subject.diagnosis = [models.Diagnosis(identifier=_dx_val)]
-        if "assessment_tool" in column_mapping.keys():
-            subject.assessment = [
-                models.Assessment(
-                    identifier=get_transformed_values(
-                        column_mapping["assessment_tool"],
-                        _sub_pheno,
-                        data_dictionary,
-                    )
-                )
+        if tool_mapping:
+            _assessments = [
+                models.Assessment(identifier=tool)
+                for tool, columns in tool_mapping.items()
+                if are_not_missing(columns, _sub_pheno, data_dictionary)
             ]
+            if _assessments:
+                # Only set assignments for the subject if at least one is not missing
+                subject.assessment = _assessments
 
         subject_list.append(subject)
 

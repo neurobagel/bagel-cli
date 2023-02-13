@@ -94,7 +94,7 @@ def test_get_columns_that_are_about_concept(test_data):
     assert [] == get_columns_about(data_dict, concept="does not exist concept")
 
 
-def test_map_columns(test_data):
+def test_map_categories_to_columns(test_data):
     """Test that inverse mapping of concepts to columns is correctly created"""
     with open(test_data / "example2.json", "r") as f:
         data_dict = json.load(f)
@@ -197,6 +197,10 @@ def test_diagnosis_and_control_status_handled(runner, test_data, tmp_path):
 
 
 def test_get_assessment_tool_availability(test_data):
+    """
+    Ensure that subjects who have one or more missing values in columns mapped to an assessment
+    tool are correctly identified as not having this assessment tool
+    """
     with open(test_data / "example6.json", "r") as f:
         data_dict = json.load(f)
     pheno = pd.read_csv(test_data / "example6.tsv", sep="\t")
@@ -205,3 +209,29 @@ def test_get_assessment_tool_availability(test_data):
     assert are_not_missing(test_columns, pheno.iloc[0], data_dict) is False
     assert are_not_missing(test_columns, pheno.iloc[2], data_dict) is False
     assert are_not_missing(test_columns, pheno.iloc[4], data_dict) is True
+
+
+def test_assessment_data_are_parsed_correctly(runner, test_data, tmp_path):
+    runner.invoke(
+        bagel,
+        [
+            "--pheno",
+            test_data / "example6.tsv",
+            "--dictionary",
+            test_data / "example6.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "my_dataset_name",
+        ],
+    )
+
+    with open(tmp_path / "pheno.jsonld", "r") as f:
+        pheno = json.load(f)
+
+    assert pheno["hasSamples"][0].get("assessment") is None
+    assert pheno["hasSamples"][1].get("assessment") is None
+    assert [
+        {"identifier": "cogAtlas:1234"},
+        {"identifier": "cogAtlas:4321"},
+    ] == pheno["hasSamples"][2].get("assessment")

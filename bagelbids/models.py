@@ -34,7 +34,7 @@ class Diagnosis(BaseModel):
 
 class Assessment(BaseModel):
     identifier: Union[str, HttpUrl]
-    schemaKey: Literal["Diagnosis"] = Field("Assessment", readOnly=True)
+    schemaKey: Literal["Assessment"] = Field("Assessment", readOnly=True)
 
 
 class Session(Bagel):

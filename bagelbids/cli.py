@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from pathlib import Path
 from typing import Union
 
@@ -47,6 +48,20 @@ def map_categories_to_columns(data_dict: dict) -> dict:
         for cat_name, cat_iri in mappings.NEUROBAGEL.items()
         if get_columns_about(data_dict, cat_iri)
     }
+
+
+def map_tools_to_columns(data_dict: dict) -> dict:
+    """
+    Return a mapping of all assessment tools described in the data dictionary to the columns that
+    are mapped to it.
+    """
+    out_dict = defaultdict(list)
+    for col, content in data_dict.items():
+        part_of = content["Annotations"].get("IsPartOf")
+        if part_of is not None:
+            out_dict[part_of.get("TermURL")].append(col)
+
+    return out_dict
 
 
 def is_missing_value(

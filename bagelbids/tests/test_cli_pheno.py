@@ -11,6 +11,7 @@ from bagelbids.cli import (
     get_transformed_values,
     is_missing_value,
     map_categories_to_columns,
+    map_tools_to_columns,
 )
 
 
@@ -103,6 +104,16 @@ def test_map_columns(test_data):
     assert ["participant_id"] == result["participant"]
     assert ["session_id"] == result["session"]
     assert ["sex"] == result["sex"]
+
+
+def test_map_tools_to_columns(test_data):
+    with open(test_data / "example6.json", "r") as f:
+        data_dict = json.load(f)
+
+    result = map_tools_to_columns(data_dict)
+
+    assert result["cogAtlas:1234"] == ["tool_item1", "tool_item2"]
+    assert result["cogAtlas:4321"] == ["other_tool_item1"]
 
 
 def test_get_transformed_categorical_value(test_data):

@@ -38,7 +38,10 @@ def get_columns_about(data_dict: dict, concept: str) -> list:
 
 
 def map_categories_to_columns(data_dict: dict) -> dict:
-    """Create a mapping of categories to columns for a given data dictionary"""
+    """
+    Maps all pre-defined Neurobagel categories (e.g. "Sex") to a list of column names (if any) that
+    have been linked to this category.
+    """
     return {
         cat_name: get_columns_about(data_dict, cat_iri)
         for cat_name, cat_iri in mappings.NEUROBAGEL.items()
@@ -60,9 +63,10 @@ def is_column_categorical(column: str, data_dict: dict) -> bool:
     return False
 
 
-def transform_categorical_value(
+def map_cat_val_to_term(
     value: Union[str, int], column: str, data_dict: dict
 ) -> str:
+    """Take a raw categorical value and return the controlled term it has been mapped to"""
     return data_dict[column]["Annotations"]["Levels"][value]["TermURL"]
 
 
@@ -77,9 +81,7 @@ def get_transformed_values(
         if is_missing_value(value, col, data_dict):
             continue
         if is_column_categorical(col, data_dict):
-            _transf_val.append(
-                transform_categorical_value(value, col, data_dict)
-            )
+            _transf_val.append(map_cat_val_to_term(value, col, data_dict))
 
     # TODO: once we can handle multiple columns, this section shoud be removed
     # and we should just return an empty list if no transform can be generated

@@ -109,31 +109,31 @@ def test_get_transformed_categorical_value(test_data):
     """Test that the correct transformed value is returned for a categorical variable"""
     with open(test_data / "example2.json", "r") as f:
         data_dict = json.load(f)
+    pheno = pd.read_csv(test_data / "example2.tsv", sep="\t")
 
     assert "bids:Male" == get_transformed_values(
         columns=["sex"],
-        row=pd.Series({"sex": "M"}, index=["sex"]),
+        row=pheno.iloc[0],
         data_dict=data_dict,
     )
 
 
-def test_missing_values():
+@pytest.mark.parametrize(
+    "value,column,expected",
+    [
+        ("test_value", "test_column", True),
+        ("does not exist", "test_column", False),
+        ("my_value", "empty_column", False),
+    ],
+)
+def test_missing_values(value, column, expected):
     """Test that missing values are correctly detected"""
     test_data_dict = {
         "test_column": {"Annotations": {"MissingValues": ["test_value"]}},
         "empty_column": {"Annotations": {}},
     }
 
-    assert (
-        is_missing_value("test_value", "test_column", test_data_dict) is True
-    )
-    assert (
-        is_missing_value("does not exist", "test_column", test_data_dict)
-        is False
-    )
-    assert (
-        is_missing_value("my_value", "empty_column", test_data_dict) is False
-    )
+    assert is_missing_value(value, column, test_data_dict) is expected
 
 
 def test_that_output_file_contains_name(runner, test_data, tmp_path):

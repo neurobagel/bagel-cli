@@ -11,4 +11,9 @@ NIDM = {
     "dti": "nidm:DiffusionTensor",
     "asl": "nidm:ArterialSpinLabeling",
 }
-NEUROBAGEL = {"participant": "nb:ParticipantID", "session": "nb:SessionID"}
+NEUROBAGEL = {
+    "participant": "bg:ParticipantID",
+    "session": "bg:SessionID",
+    "sex": "bg:sex",
+    "diagnosis": "bg:diagnosis",
+}

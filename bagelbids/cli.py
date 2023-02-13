@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Union
 
 import jsonschema
 import pandas as pd
@@ -34,6 +35,59 @@ def get_columns_about(data_dict: dict, concept: str) -> list:
         for col, annotations in data_dict.items()
         if annotations["Annotations"]["IsAbout"]["TermURL"] == concept
     ]
+
+
+def map_categories_to_columns(data_dict: dict) -> dict:
+    """
+    Maps all pre-defined Neurobagel categories (e.g. "Sex") to a list of column names (if any) that
+    have been linked to this category.
+    """
+    return {
+        cat_name: get_columns_about(data_dict, cat_iri)
+        for cat_name, cat_iri in mappings.NEUROBAGEL.items()
+        if get_columns_about(data_dict, cat_iri)
+    }
+
+
+def is_missing_value(
+    value: Union[str, int], column: str, data_dict: dict
+) -> bool:
+    """Determine if a raw value is listed as a missing value in the data dictionary entry for this column"""
+    return value in data_dict[column]["Annotations"].get("MissingValues", [])
+
+
+def is_column_categorical(column: str, data_dict: dict) -> bool:
+    """Determine whether a column in a Neurobagel data dictionary is categorical"""
+    if "Levels" in data_dict[column]:
+        return True
+    return False
+
+
+def map_cat_val_to_term(
+    value: Union[str, int], column: str, data_dict: dict
+) -> str:
+    """Take a raw categorical value and return the controlled term it has been mapped to"""
+    return data_dict[column]["Annotations"]["Levels"][value]["TermURL"]
+
+
+def get_transformed_values(
+    columns: list, row: pd.Series, data_dict: dict
+) -> Union[str, None]:
+    """Convert a raw phenotypic value to the corresponding controlled term"""
+    _transf_val = []
+    # TODO: implement a way to handle cases where more than one column contains information
+    for col in columns[:1]:
+        value = row[col]
+        if is_missing_value(value, col, data_dict):
+            continue
+        if is_column_categorical(col, data_dict):
+            _transf_val.append(map_cat_val_to_term(value, col, data_dict))
+
+    # TODO: once we can handle multiple columns, this section shoud be removed
+    # and we should just return an empty list if no transform can be generated
+    if not _transf_val:
+        return None
+    return _transf_val[0]
 
 
 def load_json(input_p: Path) -> dict:
@@ -135,17 +189,25 @@ def pheno(
 
     subject_list = []
 
+    column_mapping = map_categories_to_columns(data_dictionary)
     # TODO: needs refactoring once we handle multiple participant IDs
-    participants = get_columns_about(
-        data_dictionary, concept=mappings.NEUROBAGEL["participant"]
-    )[0]
+    participants = column_mapping.get("participant")[0]
+
     for participant in pheno_df[participants].unique():
-        pheno_df.query(f"{participants} == '{str(participant)}'")
         # TODO: needs refactoring once we handle phenotypic information at the session level
         # for the moment we are not creating any session instances in the phenotypic graph
         # we treat the phenotypic information in the first row of the _sub_pheno dataframe
         # as reflecting the subject level phenotypic information
-        subject_list.append(models.Subject(label=str(participant)))
+        _sub_pheno = pheno_df.query(
+            f"{participants} == '{str(participant)}'"
+        ).iloc[0]
+
+        subject = models.Subject(label=str(participant))
+        if "sex" in column_mapping.keys():
+            subject.sex = get_transformed_values(
+                column_mapping["sex"], _sub_pheno, data_dictionary
+            )
+        subject_list.append(subject)
 
     dataset = models.Dataset(label=name, hasSamples=subject_list)
 

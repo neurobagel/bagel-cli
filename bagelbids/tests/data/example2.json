@@ -1,43 +1,66 @@
 {
-    "participant_id": {
-        "Description": "A participant ID",
-        "Annotations": {
-            "IsAbout": {
-                "TermURL": "nb:ParticipantID",
-                "Label": "Unique participant identifier"
-            }
-        }
-    },
-    "session_id": {
-        "Description": "A session ID",
-        "Annotations": {
-            "IsAbout": {
-                "TermURL": "nb:SessionID",
-                "Label": "Unique session identifier"
-            }
-        }
-    },
-    "group": {
-        "Description": "Group variable",
-        "Levels": {
-            "PAT": "Patient",
-            "CTRL": "Control subject"
-        },
-        "Annotations": {
-            "IsAbout": {
-                "TermURL": "nb:diagnosis",
-                "Label": "Diagnosis"
-            },
-            "Levels": {
-                "PAT": {
-                    "TermURL": "snomed:49049000",
-                    "Label": "Parkinson's disease"
-                },
-                "CTRL": {
-                    "TermURL": "purl:NCIT_C94342",
-                    "Label": "Healthy Control"
-                }
-            }
-        }
+  "participant_id": {
+    "Description": "A participant ID",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "bg:ParticipantID",
+        "Label": "Unique participant identifier"
+      }
     }
+  },
+  "session_id": {
+    "Description": "A session ID",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "bg:SessionID",
+        "Label": "Unique session identifier"
+      }
+    }
+  },
+  "group": {
+    "Description": "Group variable",
+    "Levels": {
+      "PAT": "Patient",
+      "CTRL": "Control subject"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "bg:diagnosis",
+        "Label": "Diagnosis"
+      },
+      "Levels": {
+        "PAT": {
+          "TermURL": "snomed:49049000",
+          "Label": "Parkinson's disease"
+        },
+        "CTRL": {
+          "TermURL": "purl:NCIT_C94342",
+          "Label": "Healthy Control"
+        }
+      }
+    }
+  },
+  "sex": {
+    "Description": "Sex variable",
+    "Levels": {
+      "M": "Male",
+      "F": "Female"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "bg:sex",
+        "Label": "Sex"
+      },
+      "Levels": {
+        "M": {
+          "TermURL": "bids:Male",
+          "Label": "Male"
+        },
+        "F": {
+          "TermURL": "bids:Female",
+          "Label": "Female"
+        }
+      }
+    }
+  }
 }

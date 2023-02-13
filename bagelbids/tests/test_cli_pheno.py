@@ -6,6 +6,7 @@ from typer.testing import CliRunner
 
 from bagelbids import mappings
 from bagelbids.cli import (
+    are_not_missing,
     bagel,
     get_columns_about,
     get_transformed_values,
@@ -195,5 +196,12 @@ def test_diagnosis_and_control_status_handled(runner, test_data, tmp_path):
     assert pheno["hasSamples"][2]["isSubjectGroup"] == "purl:NCIT_C94342"
 
 
-def test_assessment_tools():
-    assert False
+def test_get_assessment_tool_availability(test_data):
+    with open(test_data / "example6.json", "r") as f:
+        data_dict = json.load(f)
+    pheno = pd.read_csv(test_data / "example6.tsv", sep="\t")
+    test_columns = ["tool_item1", "tool_item2"]
+
+    assert are_not_missing(test_columns, pheno.iloc[0], data_dict) is False
+    assert are_not_missing(test_columns, pheno.iloc[2], data_dict) is False
+    assert are_not_missing(test_columns, pheno.iloc[4], data_dict) is True

@@ -105,6 +105,19 @@ def get_transformed_values(
     return _transf_val[0]
 
 
+def are_not_missing(columns: list, row: pd.Series, data_dict: dict) -> bool:
+    """
+    Checks that all values in the specified columns are not missing values. This is mainly useful
+    to determine the availability of an assessment tool
+    """
+    return all(
+        [
+            not is_missing_value(value, column, data_dict)
+            for column, value in row[columns].items()
+        ]
+    )
+
+
 def load_json(input_p: Path) -> dict:
     with open(input_p, "r") as f:
         return json.load(f)

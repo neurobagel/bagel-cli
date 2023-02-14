@@ -62,5 +62,18 @@
         }
       }
     }
+  },
+  "participant_age": {
+    "Description": "Age of the participant",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "bg:Age",
+        "Label": "Chronological age"
+      },
+      "Transformation": {
+        "TermURL": "bg:iso8601",
+        "Label": "A period of time defined according to the ISO8601 standard"
+      }
+    }
   }
 }

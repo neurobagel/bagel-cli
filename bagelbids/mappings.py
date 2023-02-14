@@ -15,6 +15,7 @@ NEUROBAGEL = {
     "participant": "bg:ParticipantID",
     "session": "bg:SessionID",
     "sex": "bg:sex",
+    "age": "bg:Age",
     "diagnosis": "bg:diagnosis",
     "healthy_control": "purl:NCIT_C94342",
     "assessment_tool": "bg:Assessment",

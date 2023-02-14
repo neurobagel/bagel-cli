@@ -15,6 +15,35 @@ bagel = typer.Typer()
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
 
 
+def generate_context():
+    # Direct copy of the dandi-schema context generation function
+    # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
+    import pydantic
+
+    field_preamble = {
+        "bagel": "http://neurobagel.org/vocab/",
+        "snomed": "https://identifiers.org/snomedct:",
+        "nidm": "http://purl.org/nidash/nidm#",
+    }
+    fields = {}
+    for val in dir(models):
+        klass = getattr(models, val)
+        if not isinstance(klass, pydantic.main.ModelMetaclass):
+            continue
+        fields[klass.__name__] = "bagel:" + klass.__name__
+        for name, field in klass.__fields__.items():
+            if name == "schemaKey":
+                fields[name] = "@type"
+            elif name == "identifier":
+                fields[name] = "@id"
+            elif name not in fields:
+                fields[name] = {"@id": "bagel:" + name}
+
+    field_preamble.update(**fields)
+
+    return {"@context": field_preamble}
+
+
 def get_columns_about(data_dict: dict, concept: str) -> list:
     """
     Returns column names that have been annotated as "IsAbout" the desired concept.
@@ -294,6 +323,8 @@ def pheno(
         subject_list.append(subject)
 
     dataset = models.Dataset(label=name, hasSamples=subject_list)
+    context = generate_context()
+    context.update(**dataset.dict(exclude_unset=True))
 
     with open(output / "pheno.jsonld", "w") as f:
-        f.write(dataset.json(indent=2, exclude_unset=True))
+        f.write(json.dumps(context, indent=2))

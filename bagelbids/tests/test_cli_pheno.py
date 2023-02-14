@@ -274,3 +274,24 @@ def test_cli_age_is_processed(runner, test_data, tmp_path):
 
     assert 20.5 == pheno["hasSamples"][0]["age"]
     assert pytest.approx(25.66, 0.01) == pheno["hasSamples"][1]["age"]
+
+
+def test_output_includes_context(runner, test_data, tmp_path):
+    runner.invoke(
+        bagel,
+        [
+            "--pheno",
+            test_data / "example2.tsv",
+            "--dictionary",
+            test_data / "example2.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "my_dataset_name",
+        ],
+    )
+
+    with open(tmp_path / "pheno.jsonld", "r") as f:
+        pheno = json.load(f)
+
+    assert pheno.get("@context") is not None

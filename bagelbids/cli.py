@@ -3,6 +3,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Union
 
+import isodate
 import jsonschema
 import pandas as pd
 import typer
@@ -85,24 +86,50 @@ def map_cat_val_to_term(
     return data_dict[column]["Annotations"]["Levels"][value]["TermURL"]
 
 
+def get_age_heuristic(column: str, data_dict: dict) -> str:
+    return data_dict[column]["Annotations"]["Transformation"]["TermURL"]
+
+
+def transform_age(value: Union[int, float, str], heuristic: str) -> float:
+    if heuristic == "bg:euro":
+        return float(value.replace(",", "."))
+    if heuristic == "bg:bounded":
+        return float(value.strip("+"))
+    if heuristic == "bg:range":
+        a_min, a_max = value.split("-")
+        return (float(a_min) + float(a_max)) / 2
+    if heuristic == "bg:iso8601":
+        if not value.startswith("P"):
+            value = "P" + value
+        duration = isodate.parse_duration(value)
+        return float(duration.years + duration.months / 12)
+    # TODO: raise Exception, probably ValueError, if heuristic is something we don't know how to handle
+
+
 def get_transformed_values(
     columns: list, row: pd.Series, data_dict: dict
 ) -> Union[str, None]:
     """Convert a raw phenotypic value to the corresponding controlled term"""
-    _transf_val = []
+    transf_val = []
     # TODO: implement a way to handle cases where more than one column contains information
     for col in columns[:1]:
         value = row[col]
         if is_missing_value(value, col, data_dict):
             continue
         if is_column_categorical(col, data_dict):
-            _transf_val.append(map_cat_val_to_term(value, col, data_dict))
+            transf_val.append(map_cat_val_to_term(value, col, data_dict))
+        else:
+            # TODO: replace with more flexible solution when we have more
+            # continuous variables than just age
+            transf_val.append(
+                transform_age(value, get_age_heuristic(col, data_dict))
+            )
 
-    # TODO: once we can handle multiple columns, this section shoud be removed
+    # TODO: once we can handle multiple columns, this section should be removed
     # and we should just return an empty list if no transform can be generated
-    if not _transf_val:
+    if not transf_val:
         return None
-    return _transf_val[0]
+    return transf_val[0]
 
 
 def are_not_missing(columns: list, row: pd.Series, data_dict: dict) -> bool:
@@ -237,6 +264,7 @@ def pheno(
             subject.sex = get_transformed_values(
                 column_mapping["sex"], _sub_pheno, data_dictionary
             )
+
         if "diagnosis" in column_mapping.keys():
             _dx_val = get_transformed_values(
                 column_mapping["diagnosis"], _sub_pheno, data_dictionary
@@ -247,6 +275,12 @@ def pheno(
                 subject.isSubjectGroup = mappings.NEUROBAGEL["healthy_control"]
             else:
                 subject.diagnosis = [models.Diagnosis(identifier=_dx_val)]
+
+        if "age" in column_mapping.keys():
+            subject.age = get_transformed_values(
+                column_mapping["age"], _sub_pheno, data_dictionary
+            )
+
         if tool_mapping:
             _assessments = [
                 models.Assessment(identifier=tool)

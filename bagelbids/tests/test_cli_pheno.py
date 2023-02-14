@@ -13,6 +13,7 @@ from bagelbids.cli import (
     is_missing_value,
     map_categories_to_columns,
     map_tools_to_columns,
+    transform_age,
 )
 
 
@@ -235,3 +236,41 @@ def test_assessment_data_are_parsed_correctly(runner, test_data, tmp_path):
         {"identifier": "cogAtlas:1234"},
         {"identifier": "cogAtlas:4321"},
     ] == pheno["hasSamples"][2].get("assessment")
+
+
+@pytest.mark.parametrize(
+    "raw_age,expected_age,heuristic",
+    [
+        ("11,0", 11.0, "bg:euro"),
+        ("90+", 90.0, "bg:bounded"),
+        ("20-30", 25.0, "bg:range"),
+        ("20-21", 20.5, "bg:range"),
+        ("20Y6M", 20.5, "bg:iso8601"),
+        ("P20Y6M", 20.5, "bg:iso8601"),
+        ("20Y9M", 20.75, "bg:iso8601"),
+    ],
+)
+def test_age_gets_converted(raw_age, expected_age, heuristic):
+    assert expected_age == transform_age(raw_age, heuristic)
+
+
+def test_cli_age_is_processed(runner, test_data, tmp_path):
+    runner.invoke(
+        bagel,
+        [
+            "--pheno",
+            test_data / "example2.tsv",
+            "--dictionary",
+            test_data / "example2.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "my_dataset_name",
+        ],
+    )
+
+    with open(tmp_path / "pheno.jsonld", "r") as f:
+        pheno = json.load(f)
+
+    assert 20.5 == pheno["hasSamples"][0]["age"]
+    assert pytest.approx(25.66, 0.01) == pheno["hasSamples"][1]["age"]

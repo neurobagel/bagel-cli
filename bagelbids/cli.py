@@ -207,9 +207,20 @@ def pheno(
             subject.sex = get_transformed_values(
                 column_mapping["sex"], _sub_pheno, data_dictionary
             )
+        if "diagnosis" in column_mapping.keys():
+            _dx_val = get_transformed_values(
+                column_mapping["diagnosis"], _sub_pheno, data_dictionary
+            )
+            if _dx_val is None:
+                pass
+            elif _dx_val == mappings.NEUROBAGEL["healthy_control"]:
+                subject.isSubjectGroup = mappings.NEUROBAGEL["healthy_control"]
+            else:
+                subject.diagnosis = [models.Diagnosis(identifier=_dx_val)]
+
         subject_list.append(subject)
 
     dataset = models.Dataset(label=name, hasSamples=subject_list)
 
     with open(output / "pheno.jsonld", "w") as f:
-        f.write(dataset.json(indent=2))
+        f.write(dataset.json(indent=2, exclude_unset=True))

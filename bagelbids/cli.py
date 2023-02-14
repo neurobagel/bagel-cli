@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from pathlib import Path
 from typing import Union
 
@@ -49,6 +50,20 @@ def map_categories_to_columns(data_dict: dict) -> dict:
     }
 
 
+def map_tools_to_columns(data_dict: dict) -> dict:
+    """
+    Return a mapping of all assessment tools described in the data dictionary to the columns that
+    are mapped to it.
+    """
+    out_dict = defaultdict(list)
+    for col, content in data_dict.items():
+        part_of = content["Annotations"].get("IsPartOf")
+        if part_of is not None:
+            out_dict[part_of.get("TermURL")].append(col)
+
+    return out_dict
+
+
 def is_missing_value(
     value: Union[str, int], column: str, data_dict: dict
 ) -> bool:
@@ -88,6 +103,19 @@ def get_transformed_values(
     if not _transf_val:
         return None
     return _transf_val[0]
+
+
+def are_not_missing(columns: list, row: pd.Series, data_dict: dict) -> bool:
+    """
+    Checks that all values in the specified columns are not missing values. This is mainly useful
+    to determine the availability of an assessment tool
+    """
+    return all(
+        [
+            not is_missing_value(value, column, data_dict)
+            for column, value in row[columns].items()
+        ]
+    )
 
 
 def load_json(input_p: Path) -> dict:
@@ -190,6 +218,8 @@ def pheno(
     subject_list = []
 
     column_mapping = map_categories_to_columns(data_dictionary)
+    tool_mapping = map_tools_to_columns(data_dictionary)
+
     # TODO: needs refactoring once we handle multiple participant IDs
     participants = column_mapping.get("participant")[0]
 
@@ -217,6 +247,15 @@ def pheno(
                 subject.isSubjectGroup = mappings.NEUROBAGEL["healthy_control"]
             else:
                 subject.diagnosis = [models.Diagnosis(identifier=_dx_val)]
+        if tool_mapping:
+            _assessments = [
+                models.Assessment(identifier=tool)
+                for tool, columns in tool_mapping.items()
+                if are_not_missing(columns, _sub_pheno, data_dictionary)
+            ]
+            if _assessments:
+                # Only set assignments for the subject if at least one is not missing
+                subject.assessment = _assessments
 
         subject_list.append(subject)
 

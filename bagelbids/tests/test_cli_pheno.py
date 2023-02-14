@@ -6,11 +6,13 @@ from typer.testing import CliRunner
 
 from bagelbids import mappings
 from bagelbids.cli import (
+    are_not_missing,
     bagel,
     get_columns_about,
     get_transformed_values,
     is_missing_value,
     map_categories_to_columns,
+    map_tools_to_columns,
 )
 
 
@@ -92,7 +94,7 @@ def test_get_columns_that_are_about_concept(test_data):
     assert [] == get_columns_about(data_dict, concept="does not exist concept")
 
 
-def test_map_columns(test_data):
+def test_map_categories_to_columns(test_data):
     """Test that inverse mapping of concepts to columns is correctly created"""
     with open(test_data / "example2.json", "r") as f:
         data_dict = json.load(f)
@@ -103,6 +105,16 @@ def test_map_columns(test_data):
     assert ["participant_id"] == result["participant"]
     assert ["session_id"] == result["session"]
     assert ["sex"] == result["sex"]
+
+
+def test_map_tools_to_columns(test_data):
+    with open(test_data / "example6.json", "r") as f:
+        data_dict = json.load(f)
+
+    result = map_tools_to_columns(data_dict)
+
+    assert result["cogAtlas:1234"] == ["tool_item1", "tool_item2"]
+    assert result["cogAtlas:4321"] == ["other_tool_item1"]
 
 
 def test_get_transformed_categorical_value(test_data):
@@ -182,3 +194,44 @@ def test_diagnosis_and_control_status_handled(runner, test_data, tmp_path):
     assert "diagnosis" not in pheno["hasSamples"][1].keys()
     assert "diagnosis" not in pheno["hasSamples"][2].keys()
     assert pheno["hasSamples"][2]["isSubjectGroup"] == "purl:NCIT_C94342"
+
+
+def test_get_assessment_tool_availability(test_data):
+    """
+    Ensure that subjects who have one or more missing values in columns mapped to an assessment
+    tool are correctly identified as not having this assessment tool
+    """
+    with open(test_data / "example6.json", "r") as f:
+        data_dict = json.load(f)
+    pheno = pd.read_csv(test_data / "example6.tsv", sep="\t")
+    test_columns = ["tool_item1", "tool_item2"]
+
+    assert are_not_missing(test_columns, pheno.iloc[0], data_dict) is False
+    assert are_not_missing(test_columns, pheno.iloc[2], data_dict) is False
+    assert are_not_missing(test_columns, pheno.iloc[4], data_dict) is True
+
+
+def test_assessment_data_are_parsed_correctly(runner, test_data, tmp_path):
+    runner.invoke(
+        bagel,
+        [
+            "--pheno",
+            test_data / "example6.tsv",
+            "--dictionary",
+            test_data / "example6.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "my_dataset_name",
+        ],
+    )
+
+    with open(tmp_path / "pheno.jsonld", "r") as f:
+        pheno = json.load(f)
+
+    assert pheno["hasSamples"][0].get("assessment") is None
+    assert pheno["hasSamples"][1].get("assessment") is None
+    assert [
+        {"identifier": "cogAtlas:1234"},
+        {"identifier": "cogAtlas:4321"},
+    ] == pheno["hasSamples"][2].get("assessment")

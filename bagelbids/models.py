@@ -32,6 +32,11 @@ class Diagnosis(BaseModel):
     schemaKey: Literal["Diagnosis"] = Field("Diagnosis", readOnly=True)
 
 
+class Assessment(BaseModel):
+    identifier: Union[str, HttpUrl]
+    schemaKey: Literal["Assessment"] = Field("Assessment", readOnly=True)
+
+
 class Session(Bagel):
     label: str
     hasAcquisition: List[Acquisition]
@@ -45,6 +50,7 @@ class Subject(Bagel):
     sex: Optional[str] = None
     isSubjectGroup: Optional[str] = None
     diagnosis: Optional[List[Diagnosis]] = None
+    assessment: Optional[List[Assessment]] = None
     schemaKey: Literal["Subject"] = Field("Subject", readOnly=True)
 
 

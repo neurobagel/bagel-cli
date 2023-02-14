@@ -102,7 +102,8 @@ def transform_age(value: Union[int, float, str], heuristic: str) -> float:
         if not value.startswith("P"):
             value = "P" + value
         duration = isodate.parse_duration(value)
-        return duration.years + duration.months / 12
+        return float(duration.years + duration.months / 12)
+    # TODO: raise Exception, probably ValueError, if heuristic is something we don't know how to handle
 
 
 def get_transformed_values(

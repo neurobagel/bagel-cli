@@ -324,7 +324,10 @@ def pheno(
 
     dataset = models.Dataset(label=name, hasSamples=subject_list)
     context = generate_context()
-    context.update(**dataset.dict(exclude_unset=True))
+    # We can't just exclude_unset here because the identifier and schemaKey
+    # for each instance are created as default values and so technically are never set
+    # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
+    context.update(**dataset.dict(exclude_none=True))
 
     with open(output / "pheno.jsonld", "w") as f:
         f.write(json.dumps(context, indent=2))

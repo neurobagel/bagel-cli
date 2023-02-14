@@ -13,6 +13,7 @@ from bagelbids.cli import (
     is_missing_value,
     map_categories_to_columns,
     map_tools_to_columns,
+    transform_age,
 )
 
 
@@ -235,3 +236,19 @@ def test_assessment_data_are_parsed_correctly(runner, test_data, tmp_path):
         {"identifier": "cogAtlas:1234"},
         {"identifier": "cogAtlas:4321"},
     ] == pheno["hasSamples"][2].get("assessment")
+
+
+@pytest.mark.parametrize(
+    "raw_age,expected_age,heuristic",
+    [
+        ("11,0", 11.0, "euro"),
+        ("90+", 90.0, "bounded"),
+        ("20-30", 25.0, "range"),
+        ("20-21", 20.5, "range"),
+        ("20Y6M", 20.5, "iso8601"),
+        ("P20Y6M", 20.5, "iso8601"),
+        ("20Y9M", 20.75, "iso8601"),
+    ],
+)
+def test_age_gets_converted(raw_age, expected_age, heuristic):
+    assert expected_age == transform_age(raw_age, heuristic)

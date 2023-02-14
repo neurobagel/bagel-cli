@@ -3,6 +3,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Union
 
+import isodate
 import jsonschema
 import pandas as pd
 import typer
@@ -83,6 +84,21 @@ def map_cat_val_to_term(
 ) -> str:
     """Take a raw categorical value and return the controlled term it has been mapped to"""
     return data_dict[column]["Annotations"]["Levels"][value]["TermURL"]
+
+
+def transform_age(value: Union[int, float, str], heuristic: str) -> float:
+    if heuristic == "euro":
+        return float(value.replace(",", "."))
+    if heuristic == "bounded":
+        return float(value.strip("+"))
+    if heuristic == "range":
+        a_min, a_max = value.split("-")
+        return (float(a_min) + float(a_max)) / 2
+    if heuristic == "iso8601":
+        if not value.startswith("P"):
+            value = "P" + value
+        duration = isodate.parse_duration(value)
+        return duration.years + duration.months / 12
 
 
 def get_transformed_values(

@@ -19,28 +19,28 @@ class Bagel(BaseModel):
 
 class Image(BaseModel):
     identifier: str
-    schemaKey: Literal["Image"] = Field("Image", readOnly=True)
+    schemaKey: Literal["Image"] = "Image"
 
 
 class Acquisition(Bagel):
     hasContrastType: Image
-    schemaKey: Literal["Acquisition"] = Field("Acquisition", readOnly=True)
+    schemaKey: Literal["Acquisition"] = "Acquisition"
 
 
 class Diagnosis(BaseModel):
     identifier: Union[str, HttpUrl]
-    schemaKey: Literal["Diagnosis"] = Field("Diagnosis", readOnly=True)
+    schemaKey: Literal["Diagnosis"] = "Diagnosis"
 
 
 class Assessment(BaseModel):
     identifier: Union[str, HttpUrl]
-    schemaKey: Literal["Assessment"] = Field("Assessment", readOnly=True)
+    schemaKey: Literal["Assessment"] = "Assessment"
 
 
 class Session(Bagel):
     label: str
     hasAcquisition: List[Acquisition]
-    schemaKey: Literal["Session"] = Field("Session", readOnly=True)
+    schemaKey: Literal["Session"] = "Session"
 
 
 class Subject(Bagel):
@@ -51,10 +51,10 @@ class Subject(Bagel):
     isSubjectGroup: Optional[str] = None
     diagnosis: Optional[List[Diagnosis]] = None
     assessment: Optional[List[Assessment]] = None
-    schemaKey: Literal["Subject"] = Field("Subject", readOnly=True)
+    schemaKey: Literal["Subject"] = "Subject"
 
 
 class Dataset(Bagel):
     label: str
     hasSamples: List[Subject]
-    schemaKey: Literal["Dataset"] = Field("Dataset", readOnly=True)
+    schemaKey: Literal["Dataset"] = "Dataset"

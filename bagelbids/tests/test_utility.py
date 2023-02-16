@@ -133,14 +133,14 @@ def test_age_gets_converted(raw_age, expected_age, heuristic):
 
 
 def test_invalid_age_heuristic():
-    """Given an age transformation that is not recognized, return an informative ValueError."""
+    """Given an age transformation that is not recognized, returns an informative ValueError."""
     with pytest.raises(ValueError) as e:
         transform_age("11,0", "bg:birthyear")
 
     assert "unrecognized age transformation" in str(e.value)
 
 
-# TODO: Probably better to move this function to utility module once it's created, to reuse
+# TODO: Probably better to move this function to utility module once it's created, to reuse.
 def _get_models_fields():
     models_fields_list = []
     for cname, cobj in inspect.getmembers(models, predicate=inspect.isclass):
@@ -153,6 +153,7 @@ def _get_models_fields():
 
 @pytest.mark.parametrize("model_or_field", _get_models_fields())
 def test_generate_context(model_or_field):
+    """Given a model or field in bagelbids.models, generates a corresponding entry in @context."""
     context = generate_context()
 
     assert model_or_field in context["@context"]

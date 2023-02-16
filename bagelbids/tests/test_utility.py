@@ -1,11 +1,14 @@
+import inspect
 import json
 
 import pandas as pd
 import pytest
+from pydantic.main import ModelMetaclass
 
-from bagelbids import mappings
+from bagelbids import mappings, models
 from bagelbids.cli import (
     are_not_missing,
+    generate_context,
     get_columns_about,
     get_transformed_values,
     is_missing_value,
@@ -135,3 +138,21 @@ def test_invalid_age_heuristic():
         transform_age("11,0", "bg:birthyear")
 
     assert "unrecognized age transformation" in str(e.value)
+
+
+# TODO: Probably better to move this function to utility module once it's created, to reuse
+def _get_models_fields():
+    models_fields_list = []
+    for cname, cobj in inspect.getmembers(models, predicate=inspect.isclass):
+        if isinstance(cobj, ModelMetaclass):
+            models_fields_list.append(cname)
+            for fname, _ in cobj.__fields__.items():
+                models_fields_list.append(fname)
+    return list(set(models_fields_list))
+
+
+@pytest.mark.parametrize("model_or_field", _get_models_fields())
+def test_generate_context(model_or_field):
+    context = generate_context()
+
+    assert model_or_field in context["@context"]

@@ -21,7 +21,7 @@ def generate_context():
     import pydantic
 
     field_preamble = {
-        "bagel": "http://neurobagel.org/vocab/",
+        "bg": "http://neurobagel.org/vocab/",
         "snomed": "https://identifiers.org/snomedct:",
         "nidm": "http://purl.org/nidash/nidm#",
     }
@@ -30,14 +30,14 @@ def generate_context():
         klass = getattr(models, val)
         if not isinstance(klass, pydantic.main.ModelMetaclass):
             continue
-        fields[klass.__name__] = "bagel:" + klass.__name__
+        fields[klass.__name__] = "bg:" + klass.__name__
         for name, field in klass.__fields__.items():
             if name == "schemaKey":
                 fields[name] = "@type"
             elif name == "identifier":
                 fields[name] = "@id"
             elif name not in fields:
-                fields[name] = {"@id": "bagel:" + name}
+                fields[name] = {"@id": "bg:" + name}
 
     field_preamble.update(**fields)
 

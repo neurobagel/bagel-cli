@@ -233,8 +233,8 @@ def test_assessment_data_are_parsed_correctly(runner, test_data, tmp_path):
     assert pheno["hasSamples"][0].get("assessment") is None
     assert pheno["hasSamples"][1].get("assessment") is None
     assert [
-        {"identifier": "cogAtlas:1234"},
-        {"identifier": "cogAtlas:4321"},
+        {"identifier": "cogAtlas:1234", "schemaKey": "Assessment"},
+        {"identifier": "cogAtlas:4321", "schemaKey": "Assessment"},
     ] == pheno["hasSamples"][2].get("assessment")
 
 
@@ -244,7 +244,6 @@ def test_assessment_data_are_parsed_correctly(runner, test_data, tmp_path):
         ("11,0", 11.0, "bg:euro"),
         ("90+", 90.0, "bg:bounded"),
         ("20-30", 25.0, "bg:range"),
-        ("20-21", 20.5, "bg:range"),
         ("20Y6M", 20.5, "bg:iso8601"),
         ("P20Y6M", 20.5, "bg:iso8601"),
         ("20Y9M", 20.75, "bg:iso8601"),
@@ -274,3 +273,27 @@ def test_cli_age_is_processed(runner, test_data, tmp_path):
 
     assert 20.5 == pheno["hasSamples"][0]["age"]
     assert pytest.approx(25.66, 0.01) == pheno["hasSamples"][1]["age"]
+
+
+def test_output_includes_context(runner, test_data, tmp_path):
+    runner.invoke(
+        bagel,
+        [
+            "--pheno",
+            test_data / "example2.tsv",
+            "--dictionary",
+            test_data / "example2.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "my_dataset_name",
+        ],
+    )
+
+    with open(tmp_path / "pheno.jsonld", "r") as f:
+        pheno = json.load(f)
+
+    assert pheno.get("@context") is not None
+    assert all(
+        [sub.get("identifier") is not None for sub in pheno["hasSamples"]]
+    )

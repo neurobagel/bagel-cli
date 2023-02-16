@@ -21,16 +21,6 @@ def load_tmp_jsonld(tmp_path):
     return _read_file
 
 
-@pytest.fixture
-def load_tmp_jsonld(tmp_path):
-    def _read_file():
-        with open(tmp_path / "pheno.jsonld", "r") as f:
-            pheno = json.load(f)
-            return pheno
-
-    return _read_file
-
-
 @pytest.mark.parametrize(
     "example", ["example2", "example4", "example6", "example_synthetic"]
 )
@@ -144,8 +134,22 @@ def test_diagnosis_and_control_status_handled(
     assert pheno["hasSamples"][2]["isSubjectGroup"] == "purl:NCIT_C94342"
 
 
+@pytest.mark.parametrize(
+    "assessment, subject",
+    [
+        (None, 0),
+        (None, 1),
+        (
+            [
+                {"identifier": "cogAtlas:1234", "schemaKey": "Assessment"},
+                {"identifier": "cogAtlas:4321", "schemaKey": "Assessment"},
+            ],
+            2,
+        ),
+    ],
+)
 def test_assessment_data_are_parsed_correctly(
-    runner, test_data, tmp_path, load_tmp_jsonld
+    runner, test_data, tmp_path, load_tmp_jsonld, assessment, subject
 ):
     runner.invoke(
         bagel,
@@ -163,15 +167,16 @@ def test_assessment_data_are_parsed_correctly(
 
     pheno = load_tmp_jsonld()
 
-    assert pheno["hasSamples"][0].get("assessment") is None
-    assert pheno["hasSamples"][1].get("assessment") is None
-    assert [
-        {"identifier": "cogAtlas:1234", "schemaKey": "Assessment"},
-        {"identifier": "cogAtlas:4321", "schemaKey": "Assessment"},
-    ] == pheno["hasSamples"][2].get("assessment")
+    assert assessment == pheno["hasSamples"][subject].get("assessment")
 
 
-def test_cli_age_is_processed(runner, test_data, tmp_path, load_tmp_jsonld):
+@pytest.mark.parametrize(
+    "expected_age, subject",
+    [(20.5, 0), (pytest.approx(25.66, 0.01), 1)],
+)
+def test_cli_age_is_processed(
+    runner, test_data, tmp_path, load_tmp_jsonld, expected_age, subject
+):
     runner.invoke(
         bagel,
         [
@@ -188,8 +193,7 @@ def test_cli_age_is_processed(runner, test_data, tmp_path, load_tmp_jsonld):
 
     pheno = load_tmp_jsonld()
 
-    assert 20.5 == pheno["hasSamples"][0]["age"]
-    assert pytest.approx(25.66, 0.01) == pheno["hasSamples"][1]["age"]
+    assert expected_age == pheno["hasSamples"][subject]["age"]
 
 
 def test_output_includes_context(runner, test_data, tmp_path, load_tmp_jsonld):

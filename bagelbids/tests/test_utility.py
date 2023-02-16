@@ -48,13 +48,19 @@ def test_map_categories_to_columns(load_ex_json):
     assert ["sex"] == result["sex"]
 
 
-def test_map_tools_to_columns(load_ex_json):
+@pytest.mark.parametrize(
+    "tool, columns",
+    [
+        ("cogAtlas:1234", ["tool_item1", "tool_item2"]),
+        ("cogAtlas:4321", ["other_tool_item1"]),
+    ],
+)
+def test_map_tools_to_columns(load_ex_json, tool, columns):
     data_dict = load_ex_json("example6.json")
 
     result = map_tools_to_columns(data_dict)
 
-    assert result["cogAtlas:1234"] == ["tool_item1", "tool_item2"]
-    assert result["cogAtlas:4321"] == ["other_tool_item1"]
+    assert result[tool] == columns
 
 
 def test_get_transformed_categorical_value(test_data, load_ex_json):
@@ -87,7 +93,13 @@ def test_missing_values(value, column, expected):
     assert is_missing_value(value, column, test_data_dict) is expected
 
 
-def test_get_assessment_tool_availability(test_data, load_ex_json):
+@pytest.mark.parametrize(
+    "subject_idx, is_avail",
+    [(0, False), (2, False), (4, True)],
+)
+def test_get_assessment_tool_availability(
+    test_data, load_ex_json, subject_idx, is_avail
+):
     """
     Ensure that subjects who have one or more missing values in columns mapped to an assessment
     tool are correctly identified as not having this assessment tool
@@ -96,9 +108,10 @@ def test_get_assessment_tool_availability(test_data, load_ex_json):
     pheno = pd.read_csv(test_data / "example6.tsv", sep="\t")
     test_columns = ["tool_item1", "tool_item2"]
 
-    assert are_not_missing(test_columns, pheno.iloc[0], data_dict) is False
-    assert are_not_missing(test_columns, pheno.iloc[2], data_dict) is False
-    assert are_not_missing(test_columns, pheno.iloc[4], data_dict) is True
+    assert (
+        are_not_missing(test_columns, pheno.iloc[subject_idx], data_dict)
+        is is_avail
+    )
 
 
 @pytest.mark.parametrize(

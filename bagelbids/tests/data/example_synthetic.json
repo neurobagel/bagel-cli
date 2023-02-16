@@ -1,0 +1,122 @@
+{
+    "participant_id": {
+        "Description": "A participant ID",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "bg:ParticipantID",
+                "Label": "Unique participant identifier"
+            }
+        }
+    },
+    "session_id": {
+        "Description": "A session ID",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "bg:SessionID",
+                "Label": "Unique session identifier"
+            }
+        }
+    },
+      "pheno_age": {
+    "Description": "Age of the participant",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "bg:Age",
+        "Label": "Chronological age"
+      },
+      "Transformation": {
+        "TermURL": "bg:euro",
+        "Label": "writing the time with a comma - why not"
+      }
+    }
+  },
+    "pheno_sex": {
+    "Description": "Sex variable",
+    "Levels": {
+      "M": "Male",
+      "F": "Female"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "bg:sex",
+        "Label": "Sex"
+      },
+      "Levels": {
+        "M": {
+          "TermURL": "bids:Male",
+          "Label": "Male"
+        },
+        "F": {
+          "TermURL": "bids:Female",
+          "Label": "Female"
+        }
+      }
+    }
+  },
+
+    "pheno_group": {
+        "Description": "Group variable",
+        "Levels": {
+            "PAT": "Patient",
+            "CTRL": "Control subject"
+        },
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "bg:diagnosis",
+                "Label": "Diagnosis"
+            },
+            "Levels": {
+                "PAT": {
+                    "TermURL": "snomed:49049000",
+                    "Label": "Parkinson's disease"
+                },
+                "CTRL": {
+                    "TermURL": "purl:NCIT_C94342",
+                    "Label": "Healthy Control"
+                }
+            }
+        }
+    },
+    "tool1_item1": {
+        "Description": "item 1 scores for tool1",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "bg:Assessment",
+                "Label": "Assessment tool"
+            },
+            "IsPartOf": {
+                "TermURL": "cogAtlas:1234",
+                "Label": "Imaginary tool"
+            },
+            "MissingValues": ["missing"]
+        }
+    },
+    "tool1_item2": {
+        "Description": "item 2 scores for tool1",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "bg:Assessment",
+                "Label": "Assessment tool"
+            },
+            "IsPartOf": {
+                "TermURL": "cogAtlas:1234",
+                "Label": "Imaginary tool"
+            },
+            "MissingValues": ["missing"]
+        }
+    },
+    "tool2_item1": {
+        "Description": "item 1 scores for tool2",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "bg:Assessment",
+                "Label": "Assessment tool"
+            },
+            "IsPartOf": {
+                "TermURL": "cogAtlas:4321",
+                "Label": "A different imaginary tool"
+            },
+            "MissingValues": ["not completed"]
+        }
+    }
+}

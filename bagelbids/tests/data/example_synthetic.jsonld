@@ -1,0 +1,141 @@
+{
+  "@context": {
+    "bg": "http://neurobagel.org/vocab/",
+    "snomed": "https://identifiers.org/snomedct:",
+    "nidm": "http://purl.org/nidash/nidm#",
+    "Acquisition": "bg:Acquisition",
+    "identifier": "@id",
+    "hasContrastType": {
+      "@id": "bg:hasContrastType"
+    },
+    "schemaKey": "@type",
+    "Assessment": "bg:Assessment",
+    "Bagel": "bg:Bagel",
+    "BaseModel": "bg:BaseModel",
+    "Dataset": "bg:Dataset",
+    "label": {
+      "@id": "bg:label"
+    },
+    "hasSamples": {
+      "@id": "bg:hasSamples"
+    },
+    "Diagnosis": "bg:Diagnosis",
+    "Image": "bg:Image",
+    "Session": "bg:Session",
+    "hasAcquisition": {
+      "@id": "bg:hasAcquisition"
+    },
+    "Subject": "bg:Subject",
+    "hasSession": {
+      "@id": "bg:hasSession"
+    },
+    "age": {
+      "@id": "bg:age"
+    },
+    "sex": {
+      "@id": "bg:sex"
+    },
+    "isSubjectGroup": {
+      "@id": "bg:isSubjectGroup"
+    },
+    "diagnosis": {
+      "@id": "bg:diagnosis"
+    },
+    "assessment": {
+      "@id": "bg:assessment"
+    }
+  },
+  "identifier": "bg:bc413741-695a-4e42-b13b-8644ae59e455",
+  "label": "BIDS synthetic example dataset",
+  "hasSamples": [
+    {
+      "identifier": "bg:1884e35e-27d9-4479-822f-e80b1eff3622",
+      "label": "sub-01",
+      "age": 34.1,
+      "sex": "bids:Female",
+      "isSubjectGroup": "purl:NCIT_C94342",
+      "assessment": [
+        {
+          "identifier": "cogAtlas:1234",
+          "schemaKey": "Assessment"
+        },
+        {
+          "identifier": "cogAtlas:4321",
+          "schemaKey": "Assessment"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "bg:5bdf1e85-7837-4f5f-97c8-40dcba970285",
+      "label": "sub-02",
+      "age": 38.1,
+      "sex": "bids:Male",
+      "diagnosis": [
+        {
+          "identifier": "snomed:49049000",
+          "schemaKey": "Diagnosis"
+        }
+      ],
+      "assessment": [
+        {
+          "identifier": "cogAtlas:4321",
+          "schemaKey": "Assessment"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "bg:baf6b7bd-7bbc-4963-aea8-bad00d8f2028",
+      "label": "sub-03",
+      "age": 22.1,
+      "sex": "bids:Male",
+      "isSubjectGroup": "purl:NCIT_C94342",
+      "assessment": [
+        {
+          "identifier": "cogAtlas:1234",
+          "schemaKey": "Assessment"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "bg:4abdd0a5-e16c-48df-afd2-7570bcf10fca",
+      "label": "sub-04",
+      "age": 21.1,
+      "sex": "bids:Female",
+      "isSubjectGroup": "purl:NCIT_C94342",
+      "assessment": [
+        {
+          "identifier": "cogAtlas:4321",
+          "schemaKey": "Assessment"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "bg:df44b5f1-f7c5-41cc-befa-c6026b3c12d9",
+      "label": "sub-05",
+      "age": 42.5,
+      "sex": "bids:Male",
+      "diagnosis": [
+        {
+          "identifier": "snomed:49049000",
+          "schemaKey": "Diagnosis"
+        }
+      ],
+      "assessment": [
+        {
+          "identifier": "cogAtlas:1234",
+          "schemaKey": "Assessment"
+        },
+        {
+          "identifier": "cogAtlas:4321",
+          "schemaKey": "Assessment"
+        }
+      ],
+      "schemaKey": "Subject"
+    }
+  ],
+  "schemaKey": "Dataset"
+}

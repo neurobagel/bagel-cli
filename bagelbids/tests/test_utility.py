@@ -114,3 +114,11 @@ def test_get_assessment_tool_availability(test_data, load_ex_json):
 )
 def test_age_gets_converted(raw_age, expected_age, heuristic):
     assert expected_age == transform_age(raw_age, heuristic)
+
+
+def test_invalid_age_heuristic():
+    """Given an age transformation that is not recognized, return an informative ValueError."""
+    with pytest.raises(ValueError) as e:
+        transform_age("11,0", "bg:birthyear")
+
+    assert "unrecognized age transformation" in str(e.value)

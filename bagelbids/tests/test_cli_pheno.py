@@ -1,5 +1,3 @@
-import json
-
 import pytest
 from typer.testing import CliRunner
 
@@ -9,16 +7,6 @@ from bagelbids.cli import bagel
 @pytest.fixture
 def runner():
     return CliRunner()
-
-
-@pytest.fixture
-def load_tmp_jsonld(tmp_path):
-    def _read_file():
-        with open(tmp_path / "pheno.jsonld", "r") as f:
-            pheno = json.load(f)
-            return pheno
-
-    return _read_file
 
 
 @pytest.mark.parametrize(
@@ -85,7 +73,7 @@ def test_invalid_inputs_are_handled_gracefully(
 
 
 def test_that_output_file_contains_name(
-    runner, test_data, tmp_path, load_tmp_jsonld
+    runner, test_data, tmp_path, load_test_json
 ):
     runner.invoke(
         bagel,
@@ -101,13 +89,13 @@ def test_that_output_file_contains_name(
         ],
     )
 
-    pheno = load_tmp_jsonld()
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
 
     assert pheno.get("label") == "my_dataset_name"
 
 
 def test_diagnosis_and_control_status_handled(
-    runner, test_data, tmp_path, load_tmp_jsonld
+    runner, test_data, tmp_path, load_test_json
 ):
     runner.invoke(
         bagel,
@@ -123,7 +111,7 @@ def test_diagnosis_and_control_status_handled(
         ],
     )
 
-    pheno = load_tmp_jsonld()
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
 
     assert (
         pheno["hasSamples"][0]["diagnosis"][0]["identifier"]
@@ -149,7 +137,7 @@ def test_diagnosis_and_control_status_handled(
     ],
 )
 def test_assessment_data_are_parsed_correctly(
-    runner, test_data, tmp_path, load_tmp_jsonld, assessment, subject
+    runner, test_data, tmp_path, load_test_json, assessment, subject
 ):
     runner.invoke(
         bagel,
@@ -165,7 +153,7 @@ def test_assessment_data_are_parsed_correctly(
         ],
     )
 
-    pheno = load_tmp_jsonld()
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
 
     assert assessment == pheno["hasSamples"][subject].get("assessment")
 
@@ -175,7 +163,7 @@ def test_assessment_data_are_parsed_correctly(
     [(20.5, 0), (pytest.approx(25.66, 0.01), 1)],
 )
 def test_cli_age_is_processed(
-    runner, test_data, tmp_path, load_tmp_jsonld, expected_age, subject
+    runner, test_data, tmp_path, load_test_json, expected_age, subject
 ):
     runner.invoke(
         bagel,
@@ -191,12 +179,12 @@ def test_cli_age_is_processed(
         ],
     )
 
-    pheno = load_tmp_jsonld()
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
 
     assert expected_age == pheno["hasSamples"][subject]["age"]
 
 
-def test_output_includes_context(runner, test_data, tmp_path, load_tmp_jsonld):
+def test_output_includes_context(runner, test_data, tmp_path, load_test_json):
     runner.invoke(
         bagel,
         [
@@ -211,7 +199,7 @@ def test_output_includes_context(runner, test_data, tmp_path, load_tmp_jsonld):
         ],
     )
 
-    pheno = load_tmp_jsonld()
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
 
     assert pheno.get("@context") is not None
     assert all(

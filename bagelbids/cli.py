@@ -134,8 +134,8 @@ def transform_age(value: Union[int, float, str], heuristic: str) -> float:
         return float(duration.years + duration.months / 12)
     else:
         raise ValueError(
-            "The provided data dictionary contains an unrecognized age transformation. "
-            'Ensure that its TermURL is one of the "bg:euro", "bg:bounded", "bg:range", "bg:iso8601"].'
+            f"The provided data dictionary contains an unrecognized age transformation: {heuristic}. "
+            'Ensure that the transformation TermURL is one of ["bg:euro", "bg:bounded", "bg:range", "bg:iso8601"].'
         )
 
 

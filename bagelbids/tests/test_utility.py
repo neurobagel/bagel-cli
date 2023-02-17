@@ -1,5 +1,4 @@
 import inspect
-import json
 
 import pandas as pd
 import pytest
@@ -18,20 +17,10 @@ from bagelbids.cli import (
 )
 
 
-@pytest.fixture
-def load_ex_json(test_data):
-    def _read_file(example_json):
-        with open(test_data / example_json, "r") as f:
-            data_dict = json.load(f)
-            return data_dict
-
-    return _read_file
-
-
-def test_get_columns_that_are_about_concept(load_ex_json):
+def test_get_columns_that_are_about_concept(test_data, load_test_json):
     """Test that matching annotated columns are returned as a list,
     and that empty list is returned if nothing matches"""
-    data_dict = load_ex_json("example1.json")
+    data_dict = load_test_json(test_data / "example1.json")
 
     assert ["participant_id"] == get_columns_about(
         data_dict, concept=mappings.NEUROBAGEL["participant"]
@@ -39,9 +28,9 @@ def test_get_columns_that_are_about_concept(load_ex_json):
     assert [] == get_columns_about(data_dict, concept="does not exist concept")
 
 
-def test_map_categories_to_columns(load_ex_json):
+def test_map_categories_to_columns(test_data, load_test_json):
     """Test that inverse mapping of concepts to columns is correctly created"""
-    data_dict = load_ex_json("example2.json")
+    data_dict = load_test_json(test_data / "example2.json")
 
     result = map_categories_to_columns(data_dict)
 
@@ -58,17 +47,17 @@ def test_map_categories_to_columns(load_ex_json):
         ("cogAtlas:4321", ["other_tool_item1"]),
     ],
 )
-def test_map_tools_to_columns(load_ex_json, tool, columns):
-    data_dict = load_ex_json("example6.json")
+def test_map_tools_to_columns(test_data, load_test_json, tool, columns):
+    data_dict = load_test_json(test_data / "example6.json")
 
     result = map_tools_to_columns(data_dict)
 
     assert result[tool] == columns
 
 
-def test_get_transformed_categorical_value(test_data, load_ex_json):
+def test_get_transformed_categorical_value(test_data, load_test_json):
     """Test that the correct transformed value is returned for a categorical variable"""
-    data_dict = load_ex_json("example2.json")
+    data_dict = load_test_json(test_data / "example2.json")
     pheno = pd.read_csv(test_data / "example2.tsv", sep="\t")
 
     assert "bids:Male" == get_transformed_values(
@@ -101,13 +90,13 @@ def test_missing_values(value, column, expected):
     [(0, False), (2, False), (4, True)],
 )
 def test_get_assessment_tool_availability(
-    test_data, load_ex_json, subject_idx, is_avail
+    test_data, load_test_json, subject_idx, is_avail
 ):
     """
     Ensure that subjects who have one or more missing values in columns mapped to an assessment
     tool are correctly identified as not having this assessment tool
     """
-    data_dict = load_ex_json("example6.json")
+    data_dict = load_test_json(test_data / "example6.json")
     pheno = pd.read_csv(test_data / "example6.tsv", sep="\t")
     test_columns = ["tool_item1", "tool_item2"]
 
@@ -137,7 +126,7 @@ def test_invalid_age_heuristic():
     with pytest.raises(ValueError) as e:
         transform_age("11,0", "bg:birthyear")
 
-    assert "unrecognized age transformation" in str(e.value)
+    assert "unrecognized age transformation: bg:birthyear" in str(e.value)
 
 
 # TODO: Probably better to move this function to utility module once it's created, to reuse.

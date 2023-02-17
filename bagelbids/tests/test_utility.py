@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from bagelbids import mappings
-from bagelbids.cli import (
+from bagelbids.pheno_utils import (
     are_not_missing,
     generate_context,
     get_columns_about,

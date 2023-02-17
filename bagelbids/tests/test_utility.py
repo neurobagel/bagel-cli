@@ -1,10 +1,10 @@
 import pandas as pd
 import pytest
-from pydantic.main import ModelMetaclass
 
-from bagelbids import mappings, models
+from bagelbids import mappings
 from bagelbids.cli import (
     are_not_missing,
+    generate_context,
     get_columns_about,
     get_transformed_values,
     is_missing_value,
@@ -15,30 +15,9 @@ from bagelbids.cli import (
 
 
 @pytest.fixture
-def generate_context():
-    # Duplicate of cli.generate_context
-    field_preamble = {
-        "bg": "http://neurobagel.org/vocab/",
-        "snomed": "https://identifiers.org/snomedct:",
-        "nidm": "http://purl.org/nidash/nidm#",
-    }
-    fields = {}
-    for val in dir(models):
-        klass = getattr(models, val)
-        if not isinstance(klass, ModelMetaclass):
-            continue
-        fields[klass.__name__] = "bg:" + klass.__name__
-        for name, field in klass.__fields__.items():
-            if name == "schemaKey":
-                fields[name] = "@type"
-            elif name == "identifier":
-                fields[name] = "@id"
-            elif name not in fields:
-                fields[name] = {"@id": "bg:" + name}
-
-    field_preamble.update(**fields)
-
-    return {"@context": field_preamble}
+def get_test_context():
+    """Generate an @context dictionary to test against."""
+    return generate_context()
 
 
 def test_get_columns_that_are_about_concept(test_data, load_test_json):
@@ -178,8 +157,8 @@ def test_invalid_age_heuristic():
         ("Dataset", ["label", "hasSamples", "schemaKey"]),
     ],
 )
-def test_generate_context(generate_context, model, attributes):
+def test_generate_context(get_test_context, model, attributes):
     """Test that each model and its set of attributes have corresponding entries in @context."""
-    assert model in generate_context["@context"]
+    assert model in get_test_context["@context"]
     for attribute in attributes:
-        assert attribute in generate_context["@context"]
+        assert attribute in get_test_context["@context"]

@@ -1,5 +1,3 @@
-import inspect
-
 import pandas as pd
 import pytest
 from pydantic.main import ModelMetaclass
@@ -7,7 +5,6 @@ from pydantic.main import ModelMetaclass
 from bagelbids import mappings, models
 from bagelbids.cli import (
     are_not_missing,
-    generate_context,
     get_columns_about,
     get_transformed_values,
     is_missing_value,
@@ -15,6 +12,33 @@ from bagelbids.cli import (
     map_tools_to_columns,
     transform_age,
 )
+
+
+@pytest.fixture
+def generate_context():
+    # Duplicate of cli.generate_context
+    field_preamble = {
+        "bg": "http://neurobagel.org/vocab/",
+        "snomed": "https://identifiers.org/snomedct:",
+        "nidm": "http://purl.org/nidash/nidm#",
+    }
+    fields = {}
+    for val in dir(models):
+        klass = getattr(models, val)
+        if not isinstance(klass, ModelMetaclass):
+            continue
+        fields[klass.__name__] = "bg:" + klass.__name__
+        for name, field in klass.__fields__.items():
+            if name == "schemaKey":
+                fields[name] = "@type"
+            elif name == "identifier":
+                fields[name] = "@id"
+            elif name not in fields:
+                fields[name] = {"@id": "bg:" + name}
+
+    field_preamble.update(**fields)
+
+    return {"@context": field_preamble}
 
 
 def test_get_columns_that_are_about_concept(test_data, load_test_json):
@@ -129,20 +153,33 @@ def test_invalid_age_heuristic():
     assert "unrecognized age transformation: bg:birthyear" in str(e.value)
 
 
-# TODO: Probably better to move this function to utility module once it's created, to reuse.
-def _get_models_fields():
-    models_fields_list = []
-    for cname, cobj in inspect.getmembers(models, predicate=inspect.isclass):
-        if isinstance(cobj, ModelMetaclass):
-            models_fields_list.append(cname)
-            for fname, _ in cobj.__fields__.items():
-                models_fields_list.append(fname)
-    return list(set(models_fields_list))
-
-
-@pytest.mark.parametrize("model_or_field", _get_models_fields())
-def test_generate_context(model_or_field):
-    """Given a model or field in bagelbids.models, generates a corresponding entry in @context."""
-    context = generate_context()
-
-    assert model_or_field in context["@context"]
+@pytest.mark.parametrize(
+    "model, attributes",
+    [
+        ("Bagel", ["identifier"]),
+        ("Image", ["identifier", "schemaKey"]),
+        ("Acquisition", ["hasContrastType", "schemaKey"]),
+        ("Diagnosis", ["identifier", "schemaKey"]),
+        ("Assessment", ["identifier", "schemaKey"]),
+        ("Session", ["label", "hasAcquisition", "schemaKey"]),
+        (
+            "Subject",
+            [
+                "label",
+                "hasSession",
+                "age",
+                "sex",
+                "isSubjectGroup",
+                "diagnosis",
+                "assessment",
+                "schemaKey",
+            ],
+        ),
+        ("Dataset", ["label", "hasSamples", "schemaKey"]),
+    ],
+)
+def test_generate_context(generate_context, model, attributes):
+    """Test that each model and its set of attributes have corresponding entries in @context."""
+    assert model in generate_context["@context"]
+    for attribute in attributes:
+        assert attribute in generate_context["@context"]

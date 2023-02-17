@@ -1,20 +1,7 @@
-import json
-
-import pandas as pd
 import pytest
 from typer.testing import CliRunner
 
-from bagelbids import mappings
-from bagelbids.cli import (
-    are_not_missing,
-    bagel,
-    get_columns_about,
-    get_transformed_values,
-    is_missing_value,
-    map_categories_to_columns,
-    map_tools_to_columns,
-    transform_age,
-)
+from bagelbids.cli import bagel
 
 
 @pytest.fixture
@@ -85,73 +72,9 @@ def test_invalid_inputs_are_handled_gracefully(
     assert expected_message in str(e.value)
 
 
-def test_get_columns_that_are_about_concept(test_data):
-    """Test that matching annotated columns are returned as a list,
-    and that empty list is returned if nothing matches"""
-    with open(test_data / "example1.json", "r") as f:
-        data_dict = json.load(f)
-
-    assert ["participant_id"] == get_columns_about(
-        data_dict, concept=mappings.NEUROBAGEL["participant"]
-    )
-    assert [] == get_columns_about(data_dict, concept="does not exist concept")
-
-
-def test_map_categories_to_columns(test_data):
-    """Test that inverse mapping of concepts to columns is correctly created"""
-    with open(test_data / "example2.json", "r") as f:
-        data_dict = json.load(f)
-
-    result = map_categories_to_columns(data_dict)
-
-    assert {"participant", "session", "sex"}.issubset(result.keys())
-    assert ["participant_id"] == result["participant"]
-    assert ["session_id"] == result["session"]
-    assert ["sex"] == result["sex"]
-
-
-def test_map_tools_to_columns(test_data):
-    with open(test_data / "example6.json", "r") as f:
-        data_dict = json.load(f)
-
-    result = map_tools_to_columns(data_dict)
-
-    assert result["cogAtlas:1234"] == ["tool_item1", "tool_item2"]
-    assert result["cogAtlas:4321"] == ["other_tool_item1"]
-
-
-def test_get_transformed_categorical_value(test_data):
-    """Test that the correct transformed value is returned for a categorical variable"""
-    with open(test_data / "example2.json", "r") as f:
-        data_dict = json.load(f)
-    pheno = pd.read_csv(test_data / "example2.tsv", sep="\t")
-
-    assert "bids:Male" == get_transformed_values(
-        columns=["sex"],
-        row=pheno.iloc[0],
-        data_dict=data_dict,
-    )
-
-
-@pytest.mark.parametrize(
-    "value,column,expected",
-    [
-        ("test_value", "test_column", True),
-        ("does not exist", "test_column", False),
-        ("my_value", "empty_column", False),
-    ],
-)
-def test_missing_values(value, column, expected):
-    """Test that missing values are correctly detected"""
-    test_data_dict = {
-        "test_column": {"Annotations": {"MissingValues": ["test_value"]}},
-        "empty_column": {"Annotations": {}},
-    }
-
-    assert is_missing_value(value, column, test_data_dict) is expected
-
-
-def test_that_output_file_contains_name(runner, test_data, tmp_path):
+def test_that_output_file_contains_name(
+    runner, test_data, tmp_path, load_test_json
+):
     runner.invoke(
         bagel,
         [
@@ -166,13 +89,14 @@ def test_that_output_file_contains_name(runner, test_data, tmp_path):
         ],
     )
 
-    with open(tmp_path / "pheno.jsonld", "r") as f:
-        pheno = json.load(f)
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
 
     assert pheno.get("label") == "my_dataset_name"
 
 
-def test_diagnosis_and_control_status_handled(runner, test_data, tmp_path):
+def test_diagnosis_and_control_status_handled(
+    runner, test_data, tmp_path, load_test_json
+):
     runner.invoke(
         bagel,
         [
@@ -187,8 +111,7 @@ def test_diagnosis_and_control_status_handled(runner, test_data, tmp_path):
         ],
     )
 
-    with open(tmp_path / "pheno.jsonld", "r") as f:
-        pheno = json.load(f)
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
 
     assert (
         pheno["hasSamples"][0]["diagnosis"][0]["identifier"]
@@ -199,22 +122,23 @@ def test_diagnosis_and_control_status_handled(runner, test_data, tmp_path):
     assert pheno["hasSamples"][2]["isSubjectGroup"] == "purl:NCIT_C94342"
 
 
-def test_get_assessment_tool_availability(test_data):
-    """
-    Ensure that subjects who have one or more missing values in columns mapped to an assessment
-    tool are correctly identified as not having this assessment tool
-    """
-    with open(test_data / "example6.json", "r") as f:
-        data_dict = json.load(f)
-    pheno = pd.read_csv(test_data / "example6.tsv", sep="\t")
-    test_columns = ["tool_item1", "tool_item2"]
-
-    assert are_not_missing(test_columns, pheno.iloc[0], data_dict) is False
-    assert are_not_missing(test_columns, pheno.iloc[2], data_dict) is False
-    assert are_not_missing(test_columns, pheno.iloc[4], data_dict) is True
-
-
-def test_assessment_data_are_parsed_correctly(runner, test_data, tmp_path):
+@pytest.mark.parametrize(
+    "assessment, subject",
+    [
+        (None, 0),
+        (None, 1),
+        (
+            [
+                {"identifier": "cogAtlas:1234", "schemaKey": "Assessment"},
+                {"identifier": "cogAtlas:4321", "schemaKey": "Assessment"},
+            ],
+            2,
+        ),
+    ],
+)
+def test_assessment_data_are_parsed_correctly(
+    runner, test_data, tmp_path, load_test_json, assessment, subject
+):
     runner.invoke(
         bagel,
         [
@@ -229,33 +153,18 @@ def test_assessment_data_are_parsed_correctly(runner, test_data, tmp_path):
         ],
     )
 
-    with open(tmp_path / "pheno.jsonld", "r") as f:
-        pheno = json.load(f)
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
 
-    assert pheno["hasSamples"][0].get("assessment") is None
-    assert pheno["hasSamples"][1].get("assessment") is None
-    assert [
-        {"identifier": "cogAtlas:1234", "schemaKey": "Assessment"},
-        {"identifier": "cogAtlas:4321", "schemaKey": "Assessment"},
-    ] == pheno["hasSamples"][2].get("assessment")
+    assert assessment == pheno["hasSamples"][subject].get("assessment")
 
 
 @pytest.mark.parametrize(
-    "raw_age,expected_age,heuristic",
-    [
-        ("11,0", 11.0, "bg:euro"),
-        ("90+", 90.0, "bg:bounded"),
-        ("20-30", 25.0, "bg:range"),
-        ("20Y6M", 20.5, "bg:iso8601"),
-        ("P20Y6M", 20.5, "bg:iso8601"),
-        ("20Y9M", 20.75, "bg:iso8601"),
-    ],
+    "expected_age, subject",
+    [(20.5, 0), (pytest.approx(25.66, 0.01), 1)],
 )
-def test_age_gets_converted(raw_age, expected_age, heuristic):
-    assert expected_age == transform_age(raw_age, heuristic)
-
-
-def test_cli_age_is_processed(runner, test_data, tmp_path):
+def test_cli_age_is_processed(
+    runner, test_data, tmp_path, load_test_json, expected_age, subject
+):
     runner.invoke(
         bagel,
         [
@@ -270,14 +179,12 @@ def test_cli_age_is_processed(runner, test_data, tmp_path):
         ],
     )
 
-    with open(tmp_path / "pheno.jsonld", "r") as f:
-        pheno = json.load(f)
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
 
-    assert 20.5 == pheno["hasSamples"][0]["age"]
-    assert pytest.approx(25.66, 0.01) == pheno["hasSamples"][1]["age"]
+    assert expected_age == pheno["hasSamples"][subject]["age"]
 
 
-def test_output_includes_context(runner, test_data, tmp_path):
+def test_output_includes_context(runner, test_data, tmp_path, load_test_json):
     runner.invoke(
         bagel,
         [
@@ -292,8 +199,7 @@ def test_output_includes_context(runner, test_data, tmp_path):
         ],
     )
 
-    with open(tmp_path / "pheno.jsonld", "r") as f:
-        pheno = json.load(f)
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
 
     assert pheno.get("@context") is not None
     assert all(

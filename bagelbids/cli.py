@@ -132,7 +132,11 @@ def transform_age(value: Union[int, float, str], heuristic: str) -> float:
             value = "P" + value
         duration = isodate.parse_duration(value)
         return float(duration.years + duration.months / 12)
-    # TODO: raise Exception, probably ValueError, if heuristic is something we don't know how to handle
+    else:
+        raise ValueError(
+            f"The provided data dictionary contains an unrecognized age transformation: {heuristic}. "
+            'Ensure that the transformation TermURL is one of ["bg:euro", "bg:bounded", "bg:range", "bg:iso8601"].'
+        )
 
 
 def get_transformed_values(

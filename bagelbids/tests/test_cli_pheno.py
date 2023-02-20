@@ -20,6 +20,7 @@ def test_valid_inputs_run_successfully(runner, test_data, tmp_path, example):
     result = runner.invoke(
         bagel,
         [
+            "pheno",
             "--pheno",
             test_data / f"{example}.tsv",
             "--dictionary",
@@ -57,6 +58,7 @@ def test_invalid_inputs_are_handled_gracefully(
         runner.invoke(
             bagel,
             [
+                "pheno",
                 "--pheno",
                 test_data / f"{example}.tsv",
                 "--dictionary",
@@ -78,6 +80,7 @@ def test_that_output_file_contains_name(
     runner.invoke(
         bagel,
         [
+            "pheno",
             "--pheno",
             test_data / "example2.tsv",
             "--dictionary",
@@ -100,6 +103,7 @@ def test_diagnosis_and_control_status_handled(
     runner.invoke(
         bagel,
         [
+            "pheno",
             "--pheno",
             test_data / "example6.tsv",
             "--dictionary",
@@ -142,6 +146,7 @@ def test_assessment_data_are_parsed_correctly(
     runner.invoke(
         bagel,
         [
+            "pheno",
             "--pheno",
             test_data / "example6.tsv",
             "--dictionary",
@@ -168,6 +173,7 @@ def test_cli_age_is_processed(
     runner.invoke(
         bagel,
         [
+            "pheno",
             "--pheno",
             test_data / "example2.tsv",
             "--dictionary",
@@ -188,6 +194,7 @@ def test_output_includes_context(runner, test_data, tmp_path, load_test_json):
     runner.invoke(
         bagel,
         [
+            "pheno",
             "--pheno",
             test_data / "example2.tsv",
             "--dictionary",

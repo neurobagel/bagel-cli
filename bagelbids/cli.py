@@ -37,7 +37,7 @@ def pheno(
     ),
     output: Path = typer.Option(
         ...,
-        help="The directory where outputs should be created",
+        help="The directory where outputs should be created.",
         exists=True,
         file_okay=False,
         dir_okay=True,
@@ -122,3 +122,30 @@ def pheno(
 
     with open(output / "pheno.jsonld", "w") as f:
         f.write(json.dumps(context, indent=2))
+
+
+@bagel.command()
+def add_bids(
+    jsonld: Path = typer.Option(
+        ...,
+        help="The path to a pheno.jsonld file.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+    ),
+    bids_path: Path = typer.Option(
+        ...,
+        help="The path to the corresponding BIDS dataset directory.",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+    output: Path = typer.Option(
+        ...,
+        help="The directory where outputs should be created",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+):
+    jsonld = load_json(jsonld)

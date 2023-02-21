@@ -3,17 +3,19 @@ from pathlib import Path
 
 import pandas as pd
 import typer
+from bids import BIDSLayout
+from pydantic import ValidationError
 
 from bagelbids import mappings, models
 from bagelbids.pheno_utils import (
     are_not_missing,
     generate_context,
     get_transformed_values,
-    load_json,
     map_categories_to_columns,
     map_tools_to_columns,
     validate_inputs,
 )
+from bagelbids.utility import load_json
 
 bagel = typer.Typer()
 
@@ -126,14 +128,14 @@ def pheno(
 
 @bagel.command()
 def add_bids(
-    jsonld: Path = typer.Option(
+    jsonld_path: Path = typer.Option(
         ...,
         help="The path to a pheno.jsonld file.",
         exists=True,
         file_okay=True,
         dir_okay=False,
     ),
-    bids_path: Path = typer.Option(
+    bids_dir: Path = typer.Option(
         ...,
         help="The path to the corresponding BIDS dataset directory.",
         exists=True,
@@ -148,4 +150,14 @@ def add_bids(
         dir_okay=True,
     ),
 ):
-    jsonld = load_json(jsonld)
+    jsonld = load_json(jsonld_path)
+    layout = BIDSLayout(bids_dir, validate=True)
+
+    context = jsonld.pop("@context")
+
+    # NOTE: The following validation can also be performed using jsonschema.validate()
+    # But Pydantic's error message is much cleaner - plus this saves a line of code!
+    try:
+        pheno_dataset = models.Dataset.parse_obj(jsonld)
+    except ValidationError as err:
+        print(err)

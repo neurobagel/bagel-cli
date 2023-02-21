@@ -1,6 +1,4 @@
-import json
 from collections import defaultdict
-from pathlib import Path
 from typing import Union
 
 import isodate
@@ -172,11 +170,6 @@ def are_not_missing(columns: list, row: pd.Series, data_dict: dict) -> bool:
             for column, value in row[columns].items()
         ]
     )
-
-
-def load_json(input_p: Path) -> dict:
-    with open(input_p, "r") as f:
-        return json.load(f)
 
 
 def are_inputs_compatible(data_dict: dict, pheno_df: pd.DataFrame) -> bool:

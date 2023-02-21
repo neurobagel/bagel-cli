@@ -1,12 +1,6 @@
 import pytest
-from typer.testing import CliRunner
 
 from bagelbids.cli import bagel
-
-
-@pytest.fixture
-def runner():
-    return CliRunner()
 
 
 @pytest.mark.parametrize(

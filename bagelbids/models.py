@@ -1,13 +1,13 @@
 import uuid
 from typing import List, Literal, Optional, Union
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Extra, Field, HttpUrl
 
 UUID_PATTERN = r"[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$"
 BAGEL_UUID_PATTERN = r"^bg:" + UUID_PATTERN
 
 
-class Bagel(BaseModel):
+class Bagel(BaseModel, extra=Extra.forbid):
     """identifier has to be a valid UUID prepended by the bg: namespace
     by default, a random (uuid4) string UUID will be created"""
 
@@ -17,7 +17,7 @@ class Bagel(BaseModel):
     )
 
 
-class Image(BaseModel):
+class Image(BaseModel, extra=Extra.forbid):
     identifier: str
     schemaKey: Literal["Image"] = "Image"
 
@@ -27,12 +27,12 @@ class Acquisition(Bagel):
     schemaKey: Literal["Acquisition"] = "Acquisition"
 
 
-class Diagnosis(BaseModel):
+class Diagnosis(BaseModel, extra=Extra.forbid):
     identifier: Union[str, HttpUrl]
     schemaKey: Literal["Diagnosis"] = "Diagnosis"
 
 
-class Assessment(BaseModel):
+class Assessment(BaseModel, extra=Extra.forbid):
     identifier: Union[str, HttpUrl]
     schemaKey: Literal["Assessment"] = "Assessment"
 

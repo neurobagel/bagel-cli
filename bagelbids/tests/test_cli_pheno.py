@@ -8,9 +8,6 @@ from bagelbids.cli import bagel
 )
 def test_valid_inputs_run_successfully(runner, test_data, tmp_path, example):
     """Basic smoke test for the "pheno" subcommand"""
-    # TODO: when we have more than one subcommand, the CLI runner will have
-    # to specify the subcommand - until then the CLI behaves as if there was no subcommand
-
     result = runner.invoke(
         bagel,
         [

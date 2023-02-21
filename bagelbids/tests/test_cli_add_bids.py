@@ -1,14 +1,14 @@
 from bagelbids.cli import bagel
 
 
-def test_valid_inputs_run_successfully(
+def test_bids_valid_inputs_run_successfully(
     runner, test_data, bids_synthetic, tmp_path
 ):
     """Basic smoke test for the "add-bids" subcommand"""
     result = runner.invoke(
         bagel,
         [
-            "add-bids",
+            "bids",
             "--jsonld-path",
             test_data / "example_synthetic.jsonld",
             "--bids-dir",

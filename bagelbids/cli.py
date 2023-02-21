@@ -127,7 +127,7 @@ def pheno(
 
 
 @bagel.command()
-def add_bids(
+def bids(
     jsonld_path: Path = typer.Option(
         ...,
         help="The path to a pheno.jsonld file.",
@@ -153,10 +153,10 @@ def add_bids(
     jsonld = load_json(jsonld_path)
     layout = BIDSLayout(bids_dir, validate=True)
 
+    # Strip and store context to be added back later, since it's not part of
+    # (and can't be easily added) to the existing data model
     context = jsonld.pop("@context")
 
-    # NOTE: The following validation can also be performed using jsonschema.validate()
-    # But Pydantic's error message is much cleaner - plus this saves a line of code!
     try:
         pheno_dataset = models.Dataset.parse_obj(jsonld)
     except ValidationError as err:

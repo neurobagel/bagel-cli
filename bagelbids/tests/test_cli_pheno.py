@@ -6,7 +6,9 @@ from bagelbids.cli import bagel
 @pytest.mark.parametrize(
     "example", ["example2", "example4", "example6", "example_synthetic"]
 )
-def test_valid_inputs_run_successfully(runner, test_data, tmp_path, example):
+def test_pheno_valid_inputs_run_successfully(
+    runner, test_data, tmp_path, example
+):
     """Basic smoke test for the "pheno" subcommand"""
     result = runner.invoke(
         bagel,

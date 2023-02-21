@@ -3,17 +3,19 @@ from pathlib import Path
 
 import pandas as pd
 import typer
+from bids import BIDSLayout
+from pydantic import ValidationError
 
 from bagelbids import mappings, models
 from bagelbids.pheno_utils import (
     are_not_missing,
     generate_context,
     get_transformed_values,
-    load_json,
     map_categories_to_columns,
     map_tools_to_columns,
     validate_inputs,
 )
+from bagelbids.utility import load_json
 
 bagel = typer.Typer()
 
@@ -37,7 +39,7 @@ def pheno(
     ),
     output: Path = typer.Option(
         ...,
-        help="The directory where outputs should be created",
+        help="The directory where outputs should be created.",
         exists=True,
         file_okay=False,
         dir_okay=True,
@@ -122,3 +124,40 @@ def pheno(
 
     with open(output / "pheno.jsonld", "w") as f:
         f.write(json.dumps(context, indent=2))
+
+
+@bagel.command()
+def bids(
+    jsonld_path: Path = typer.Option(
+        ...,
+        help="The path to a pheno.jsonld file.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+    ),
+    bids_dir: Path = typer.Option(
+        ...,
+        help="The path to the corresponding BIDS dataset directory.",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+    output: Path = typer.Option(
+        ...,
+        help="The directory where outputs should be created",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+):
+    jsonld = load_json(jsonld_path)
+    layout = BIDSLayout(bids_dir, validate=True)
+
+    # Strip and store context to be added back later, since it's not part of
+    # (and can't be easily added) to the existing data model
+    context = jsonld.pop("@context")
+
+    try:
+        pheno_dataset = models.Dataset.parse_obj(jsonld)
+    except ValidationError as err:
+        print(err)

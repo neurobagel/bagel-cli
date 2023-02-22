@@ -1,4 +1,4 @@
-NIDM = {
+BIDS = {
     "anat": "nidm:Anatomical",
     "func": "nidm:Functional",
     "dwi": "nidm:DiffusionWeighted",

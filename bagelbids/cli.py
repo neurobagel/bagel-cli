@@ -132,7 +132,7 @@ def map_term_to_namespace(term: str, namespace: dict):
     return namespace.get(term, False)
 
 
-def check_unique_bids_subjects(pheno_subjects: dict, bids_subjects: dict):
+def check_unique_bids_subjects(pheno_subjects: list, bids_subjects: list):
     """Raises informative error if subject IDs exist that are found only in the BIDS directory."""
     unique_bids_subjects = list(set(bids_subjects).difference(pheno_subjects))
     if len(unique_bids_subjects) > 0:

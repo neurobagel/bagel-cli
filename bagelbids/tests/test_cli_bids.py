@@ -18,3 +18,6 @@ def test_bids_valid_inputs_run_successfully(
         ],
     )
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
+    assert (
+        tmp_path / "pheno_bids.jsonld"
+    ).exists(), "The pheno.jsonld output was not created."

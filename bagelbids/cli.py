@@ -126,6 +126,22 @@ def pheno(
         f.write(json.dumps(context, indent=2))
 
 
+# TODO: Can probably generalize below function for use in the pheno command functions as well?
+def map_term_to_namespace(term: str, namespace: dict):
+    """Returns the mapped namespace term if it exists, or False otherwise."""
+    return namespace.get(term, False)
+
+
+def check_unique_bids_subjects(pheno_subjects: dict, bids_subjects: dict):
+    """Raises informative error if subject IDs exist that are found only in the BIDS directory."""
+    unique_bids_subjects = list(set(bids_subjects).difference(pheno_subjects))
+    if len(unique_bids_subjects) > 0:
+        raise LookupError(
+            "The specified BIDS directory contains subject IDs not found in the provided phenotypic json-ld file: "
+            f"{unique_bids_subjects}. Please check that the specified BIDS and phenotypic datasets match."
+        )
+
+
 @bagel.command()
 def bids(
     jsonld_path: Path = typer.Option(
@@ -155,9 +171,58 @@ def bids(
 
     # Strip and store context to be added back later, since it's not part of
     # (and can't be easily added) to the existing data model
-    context = jsonld.pop("@context")
+    context = {"@context": jsonld.pop("@context")}
 
     try:
         pheno_dataset = models.Dataset.parse_obj(jsonld)
     except ValidationError as err:
         print(err)
+
+    pheno_subject_list = []
+    for pheno_subject in getattr(pheno_dataset, "hasSamples"):
+        pheno_subject_list.append(pheno_subject.label)
+    bids_subject_list = ["sub-" + sub_id for sub_id in layout.get_subjects()]
+
+    check_unique_bids_subjects(
+        pheno_subjects=pheno_subject_list, bids_subjects=bids_subject_list
+    )
+
+    for bids_sub_id in layout.get_subjects():
+        for pheno_subject in pheno_dataset.hasSamples:
+            if f"sub-{bids_sub_id}" == pheno_subject.label:
+                session_list = []
+                # For some reason .get_sessions() doesn't always follow alphanumeric order
+                # By default (without sorting) the session lists look like ["02", "01"] per subject
+                for session in sorted(
+                    layout.get_sessions(subject=bids_sub_id)
+                ):
+                    image_list = []
+                    for bids_file in layout.get(
+                        subject=bids_sub_id,
+                        session=session,
+                        extension=[".nii", ".nii.gz"],
+                    ):
+                        # If the suffix of a BIDS file is not recognized, then ignore
+                        mapped_term = map_term_to_namespace(
+                            bids_file.get_entities().get("suffix"),
+                            namespace=mappings.NIDM,
+                        )
+                        if mapped_term:
+                            image_list.append(
+                                models.Acquisition(
+                                    hasContrastType=models.Image(
+                                        identifier=mapped_term
+                                    )
+                                )
+                            )
+                    session_list.append(
+                        models.Session(
+                            label=session, hasAcquisition=image_list
+                        )
+                    )
+                pheno_subject.hasSession = session_list
+
+    merged_dataset = {**context, **pheno_dataset.dict()}
+
+    with open(output / "pheno_bids.jsonld", "w") as f:
+        f.write(json.dumps(merged_dataset, indent=2))

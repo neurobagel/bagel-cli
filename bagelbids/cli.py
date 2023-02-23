@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 import typer
@@ -147,7 +148,7 @@ def create_session(
     layout: BIDSLayout,
     bids_sub_id: str,
     session_list: list,
-    session: str | None,
+    session: Optional[str],
     session_label: str,
 ) -> list:
     """Parses BIDS image files for a subject to add as Acquisition objects to a specified session."""

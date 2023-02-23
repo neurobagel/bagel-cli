@@ -44,7 +44,9 @@ def test_bids_valid_inputs_run_successfully(
 )
 def test_check_unique_bids_subjects_err(bids_list, expectation):
     """
-    Given a list of BIDS subject IDs, raise an error or not depending on whether all IDs are found in the phenotypic subject list."""
+    Given a list of BIDS subject IDs, raise an error or not depending on
+    whether all IDs are found in the phenotypic subject list.
+    """
     pheno_list = ["sub-01", "sub-02", "sub-03", "sub-PD123", "sub-PD234"]
 
     with expectation:

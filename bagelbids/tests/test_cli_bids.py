@@ -1,3 +1,4 @@
+from collections import Counter
 from contextlib import nullcontext as does_not_raise
 
 import pytest
@@ -32,23 +33,14 @@ def test_bids_valid_inputs_run_successfully(
     ).exists(), "The pheno_bids.jsonld output was not created."
 
 
-@pytest.mark.parametrize(
-    "session_idx, bids_session",
-    [(0, "01"), (1, "02")],
-)
 def test_bids_sessions_have_correct_labels(
     runner,
     test_data,
     bids_synthetic,
     tmp_path,
     load_test_json,
-    session_idx,
-    bids_session,
 ):
-    """
-    Check that a session added to pheno_bids.jsonld has the expected label
-    based on its order in the BIDS dataset.
-    """
+    """Check that sessions added to pheno_bids.jsonld have the expected labels."""
     runner.invoke(
         bagel,
         [
@@ -63,10 +55,10 @@ def test_bids_sessions_have_correct_labels(
     )
 
     pheno_bids = load_test_json(tmp_path / "pheno_bids.jsonld")
-    assert (
-        pheno_bids["hasSamples"][0]["hasSession"][session_idx]["label"]
-        == f"ses-{bids_session}"
-    )
+    for sub in pheno_bids["hasSamples"]:
+        assert ["ses-01", "ses-02"] == [
+            ses["label"] for ses in sub["hasSession"]
+        ]
 
 
 @pytest.mark.parametrize(
@@ -101,15 +93,19 @@ def test_check_unique_bids_subjects_err(bids_list, expectation):
     [
         (
             "synthetic",
-            ["nidm:T1Weighted"] + ["nidm:FlowWeighted"] * 3,
+            {"nidm:T1Weighted": 1, "nidm:FlowWeighted": 3},
             "01",
         ),
         (
             "ds001",
-            ["nidm:T2Weighted", "nidm:T1Weighted"] + ["nidm:FlowWeighted"] * 3,
+            {
+                "nidm:T2Weighted": 1,
+                "nidm:T1Weighted": 1,
+                "nidm:FlowWeighted": 3,
+            },
             None,
         ),
-        ("eeg_ds000117", ["nidm:T1Weighted"], None),
+        ("eeg_ds000117", {"nidm:T1Weighted": 1}, None),
     ],
 )
 def test_create_acquisitions(bids_path, bids_dir, acquisitions, bids_session):
@@ -120,6 +116,9 @@ def test_create_acquisitions(bids_path, bids_dir, acquisitions, bids_session):
         session=bids_session,
     )
 
-    assert len(acquisitions) == len(image_list)
-    for i, image in enumerate(image_list):
-        assert acquisitions[i] == image.hasContrastType.identifier
+    image_counts = Counter(
+        [image.hasContrastType.identifier for image in image_list]
+    )
+
+    for contrast, count in acquisitions.items():
+        assert image_counts[contrast] == count

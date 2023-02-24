@@ -223,7 +223,9 @@ def bids(
         session_list = []
 
         bids_sessions = layout.get_sessions(subject=bids_sub_id)
-        if not bids_sessions and layout.get_datatypes(subject=bids_sub_id):
+        if not bids_sessions:
+            if not layout.get_datatypes(subject=bids_sub_id):
+                continue
             bids_sessions = [None]
 
         # For some reason .get_sessions() doesn't always follow alphanumeric order
@@ -243,7 +245,7 @@ def bids(
             # so the API can still find the session-level information.
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.
-            session_label = "nb01" if bids_sessions == [None] else session
+            session_label = "nb01" if session is None else session
 
             # TODO: needs refactoring once we also handle phenotypic information at the session level
             session_list.append(

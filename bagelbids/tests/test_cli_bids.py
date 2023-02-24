@@ -120,7 +120,6 @@ def test_create_acquisitions(bids_path, bids_dir, acquisitions, bids_session):
         session=bids_session,
     )
 
-    # assert f"ses-{session_label}" == session_list[0].label
     assert len(acquisitions) == len(image_list)
     for i, image in enumerate(image_list):
         assert acquisitions[i] == image.hasContrastType.identifier

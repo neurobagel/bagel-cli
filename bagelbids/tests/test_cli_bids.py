@@ -3,7 +3,11 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 from bids import BIDSLayout
 
-from bagelbids.cli import bagel, check_unique_bids_subjects, create_session
+from bagelbids.cli import (
+    bagel,
+    check_unique_bids_subjects,
+    create_acquisitions,
+)
 
 
 def test_bids_valid_inputs_run_successfully(
@@ -26,6 +30,43 @@ def test_bids_valid_inputs_run_successfully(
     assert (
         tmp_path / "pheno_bids.jsonld"
     ).exists(), "The pheno_bids.jsonld output was not created."
+
+
+@pytest.mark.parametrize(
+    "session_idx, bids_session",
+    [(0, "01"), (1, "02")],
+)
+def test_bids_sessions_have_correct_labels(
+    runner,
+    test_data,
+    bids_synthetic,
+    tmp_path,
+    load_test_json,
+    session_idx,
+    bids_session,
+):
+    """
+    Check that a session added to pheno_bids.jsonld has the expected label
+    based on its order in the BIDS dataset.
+    """
+    runner.invoke(
+        bagel,
+        [
+            "bids",
+            "--jsonld-path",
+            test_data / "example_synthetic.jsonld",
+            "--bids-dir",
+            bids_synthetic,
+            "--output",
+            tmp_path,
+        ],
+    )
+
+    pheno_bids = load_test_json(tmp_path / "pheno_bids.jsonld")
+    assert (
+        pheno_bids["hasSamples"][0]["hasSession"][session_idx]["label"]
+        == f"ses-{bids_session}"
+    )
 
 
 @pytest.mark.parametrize(
@@ -56,39 +97,30 @@ def test_check_unique_bids_subjects_err(bids_list, expectation):
 
 
 @pytest.mark.parametrize(
-    "bids_dir, acquisitions, bids_session, session_label",
+    "bids_dir, acquisitions, bids_session",
     [
         (
             "synthetic",
             ["nidm:T1Weighted"] + ["nidm:FlowWeighted"] * 3,
-            "01",
             "01",
         ),
         (
             "ds001",
             ["nidm:T2Weighted", "nidm:T1Weighted"] + ["nidm:FlowWeighted"] * 3,
             None,
-            "nb01",
         ),
-        ("eeg_ds000117", ["nidm:T1Weighted"], None, "nb01"),
+        ("eeg_ds000117", ["nidm:T1Weighted"], None),
     ],
 )
-def test_construct_bids_image_list(
-    bids_path, bids_dir, acquisitions, bids_session, session_label
-):
-    """
-    Given a BIDS dataset, creates a session object with acquisitions matching what's found on disk,
-    and with either a BIDS-supplied (if session layers exist) or custom session label (if no session layers).
-    """
-    session_list = create_session(
+def test_create_acquisitions(bids_path, bids_dir, acquisitions, bids_session):
+    """Given a BIDS dataset, creates a list of acquisitions matching the image files found on disk."""
+    image_list = create_acquisitions(
         layout=BIDSLayout(bids_path / bids_dir, validate=True),
-        session_list=[],
         bids_sub_id="01",
         session=bids_session,
-        session_label=session_label,
     )
 
-    assert f"ses-{session_label}" == session_list[0].label
-    assert len(acquisitions) == len(session_list[0].hasAcquisition)
-    for i, image in enumerate(session_list[0].hasAcquisition):
+    # assert f"ses-{session_label}" == session_list[0].label
+    assert len(acquisitions) == len(image_list)
+    for i, image in enumerate(image_list):
         assert acquisitions[i] == image.hasContrastType.identifier

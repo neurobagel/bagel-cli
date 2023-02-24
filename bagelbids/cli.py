@@ -144,14 +144,12 @@ def check_unique_bids_subjects(pheno_subjects: list, bids_subjects: list):
         )
 
 
-def create_session(
+def create_acquisitions(
     layout: BIDSLayout,
     bids_sub_id: str,
-    session_list: list,
     session: Optional[str],
-    session_label: str,
 ) -> list:
-    """Parses BIDS image files for a subject to add as Acquisition objects to a specified session."""
+    """Parses BIDS image files for a specified session/subject to create a list of Acquisition objects."""
     image_list = []
     for bids_file in layout.get(
         subject=bids_sub_id,
@@ -170,13 +168,7 @@ def create_session(
                 )
             )
 
-    # TODO: needs refactoring once we also handle phenotypic information at the session level
-    session_list.append(
-        # Add back "ses" prefix because pybids stripped it
-        models.Session(label="ses-" + session_label, hasAcquisition=image_list)
-    )
-
-    return session_list
+    return image_list
 
 
 @bagel.command()
@@ -232,12 +224,18 @@ def bids(
         # For some reason .get_sessions() doesn't always follow alphanumeric order
         # By default (without sorting) the session lists look like ["02", "01"] per subject
         for session in sorted(layout.get_sessions(subject=bids_sub_id)):
-            create_session(
+            image_list = create_acquisitions(
                 layout=layout,
                 bids_sub_id=bids_sub_id,
-                session_list=session_list,
                 session=session,
-                session_label=session,
+            )
+
+            # TODO: needs refactoring once we also handle phenotypic information at the session level
+            session_list.append(
+                # Add back "ses" prefix because pybids stripped it
+                models.Session(
+                    label="ses-" + session, hasAcquisition=image_list
+                )
             )
 
         # TODO: Currently if a subject has BIDS data but no "ses-" directories (e.g., only 1 session),
@@ -245,15 +243,19 @@ def bids(
         # so the API can still find the session-level information.
         # This should be revisited in the future as for these cases the resulting dataset object is not
         # an exact representation of what's on disk.
-        if len(layout.get_sessions(subject=bids_sub_id)) == 0 and len(
-            layout.get_datatypes(subject=bids_sub_id) != 0
-        ):
-            create_session(
+        if not layout.get_sessions(
+            subject=bids_sub_id
+        ) and layout.get_datatypes(subject=bids_sub_id):
+            image_list = create_acquisitions(
                 layout=layout,
                 bids_sub_id=bids_sub_id,
-                session_list=session_list,
                 session=None,
-                session_label="nb01",
+            )
+
+            # TODO: needs refactoring once we also handle phenotypic information at the session level
+            session_list.append(
+                # Add back "ses" prefix because pybids stripped it
+                models.Session(label="ses-nb01", hasAcquisition=image_list)
             )
 
         pheno_subject.hasSession = session_list

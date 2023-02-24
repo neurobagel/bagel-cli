@@ -113,7 +113,9 @@ def get_age_heuristic(column: str, data_dict: dict) -> str:
     return data_dict[column]["Annotations"]["Transformation"]["TermURL"]
 
 
-def transform_age(value: Union[int, float, str], heuristic: str) -> float:
+def transform_age(value: str, heuristic: str) -> float:
+    if heuristic in ["bg:float", "bg:int"]:
+        return float(value)
     if heuristic == "bg:euro":
         return float(value.replace(",", "."))
     if heuristic == "bg:bounded":
@@ -129,7 +131,8 @@ def transform_age(value: Union[int, float, str], heuristic: str) -> float:
     else:
         raise ValueError(
             f"The provided data dictionary contains an unrecognized age transformation: {heuristic}. "
-            'Ensure that the transformation TermURL is one of ["bg:euro", "bg:bounded", "bg:range", "bg:iso8601"].'
+            "Ensure that the transformation TermURL is one of "
+            '["bg:float", "bg:int", "bg:euro", "bg:bounded", "bg:range", "bg:iso8601"].'
         )
 
 

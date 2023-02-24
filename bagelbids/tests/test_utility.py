@@ -112,6 +112,8 @@ def test_get_assessment_tool_availability(
 @pytest.mark.parametrize(
     "raw_age,expected_age,heuristic",
     [
+        ("11.0", 11.0, "bg:float"),
+        ("11", 11.0, "bg:int"),
         ("11,0", 11.0, "bg:euro"),
         ("90+", 90.0, "bg:bounded"),
         ("20-30", 25.0, "bg:range"),

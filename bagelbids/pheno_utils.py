@@ -152,7 +152,7 @@ def get_transformed_values(
             # TODO: replace with more flexible solution when we have more
             # continuous variables than just age
             transf_val.append(
-                transform_age(value, get_age_heuristic(col, data_dict))
+                transform_age(str(value), get_age_heuristic(col, data_dict))
             )
 
     # TODO: once we can handle multiple columns, this section should be removed

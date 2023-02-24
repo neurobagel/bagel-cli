@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 import typer
@@ -143,6 +144,33 @@ def check_unique_bids_subjects(pheno_subjects: list, bids_subjects: list):
         )
 
 
+def create_acquisitions(
+    layout: BIDSLayout,
+    bids_sub_id: str,
+    session: Optional[str],
+) -> list:
+    """Parses BIDS image files for a specified session/subject to create a list of Acquisition objects."""
+    image_list = []
+    for bids_file in layout.get(
+        subject=bids_sub_id,
+        session=session,
+        extension=[".nii", ".nii.gz"],
+    ):
+        # If the suffix of a BIDS file is not recognized, then ignore
+        mapped_term = map_term_to_namespace(
+            bids_file.get_entities().get("suffix"),
+            namespace=mappings.BIDS,
+        )
+        if mapped_term:
+            image_list.append(
+                models.Acquisition(
+                    hasContrastType=models.Image(identifier=mapped_term)
+                )
+            )
+
+    return image_list
+
+
 @bagel.command()
 def bids(
     jsonld_path: Path = typer.Option(
@@ -193,32 +221,40 @@ def bids(
     for bids_sub_id in layout.get_subjects():
         pheno_subject = pheno_subject_dict.get(f"sub-{bids_sub_id}")
         session_list = []
+
+        bids_sessions = layout.get_sessions(subject=bids_sub_id)
+        if not bids_sessions:
+            if not layout.get_datatypes(subject=bids_sub_id):
+                continue
+            bids_sessions = [None]
+
         # For some reason .get_sessions() doesn't always follow alphanumeric order
         # By default (without sorting) the session lists look like ["02", "01"] per subject
-        for session in sorted(layout.get_sessions(subject=bids_sub_id)):
-            image_list = []
-            for bids_file in layout.get(
-                subject=bids_sub_id,
+        for session in sorted(bids_sessions):
+            image_list = create_acquisitions(
+                layout=layout,
+                bids_sub_id=bids_sub_id,
                 session=session,
-                extension=[".nii", ".nii.gz"],
-            ):
-                # If the suffix of a BIDS file is not recognized, then ignore
-                mapped_term = map_term_to_namespace(
-                    bids_file.get_entities().get("suffix"),
-                    namespace=mappings.BIDS,
-                )
-                if mapped_term:
-                    image_list.append(
-                        models.Acquisition(
-                            hasContrastType=models.Image(
-                                identifier=mapped_term
-                            )
-                        )
-                    )
+            )
+
+            if not image_list:
+                continue
+
+            # TODO: Currently if a subject has BIDS data but no "ses-" directories (e.g., only 1 session),
+            # we create a session for that subject with a custom label "ses-nb01" to be added to the graph
+            # so the API can still find the session-level information.
+            # This should be revisited in the future as for these cases the resulting dataset object is not
+            # an exact representation of what's on disk.
+            session_label = "nb01" if session is None else session
+
             # TODO: needs refactoring once we also handle phenotypic information at the session level
             session_list.append(
-                models.Session(label=session, hasAcquisition=image_list)
+                # Add back "ses" prefix because pybids stripped it
+                models.Session(
+                    label="ses-" + session_label, hasAcquisition=image_list
+                )
             )
+
         pheno_subject.hasSession = session_list
 
     merged_dataset = {**context, **pheno_dataset.dict(exclude_none=True)}

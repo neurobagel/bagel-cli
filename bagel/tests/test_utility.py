@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
 
-from bagelbids import mappings
-from bagelbids.pheno_utils import (
+from bagel import mappings
+from bagel.pheno_utils import (
     are_not_missing,
     generate_context,
     get_columns_about,

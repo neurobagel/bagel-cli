@@ -1,6 +1,6 @@
 import pytest
 
-from bagelbids.cli import bagel
+from bagel.cli import bagel
 
 
 @pytest.mark.parametrize(

@@ -4,11 +4,7 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 from bids import BIDSLayout
 
-from bagelbids.cli import (
-    bagel,
-    check_unique_bids_subjects,
-    create_acquisitions,
-)
+from bagel.cli import bagel, check_unique_bids_subjects, create_acquisitions
 
 
 def test_bids_valid_inputs_run_successfully(

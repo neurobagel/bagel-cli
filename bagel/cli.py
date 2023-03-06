@@ -7,8 +7,8 @@ import typer
 from bids import BIDSLayout
 from pydantic import ValidationError
 
-from bagelbids import mappings, models
-from bagelbids.pheno_utils import (
+from bagel import mappings, models
+from bagel.pheno_utils import (
     are_not_missing,
     generate_context,
     get_transformed_values,
@@ -16,7 +16,7 @@ from bagelbids.pheno_utils import (
     map_tools_to_columns,
     validate_inputs,
 )
-from bagelbids.utility import load_json
+from bagel.utility import load_json
 
 bagel = typer.Typer()
 

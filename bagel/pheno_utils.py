@@ -6,7 +6,7 @@ import jsonschema
 import pandas as pd
 import pydantic
 
-from bagelbids import dictionary_models, mappings, models
+from bagel import dictionary_models, mappings, models
 
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
 

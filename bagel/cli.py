@@ -237,6 +237,7 @@ def bids(
                 session=session,
             )
 
+            # If subject's session has no image files, a Session object is not added
             if not image_list:
                 continue
 
@@ -245,13 +246,32 @@ def bids(
             # so the API can still find the session-level information.
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.
-            session_label = "nb01" if session is None else session
+            if session is None:
+                session_label = "nb01"
+                session_path = None  # TODO: Provide subject directory instead?
+            else:
+                session_label = session
+                # Get absolute path of session, following symlinks, as posix string
+                session_path = (
+                    Path(
+                        layout.get(
+                            subject=bids_sub_id,
+                            session=session,
+                            target="session",
+                            return_type="dir",
+                        )[0]
+                    )
+                    .resolve()
+                    .as_posix()
+                )
 
             # TODO: needs refactoring once we also handle phenotypic information at the session level
             session_list.append(
                 # Add back "ses" prefix because pybids stripped it
                 models.Session(
-                    label="ses-" + session_label, hasAcquisition=image_list
+                    label="ses-" + session_label,
+                    filePath=session_path,
+                    hasAcquisition=image_list,
                 )
             )
 

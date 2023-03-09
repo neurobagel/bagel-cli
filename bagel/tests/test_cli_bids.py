@@ -1,5 +1,6 @@
 from collections import Counter
 from contextlib import nullcontext as does_not_raise
+from pathlib import Path, PurePath
 
 import pytest
 from bids import BIDSLayout
@@ -55,6 +56,39 @@ def test_bids_sessions_have_correct_labels(
         assert ["ses-01", "ses-02"] == [
             ses["label"] for ses in sub["hasSession"]
         ]
+
+
+def test_bids_sessions_have_correct_paths(
+    runner,
+    test_data,
+    tmp_path,
+    load_test_json,
+):
+    """
+    Check that BIDS session paths added to pheno_bids.jsonld match the parent
+    session/subject labels and are absolute file paths.
+    """
+    runner.invoke(
+        bagel,
+        [
+            "bids",
+            "--jsonld-path",
+            test_data / "example_synthetic.jsonld",
+            "--bids-dir",
+            Path(__file__).parent.parent.parent / "bids-examples/synthetic",
+            "--output",
+            tmp_path,
+        ],
+    )
+
+    pheno_bids = load_test_json(tmp_path / "pheno_bids.jsonld")
+    for sub in pheno_bids["hasSamples"]:
+        for ses in sub["hasSession"]:
+            assert all(
+                label in ses["filePath"]
+                for label in [sub["label"], ses["label"]]
+            )
+            assert PurePath(ses["filePath"]).is_absolute()
 
 
 @pytest.mark.parametrize(

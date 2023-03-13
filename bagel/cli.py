@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -248,10 +249,23 @@ def bids(
             # an exact representation of what's on disk.
             if session is None:
                 session_label = "nb01"
-                session_path = None  # TODO: Provide subject directory instead?
+                # Get absolute path, following symlinks, as posix string
+                session_path = (
+                    Path(
+                        # TODO: Once bug in fetching subject directories with no session layers is resolved,
+                        # switch to using layout.get() snippet below to fetch subject path.
+                        os.path.join(bids_dir, f"sub-{bids_sub_id}")
+                        # layout.get(
+                        #     subject=bids_sub_id,
+                        #     target="subject",
+                        #     return_type="dir",
+                        # )[0]
+                    )
+                    .resolve()
+                    .as_posix()
+                )
             else:
                 session_label = session
-                # Get absolute path of session, following symlinks, as posix string
                 session_path = (
                     Path(
                         layout.get(

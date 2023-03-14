@@ -3,6 +3,7 @@ FROM python:3.10-slim-buster
 
 WORKDIR /app
 COPY . /app/src
-RUN pip install  --no-cache-dir /app/src[all]
+RUN pip install --no-cache-dir /app/src[all]
 
-CMD [ "bagel"]
+ENTRYPOINT [ "bagel" ]
+CMD ["--help"]

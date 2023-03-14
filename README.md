@@ -16,15 +16,15 @@ docker build -t bagel .
 ```
 3. `cd` into your local directory containing your phenotypic .tsv file, Neurobagel-annotated data dictionary, and BIDS directory (if present). Run a `bagel` container with the working directory mounted into the container (and set it as the working directory inside the container), and include your CLI command at the end in the following format:
 ```bash
-docker run --rm --volume=/$PWD:$PWD -w $PWD bagel <CLI command here>
+docker run --rm --volume=$PWD:$PWD -w $PWD bagel <CLI command here>
 ```
 For example:
 ```bash
 # 1. Construct phenotypic subject dictionaries (pheno.jsonld)
-docker run --rm --volume=/$PWD:$PWD -w $PWD bagel pheno --pheno "path/to/tsv" --dictionary "path/to/annotated/json" --output "path/to/save/output" --name "dataset name"
+docker run --rm --volume=$PWD:$PWD -w $PWD bagel pheno --pheno "path/to/tsv" --dictionary "path/to/annotated/json" --output "path/to/save/output" --name "dataset name"
 
 # 2. Add BIDS data to pheno.jsonld
-docker run --rm --volume=/$PWD:$PWD -w $PWD bagel bids --jsonld-path "path/to/pheno.jsonld/from/step1" --bids-dir "path/to/bids/directory" --output "path/to/save/output"
+docker run --rm --volume=$PWD:$PWD -w $PWD bagel bids --jsonld-path "path/to/pheno.jsonld/from/step1" --bids-dir "path/to/bids/directory" --output "path/to/save/output"
 ```
 
 ## Development environment

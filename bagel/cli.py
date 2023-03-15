@@ -237,6 +237,7 @@ def bids(
                 session=session,
             )
 
+            # If subject's session has no image files, a Session object is not added
             if not image_list:
                 continue
 
@@ -245,13 +246,46 @@ def bids(
             # so the API can still find the session-level information.
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.
-            session_label = "nb01" if session is None else session
+            if session is None:
+                session_label = "nb01"
+                # Get absolute path, following symlinks, as posix string
+                session_path = (
+                    Path(
+                        # TODO: Once bug in fetching subject directories with no session layers is resolved,
+                        # switch to using layout.get() snippet below to fetch subject path.
+                        bids_dir
+                        / f"sub-{bids_sub_id}"
+                        # layout.get(
+                        #     subject=bids_sub_id,
+                        #     target="subject",
+                        #     return_type="dir",
+                        # )[0]
+                    )
+                    .resolve()
+                    .as_posix()
+                )
+            else:
+                session_label = session
+                session_path = (
+                    Path(
+                        layout.get(
+                            subject=bids_sub_id,
+                            session=session,
+                            target="session",
+                            return_type="dir",
+                        )[0]
+                    )
+                    .resolve()
+                    .as_posix()
+                )
 
             # TODO: needs refactoring once we also handle phenotypic information at the session level
             session_list.append(
                 # Add back "ses" prefix because pybids stripped it
                 models.Session(
-                    label="ses-" + session_label, hasAcquisition=image_list
+                    label="ses-" + session_label,
+                    filePath=session_path,
+                    hasAcquisition=image_list,
                 )
             )
 

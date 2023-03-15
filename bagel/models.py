@@ -39,6 +39,7 @@ class Assessment(BaseModel, extra=Extra.forbid):
 
 class Session(Bagel):
     label: str
+    filePath: Optional[str] = None
     hasAcquisition: List[Acquisition]
     schemaKey: Literal["Session"] = "Session"
 

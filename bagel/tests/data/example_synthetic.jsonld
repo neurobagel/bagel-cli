@@ -22,6 +22,9 @@
     "Diagnosis": "bg:Diagnosis",
     "Image": "bg:Image",
     "Session": "bg:Session",
+    "filePath": {
+      "@id": "bg:filePath"
+    },
     "hasAcquisition": {
       "@id": "bg:hasAcquisition"
     },

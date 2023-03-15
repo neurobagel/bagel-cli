@@ -142,7 +142,7 @@ def test_invalid_age_heuristic():
         ("Acquisition", ["hasContrastType", "schemaKey"]),
         ("Diagnosis", ["identifier", "schemaKey"]),
         ("Assessment", ["identifier", "schemaKey"]),
-        ("Session", ["label", "hasAcquisition", "schemaKey"]),
+        ("Session", ["label", "filePath", "hasAcquisition", "schemaKey"]),
         (
             "Subject",
             [

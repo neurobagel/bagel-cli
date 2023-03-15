@@ -58,7 +58,7 @@ def test_bids_sessions_have_correct_labels(
         ]
 
 
-def test_bids_sessions_have_correct_paths(
+def test_bids_data_with_sessions_have_correct_paths(
     runner,
     test_data,
     tmp_path,

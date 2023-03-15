@@ -1,6 +1,6 @@
 from collections import Counter
 from contextlib import nullcontext as does_not_raise
-from pathlib import Path, PurePath
+from pathlib import Path
 
 import pytest
 from bids import BIDSLayout
@@ -75,7 +75,7 @@ def test_bids_sessions_have_correct_paths(
             "--jsonld-path",
             test_data / "example_synthetic.jsonld",
             "--bids-dir",
-            Path(__file__).parent.parent.parent / "bids-examples/synthetic",
+            Path(__file__).parent / "../../bids-examples/synthetic",
             "--output",
             tmp_path,
         ],
@@ -84,11 +84,10 @@ def test_bids_sessions_have_correct_paths(
     pheno_bids = load_test_json(tmp_path / "pheno_bids.jsonld")
     for sub in pheno_bids["hasSamples"]:
         for ses in sub["hasSession"]:
-            assert all(
-                label in ses["filePath"]
-                for label in [sub["label"], ses["label"]]
-            )
-            assert PurePath(ses["filePath"]).is_absolute()
+            assert sub["label"] in ses["filePath"]
+            assert ses["label"] in ses["filePath"]
+            assert Path(ses["filePath"]).is_absolute()
+            assert Path(ses["filePath"]).is_dir()
 
 
 @pytest.mark.parametrize(

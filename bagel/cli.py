@@ -1,5 +1,4 @@
 import json
-import os
 from pathlib import Path
 from typing import Optional
 
@@ -254,7 +253,8 @@ def bids(
                     Path(
                         # TODO: Once bug in fetching subject directories with no session layers is resolved,
                         # switch to using layout.get() snippet below to fetch subject path.
-                        os.path.join(bids_dir, f"sub-{bids_sub_id}")
+                        bids_dir
+                        / f"sub-{bids_sub_id}"
                         # layout.get(
                         #     subject=bids_sub_id,
                         #     target="subject",

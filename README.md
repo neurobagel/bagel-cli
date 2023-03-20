@@ -1,4 +1,10 @@
+<div align="center">
+
 # `bagel-cli`
+[![Coverage Status](https://coveralls.io/repos/github/neurobagel/bagel-cli/badge.svg?branch=main)](https://coveralls.io/github/neurobagel/bagel-cli?branch=main)
+[![Tests](https://github.com/neurobagel/bagel-cli/actions/workflows/test.yml/badge.svg)](https://github.com/neurobagel/bagel-cli/actions/workflows/test.yml)
+
+</div>
 
 The Bagel CLI is a simple Python command line tool to automatically read and annotate a 
 [BIDS dataset](https://bids-specification.readthedocs.io/en/stable/) 
@@ -6,7 +12,6 @@ so that it can be integrated into the Neurobagel graph.
 
 ## Installation
 ### Docker
-To run the CLI in a Docker container:
 1. [Install Docker](https://docs.docker.com/get-docker/).
 2. Clone the repository and build the Docker image locally:
 ```bash
@@ -14,13 +19,25 @@ git clone https://github.com/neurobagel/bagel-cli.git
 cd bagel-cli
 docker build -t bagel .
 ```
-3. `cd` into your local directory containing your phenotypic .tsv file, Neurobagel-annotated data dictionary, and BIDS directory (if present). Run a `bagel` container and include your CLI command at the end in the following format:
+
+## Running the CLI
+CLI commands can be accessed using the Docker image you have built.
+
+### To see the CLI options:
+```bash
+# this is a shorthand for `docker run --rm bagel --help`
+docker run --rm bagel
+```
+
+### To run the CLI on data:
+1. `cd` into your local directory containing (1) your phenotypic .tsv file, (2) Neurobagel-annotated data dictionary, and (3) BIDS directory (if available). 
+2. Run a `bagel` container and include your CLI command at the end in the following format:
 ```bash
 docker run --rm --volume=$PWD:$PWD -w $PWD bagel <CLI command here>
 ```
-Explanation: In the above command, `--volume=$PWD:$PWD -w $PWD` mounts your current working directory (containing all inputs needed for the CLI) at the same path inside the container, and also sets the _container's_ working directory to the mounted path (so it matches your location on your host machine). This allows you to pass paths to the containerized CLI which are composed the same way as on your local machine (and both absolute paths and relative top-down paths from your working directory will work!).
+In the above command, `--volume=$PWD:$PWD -w $PWD` mounts your current working directory (containing all inputs for the CLI) at the same path inside the container, and also sets the _container's_ working directory to the mounted path (so it matches your location on your host machine). This allows you to pass paths to the containerized CLI which are composed the same way as on your local machine (and both absolute paths and relative top-down paths from your working directory will work!).
 
-Example:  
+### Example:  
 If your data live in `/home/data/Dataset1`:
 ```
 home/

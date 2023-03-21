@@ -5,7 +5,12 @@ from pathlib import Path
 import pytest
 from bids import BIDSLayout
 
-from bagel.cli import bagel, check_unique_bids_subjects, create_acquisitions
+from bagel.cli import (
+    bagel,
+    check_unique_bids_subjects,
+    create_acquisitions,
+    get_session_path,
+)
 
 
 def test_bids_valid_inputs_run_successfully(
@@ -151,3 +156,45 @@ def test_create_acquisitions(bids_path, bids_dir, acquisitions, bids_session):
 
     for contrast, count in acquisitions.items():
         assert image_counts[contrast] == count
+
+
+@pytest.mark.parametrize(
+    "bids_sub_id, session",
+    [("01", "01"), ("02", "02"), ("03", "01")],
+)
+def test_get_session_path_when_session_exists(bids_sub_id, session):
+    """
+    Test that given a subject and session ID (i.e. when BIDS session layer exists for dataset),
+    get_session_path() returns a path to the subject's session directory.
+    """
+    bids_dir = Path(__file__).parent / "../../bids-examples/synthetic"
+    session_path = get_session_path(
+        layout=BIDSLayout(bids_dir, validate=True),
+        bids_dir=bids_dir,
+        bids_sub_id=bids_sub_id,
+        session=session,
+    )
+
+    assert f"sub-{bids_sub_id}" in session_path
+    assert f"ses-{session}" in session_path
+    assert Path(session_path).is_absolute()
+    assert Path(session_path).is_dir()
+
+
+@pytest.mark.parametrize("bids_sub_id", ["01", "03", "05"])
+def test_get_session_path_when_session_missing(bids_sub_id):
+    """
+    Test that given only a subject ID (i.e., when BIDS session layer is missing for dataset),
+    get_session_path() returns the path to the subject directory.
+    """
+    bids_dir = Path(__file__).parent / "../../bids-examples/ds001"
+    session_path = get_session_path(
+        layout=BIDSLayout(bids_dir, validate=True),
+        bids_dir=bids_dir,
+        bids_sub_id=bids_sub_id,
+        session=None,
+    )
+
+    assert session_path.endswith(f"sub-{bids_sub_id}")
+    assert Path(session_path).is_absolute()
+    assert Path(session_path).is_dir()

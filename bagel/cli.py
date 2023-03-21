@@ -171,6 +171,38 @@ def create_acquisitions(
     return image_list
 
 
+def get_session_path(
+    layout: BIDSLayout,
+    bids_dir: Path,
+    bids_sub_id: str,
+    session: Optional[str],
+) -> str:
+    """Returns session directory from the BIDS dataset if session layer exists, otherwise returns subject directory."""
+    if not session:
+        session_path = Path(
+            # TODO: Once bug in fetching subject directories with no session layers is resolved,
+            # switch to using layout.get() snippet below to fetch subject path.
+            bids_dir
+            / f"sub-{bids_sub_id}"
+            # layout.get(
+            #     subject=bids_sub_id,
+            #     target="subject",
+            #     return_type="dir",
+            # )[0]
+        )
+    else:
+        session_path = Path(
+            layout.get(
+                subject=bids_sub_id,
+                session=session,
+                target="session",
+                return_type="dir",
+            )[0]
+        )
+
+    return session_path.resolve().as_posix()
+
+
 @bagel.command()
 def bids(
     jsonld_path: Path = typer.Option(
@@ -246,38 +278,13 @@ def bids(
             # so the API can still find the session-level information.
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.
-            if session is None:
-                session_label = "nb01"
-                # Get absolute path, following symlinks, as posix string
-                session_path = (
-                    Path(
-                        # TODO: Once bug in fetching subject directories with no session layers is resolved,
-                        # switch to using layout.get() snippet below to fetch subject path.
-                        bids_dir
-                        / f"sub-{bids_sub_id}"
-                        # layout.get(
-                        #     subject=bids_sub_id,
-                        #     target="subject",
-                        #     return_type="dir",
-                        # )[0]
-                    )
-                    .resolve()
-                    .as_posix()
-                )
-            else:
-                session_label = session
-                session_path = (
-                    Path(
-                        layout.get(
-                            subject=bids_sub_id,
-                            session=session,
-                            target="session",
-                            return_type="dir",
-                        )[0]
-                    )
-                    .resolve()
-                    .as_posix()
-                )
+            session_label = "nb01" if session is None else session
+            session_path = get_session_path(
+                layout=layout,
+                bids_dir=bids_dir,
+                bids_sub_id=bids_sub_id,
+                session=session,
+            )
 
             # TODO: needs refactoring once we also handle phenotypic information at the session level
             session_list.append(

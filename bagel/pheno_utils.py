@@ -114,21 +114,30 @@ def get_age_heuristic(column: str, data_dict: dict) -> str:
 
 
 def transform_age(value: str, heuristic: str) -> float:
-    if heuristic in ["bg:float", "bg:int"]:
-        return float(value)
-    if heuristic == "bg:euro":
-        return float(value.replace(",", "."))
-    if heuristic == "bg:bounded":
-        return float(value.strip("+"))
-    if heuristic == "bg:range":
-        a_min, a_max = value.split("-")
-        return (float(a_min) + float(a_max)) / 2
-    if heuristic == "bg:iso8601":
-        if not value.startswith("P"):
-            value = "P" + value
-        duration = isodate.parse_duration(value)
-        return float(duration.years + duration.months / 12)
-    else:
+    is_recognized_heuristic = True
+    try:
+        if heuristic in ["bg:float", "bg:int"]:
+            return float(value)
+        if heuristic == "bg:euro":
+            return float(value.replace(",", "."))
+        if heuristic == "bg:bounded":
+            return float(value.strip("+"))
+        if heuristic == "bg:range":
+            a_min, a_max = value.split("-")
+            return (float(a_min) + float(a_max)) / 2
+        if heuristic == "bg:iso8601":
+            if not value.startswith("P"):
+                value = "P" + value
+            duration = isodate.parse_duration(value)
+            return float(duration.years + duration.months / 12)
+        else:
+            is_recognized_heuristic = False
+    except (ValueError, isodate.isoerror.ISO8601Error) as e:
+        raise ValueError(
+            f"There was a problem with applying the age transformation: {heuristic}. "
+            "Check that the specified transformation is correct for the age values in your data dictionary."
+        ) from e
+    if not is_recognized_heuristic:
         raise ValueError(
             f"The provided data dictionary contains an unrecognized age transformation: {heuristic}. "
             "Ensure that the transformation TermURL is one of "

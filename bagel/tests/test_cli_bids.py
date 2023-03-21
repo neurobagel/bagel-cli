@@ -162,8 +162,11 @@ def test_create_acquisitions(bids_path, bids_dir, acquisitions, bids_session):
     "bids_sub_id, session",
     [("01", "01"), ("02", "02"), ("03", "01")],
 )
-def test_get_session_path_session_exists(bids_sub_id, session):
-    """Given a subject and session ID, get_session_path() returns a path to the subject's session directory."""
+def test_get_session_path_when_session_exists(bids_sub_id, session):
+    """
+    Test that given a subject and session ID (i.e. when BIDS session layer exists for dataset),
+    get_session_path() returns a path to the subject's session directory.
+    """
     bids_dir = Path(__file__).parent / "../../bids-examples/synthetic"
     session_path = get_session_path(
         layout=BIDSLayout(bids_dir, validate=True),
@@ -179,8 +182,11 @@ def test_get_session_path_session_exists(bids_sub_id, session):
 
 
 @pytest.mark.parametrize("bids_sub_id", ["01", "03", "05"])
-def test_get_session_path_session_missing(bids_sub_id):
-    """Given only a subject ID, get_session_path() returns the path to the BIDS subject directory."""
+def test_get_session_path_when_session_missing(bids_sub_id):
+    """
+    Test that given only a subject ID (i.e., when BIDS session layer is missing for dataset),
+    get_session_path() returns the path to the subject directory.
+    """
     bids_dir = Path(__file__).parent / "../../bids-examples/ds001"
     session_path = get_session_path(
         layout=BIDSLayout(bids_dir, validate=True),

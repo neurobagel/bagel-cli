@@ -35,7 +35,7 @@ docker run --rm bagel
 ```bash
 docker run --rm --volume=$PWD:$PWD -w $PWD bagel <CLI command here>
 ```
-In the above command, `--volume=$PWD:$PWD -w $PWD` mounts your current working directory (containing all inputs for the CLI) at the same path inside the container, and also sets the _container's_ working directory to the mounted path (so it matches your location on your host machine). This allows you to pass paths to the containerized CLI which are composed the same way as on your local machine (and both absolute paths and relative top-down paths from your working directory will work!).
+In the above command, `--volume=$PWD:$PWD -w $PWD` mounts your current working directory (containing all inputs for the CLI) at the same path inside the container, and also sets the _container's_ working directory to the mounted path (so it matches your location on your host machine). This allows you to pass paths to the containerized CLI which are composed the same way as on your local machine. (And both absolute paths and relative top-down paths from your working directory will work!)
 
 ### Example:  
 If your data live in `/home/data/Dataset1`:

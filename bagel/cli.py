@@ -1,21 +1,14 @@
 import json
 from pathlib import Path
-from typing import Optional
 
 import pandas as pd
 import typer
 from bids import BIDSLayout
 from pydantic import ValidationError
 
+import bagel.bids_utils as butil
+import bagel.pheno_utils as putil
 from bagel import mappings, models
-from bagel.pheno_utils import (
-    are_not_missing,
-    generate_context,
-    get_transformed_values,
-    map_categories_to_columns,
-    map_tools_to_columns,
-    validate_inputs,
-)
 from bagel.utility import load_json
 
 bagel = typer.Typer()
@@ -63,12 +56,12 @@ def pheno(
     """
     data_dictionary = load_json(dictionary)
     pheno_df = pd.read_csv(pheno, sep="\t", keep_default_na=False)
-    validate_inputs(data_dictionary, pheno_df)
+    putil.validate_inputs(data_dictionary, pheno_df)
 
     subject_list = []
 
-    column_mapping = map_categories_to_columns(data_dictionary)
-    tool_mapping = map_tools_to_columns(data_dictionary)
+    column_mapping = putil.map_categories_to_columns(data_dictionary)
+    tool_mapping = putil.map_tools_to_columns(data_dictionary)
 
     # TODO: needs refactoring once we handle multiple participant IDs
     participants = column_mapping.get("participant")[0]
@@ -84,12 +77,12 @@ def pheno(
 
         subject = models.Subject(label=str(participant))
         if "sex" in column_mapping.keys():
-            subject.sex = get_transformed_values(
+            subject.sex = putil.get_transformed_values(
                 column_mapping["sex"], _sub_pheno, data_dictionary
             )
 
         if "diagnosis" in column_mapping.keys():
-            _dx_val = get_transformed_values(
+            _dx_val = putil.get_transformed_values(
                 column_mapping["diagnosis"], _sub_pheno, data_dictionary
             )
             if _dx_val is None:
@@ -100,7 +93,7 @@ def pheno(
                 subject.diagnosis = [models.Diagnosis(identifier=_dx_val)]
 
         if "age" in column_mapping.keys():
-            subject.age = get_transformed_values(
+            subject.age = putil.get_transformed_values(
                 column_mapping["age"], _sub_pheno, data_dictionary
             )
 
@@ -108,7 +101,7 @@ def pheno(
             _assessments = [
                 models.Assessment(identifier=tool)
                 for tool, columns in tool_mapping.items()
-                if are_not_missing(columns, _sub_pheno, data_dictionary)
+                if putil.are_not_missing(columns, _sub_pheno, data_dictionary)
             ]
             if _assessments:
                 # Only set assignments for the subject if at least one is not missing
@@ -117,7 +110,7 @@ def pheno(
         subject_list.append(subject)
 
     dataset = models.Dataset(label=name, hasSamples=subject_list)
-    context = generate_context()
+    context = putil.generate_context()
     # We can't just exclude_unset here because the identifier and schemaKey
     # for each instance are created as default values and so technically are never set
     # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
@@ -125,82 +118,6 @@ def pheno(
 
     with open(output / "pheno.jsonld", "w") as f:
         f.write(json.dumps(context, indent=2))
-
-
-# TODO: Can probably generalize below function for use in the pheno command functions as well?
-def map_term_to_namespace(term: str, namespace: dict) -> str:
-    """Returns the mapped namespace term if it exists, or False otherwise."""
-    return namespace.get(term, False)
-
-
-def check_unique_bids_subjects(pheno_subjects: list, bids_subjects: list):
-    """Raises informative error if subject IDs exist that are found only in the BIDS directory."""
-    unique_bids_subjects = set(bids_subjects).difference(pheno_subjects)
-    if len(unique_bids_subjects) > 0:
-        raise LookupError(
-            "The specified BIDS directory contains subject IDs not found in"
-            f"the provided phenotypic json-ld file: {unique_bids_subjects}"
-            "Please check that the specified BIDS and phenotypic datasets match."
-        )
-
-
-def create_acquisitions(
-    layout: BIDSLayout,
-    bids_sub_id: str,
-    session: Optional[str],
-) -> list:
-    """Parses BIDS image files for a specified session/subject to create a list of Acquisition objects."""
-    image_list = []
-    for bids_file in layout.get(
-        subject=bids_sub_id,
-        session=session,
-        extension=[".nii", ".nii.gz"],
-    ):
-        # If the suffix of a BIDS file is not recognized, then ignore
-        mapped_term = map_term_to_namespace(
-            bids_file.get_entities().get("suffix"),
-            namespace=mappings.BIDS,
-        )
-        if mapped_term:
-            image_list.append(
-                models.Acquisition(
-                    hasContrastType=models.Image(identifier=mapped_term)
-                )
-            )
-
-    return image_list
-
-
-def get_session_path(
-    layout: BIDSLayout,
-    bids_dir: Path,
-    bids_sub_id: str,
-    session: Optional[str],
-) -> str:
-    """Returns session directory from the BIDS dataset if session layer exists, otherwise returns subject directory."""
-    if not session:
-        session_path = Path(
-            # TODO: Once bug in fetching subject directories with no session layers is resolved,
-            # switch to using layout.get() snippet below to fetch subject path.
-            bids_dir
-            / f"sub-{bids_sub_id}"
-            # layout.get(
-            #     subject=bids_sub_id,
-            #     target="subject",
-            #     return_type="dir",
-            # )[0]
-        )
-    else:
-        session_path = Path(
-            layout.get(
-                subject=bids_sub_id,
-                session=session,
-                target="session",
-                return_type="dir",
-            )[0]
-        )
-
-    return session_path.resolve().as_posix()
 
 
 @bagel.command()
@@ -245,7 +162,7 @@ def bids(
     }
     bids_subject_list = ["sub-" + sub_id for sub_id in layout.get_subjects()]
 
-    check_unique_bids_subjects(
+    butil.check_unique_bids_subjects(
         pheno_subjects=pheno_subject_dict.keys(),
         bids_subjects=bids_subject_list,
     )
@@ -263,7 +180,7 @@ def bids(
         # For some reason .get_sessions() doesn't always follow alphanumeric order
         # By default (without sorting) the session lists look like ["02", "01"] per subject
         for session in sorted(bids_sessions):
-            image_list = create_acquisitions(
+            image_list = butil.create_acquisitions(
                 layout=layout,
                 bids_sub_id=bids_sub_id,
                 session=session,
@@ -279,7 +196,7 @@ def bids(
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.
             session_label = "nb01" if session is None else session
-            session_path = get_session_path(
+            session_path = butil.get_session_path(
                 layout=layout,
                 bids_dir=bids_dir,
                 bids_sub_id=bids_sub_id,

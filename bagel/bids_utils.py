@@ -6,7 +6,6 @@ from bids import BIDSLayout
 from bagel import mappings, models
 
 
-# TODO: Can probably generalize below function for use in the pheno command functions as well?
 def map_term_to_namespace(term: str, namespace: dict) -> str:
     """Returns the mapped namespace term if it exists, or False otherwise."""
     return namespace.get(term, False)

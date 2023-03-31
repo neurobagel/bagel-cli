@@ -1,23 +1,20 @@
+from collections import Counter
+from contextlib import nullcontext as does_not_raise
+from pathlib import Path
+
 import pandas as pd
 import pytest
+from bids import BIDSLayout
 
+import bagel.bids_utils as butil
+import bagel.pheno_utils as putil
 from bagel import mappings
-from bagel.pheno_utils import (
-    are_not_missing,
-    generate_context,
-    get_columns_about,
-    get_transformed_values,
-    is_missing_value,
-    map_categories_to_columns,
-    map_tools_to_columns,
-    transform_age,
-)
 
 
 @pytest.fixture
 def get_test_context():
     """Generate an @context dictionary to test against."""
-    return generate_context()
+    return putil.generate_context()
 
 
 def test_get_columns_that_are_about_concept(test_data, load_test_json):
@@ -25,17 +22,19 @@ def test_get_columns_that_are_about_concept(test_data, load_test_json):
     and that empty list is returned if nothing matches"""
     data_dict = load_test_json(test_data / "example1.json")
 
-    assert ["participant_id"] == get_columns_about(
+    assert ["participant_id"] == putil.get_columns_about(
         data_dict, concept=mappings.NEUROBAGEL["participant"]
     )
-    assert [] == get_columns_about(data_dict, concept="does not exist concept")
+    assert [] == putil.get_columns_about(
+        data_dict, concept="does not exist concept"
+    )
 
 
 def test_map_categories_to_columns(test_data, load_test_json):
     """Test that inverse mapping of concepts to columns is correctly created"""
     data_dict = load_test_json(test_data / "example2.json")
 
-    result = map_categories_to_columns(data_dict)
+    result = putil.map_categories_to_columns(data_dict)
 
     assert {"participant", "session", "sex"}.issubset(result.keys())
     assert ["participant_id"] == result["participant"]
@@ -53,7 +52,7 @@ def test_map_categories_to_columns(test_data, load_test_json):
 def test_map_tools_to_columns(test_data, load_test_json, tool, columns):
     data_dict = load_test_json(test_data / "example6.json")
 
-    result = map_tools_to_columns(data_dict)
+    result = putil.map_tools_to_columns(data_dict)
 
     assert result[tool] == columns
 
@@ -63,7 +62,7 @@ def test_get_transformed_categorical_value(test_data, load_test_json):
     data_dict = load_test_json(test_data / "example2.json")
     pheno = pd.read_csv(test_data / "example2.tsv", sep="\t")
 
-    assert "bids:Male" == get_transformed_values(
+    assert "bids:Male" == putil.get_transformed_values(
         columns=["sex"],
         row=pheno.iloc[0],
         data_dict=data_dict,
@@ -85,7 +84,7 @@ def test_missing_values(value, column, expected):
         "empty_column": {"Annotations": {}},
     }
 
-    assert is_missing_value(value, column, test_data_dict) is expected
+    assert putil.is_missing_value(value, column, test_data_dict) is expected
 
 
 @pytest.mark.parametrize(
@@ -104,7 +103,7 @@ def test_get_assessment_tool_availability(
     test_columns = ["tool_item1", "tool_item2"]
 
     assert (
-        are_not_missing(test_columns, pheno.iloc[subject_idx], data_dict)
+        putil.are_not_missing(test_columns, pheno.iloc[subject_idx], data_dict)
         is is_avail
     )
 
@@ -123,7 +122,7 @@ def test_get_assessment_tool_availability(
     ],
 )
 def test_age_gets_converted(raw_age, expected_age, heuristic):
-    assert expected_age == transform_age(raw_age, heuristic)
+    assert expected_age == putil.transform_age(raw_age, heuristic)
 
 
 @pytest.mark.parametrize(
@@ -138,7 +137,7 @@ def test_age_gets_converted(raw_age, expected_age, heuristic):
 def test_incorrect_age_heuristic(raw_age, incorrect_heuristic):
     """Given an age transformation that does not match the type of age value provided, returns an informative error."""
     with pytest.raises(ValueError) as e:
-        transform_age(raw_age, incorrect_heuristic)
+        putil.transform_age(raw_age, incorrect_heuristic)
 
     assert (
         f"problem with applying the age transformation: {incorrect_heuristic}."
@@ -149,7 +148,7 @@ def test_incorrect_age_heuristic(raw_age, incorrect_heuristic):
 def test_invalid_age_heuristic():
     """Given an age transformation that is not recognized, returns an informative ValueError."""
     with pytest.raises(ValueError) as e:
-        transform_age("11,0", "bg:birthyear")
+        putil.transform_age("11,0", "bg:birthyear")
 
     assert "unrecognized age transformation: bg:birthyear" in str(e.value)
 
@@ -184,3 +183,108 @@ def test_generate_context(get_test_context, model, attributes):
     assert model in get_test_context["@context"]
     for attribute in attributes:
         assert attribute in get_test_context["@context"]
+
+
+@pytest.mark.parametrize(
+    "bids_list, expectation",
+    [
+        (["sub-01", "sub-02", "sub-03"], does_not_raise()),
+        (
+            ["sub-01", "sub-02", "sub-03", "sub-04", "sub-05"],
+            pytest.raises(LookupError),
+        ),
+        (
+            ["sub-cbm001", "sub-cbm002", "sub-cbm003"],
+            pytest.raises(LookupError),
+        ),
+    ],
+)
+def test_check_unique_bids_subjects_err(bids_list, expectation):
+    """
+    Given a list of BIDS subject IDs, raise an error or not depending on
+    whether all IDs are found in the phenotypic subject list.
+    """
+    pheno_list = ["sub-01", "sub-02", "sub-03", "sub-PD123", "sub-PD234"]
+
+    with expectation:
+        butil.check_unique_bids_subjects(
+            pheno_subjects=pheno_list, bids_subjects=bids_list
+        )
+
+
+@pytest.mark.parametrize(
+    "bids_dir, acquisitions, bids_session",
+    [
+        (
+            "synthetic",
+            {"nidm:T1Weighted": 1, "nidm:FlowWeighted": 3},
+            "01",
+        ),
+        (
+            "ds001",
+            {
+                "nidm:T2Weighted": 1,
+                "nidm:T1Weighted": 1,
+                "nidm:FlowWeighted": 3,
+            },
+            None,
+        ),
+        ("eeg_ds000117", {"nidm:T1Weighted": 1}, None),
+    ],
+)
+def test_create_acquisitions(bids_path, bids_dir, acquisitions, bids_session):
+    """Given a BIDS dataset, creates a list of acquisitions matching the image files found on disk."""
+    image_list = butil.create_acquisitions(
+        layout=BIDSLayout(bids_path / bids_dir, validate=True),
+        bids_sub_id="01",
+        session=bids_session,
+    )
+
+    image_counts = Counter(
+        [image.hasContrastType.identifier for image in image_list]
+    )
+
+    for contrast, count in acquisitions.items():
+        assert image_counts[contrast] == count
+
+
+@pytest.mark.parametrize(
+    "bids_sub_id, session",
+    [("01", "01"), ("02", "02"), ("03", "01")],
+)
+def test_get_session_path_when_session_exists(bids_sub_id, session):
+    """
+    Test that given a subject and session ID (i.e. when BIDS session layer exists for dataset),
+    get_session_path() returns a path to the subject's session directory.
+    """
+    bids_dir = Path(__file__).parent / "../../bids-examples/synthetic"
+    session_path = butil.get_session_path(
+        layout=BIDSLayout(bids_dir, validate=True),
+        bids_dir=bids_dir,
+        bids_sub_id=bids_sub_id,
+        session=session,
+    )
+
+    assert f"sub-{bids_sub_id}" in session_path
+    assert f"ses-{session}" in session_path
+    assert Path(session_path).is_absolute()
+    assert Path(session_path).is_dir()
+
+
+@pytest.mark.parametrize("bids_sub_id", ["01", "03", "05"])
+def test_get_session_path_when_session_missing(bids_sub_id):
+    """
+    Test that given only a subject ID (i.e., when BIDS session layer is missing for dataset),
+    get_session_path() returns the path to the subject directory.
+    """
+    bids_dir = Path(__file__).parent / "../../bids-examples/ds001"
+    session_path = butil.get_session_path(
+        layout=BIDSLayout(bids_dir, validate=True),
+        bids_dir=bids_dir,
+        bids_sub_id=bids_sub_id,
+        session=None,
+    )
+
+    assert session_path.endswith(f"sub-{bids_sub_id}")
+    assert Path(session_path).is_absolute()
+    assert Path(session_path).is_dir()

@@ -99,7 +99,7 @@ def pheno(
 
         if tool_mapping:
             _assessments = [
-                models.Assessment(identifier=tool)
+                models.ControlledTerm(identifier=tool, schemaKey="Assessment")
                 for tool, columns in tool_mapping.items()
                 if putil.are_not_missing(columns, _sub_pheno, data_dictionary)
             ]

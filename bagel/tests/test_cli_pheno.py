@@ -119,7 +119,7 @@ def test_diagnosis_and_control_status_handled(
     assert pheno["hasSamples"][2]["isSubjectGroup"] == "purl:NCIT_C94342"
 
 
-@pytest.mark.parametrize("attribute", ["sex", "diagnosis"])
+@pytest.mark.parametrize("attribute", ["sex", "diagnosis", "assessment"])
 def test_controlled_terms_have_identifiers(
     attribute, runner, test_data, tmp_path, load_test_json
 ):

@@ -119,6 +119,32 @@ def test_diagnosis_and_control_status_handled(
     assert pheno["hasSamples"][2]["isSubjectGroup"] == "purl:NCIT_C94342"
 
 
+@pytest.mark.parametrize("attribute", [
+    "sex"
+])
+def test_controlled_terms_have_identifiers(attribute, runner, test_data, tmp_path, load_test_json
+):
+    result = runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example_synthetic.tsv",
+            "--dictionary",
+            test_data / "example_synthetic.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "do not care name",
+        ],
+    )
+
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
+    assert all([
+        "identifier" in sub.get(attribute) for sub in pheno["hasSamples"] if attribute in sub.keys()
+    ])
+
+
 @pytest.mark.parametrize(
     "assessment, subject",
     [

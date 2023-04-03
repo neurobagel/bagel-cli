@@ -9,9 +9,9 @@
       "@id": "bg:hasContrastType"
     },
     "schemaKey": "@type",
-    "Assessment": "bg:Assessment",
     "Bagel": "bg:Bagel",
     "BaseModel": "bg:BaseModel",
+    "ControlledTerm": "bg:ControlledTerm",
     "Dataset": "bg:Dataset",
     "label": {
       "@id": "bg:label"
@@ -19,7 +19,6 @@
     "hasSamples": {
       "@id": "bg:hasSamples"
     },
-    "Diagnosis": "bg:Diagnosis",
     "Image": "bg:Image",
     "Session": "bg:Session",
     "filePath": {
@@ -48,15 +47,21 @@
       "@id": "bg:assessment"
     }
   },
-  "identifier": "bg:bc413741-695a-4e42-b13b-8644ae59e455",
-  "label": "BIDS synthetic example dataset",
+  "identifier": "bg:d6da97be-3788-4865-824c-5bfd0dd09ebe",
+  "label": "BIDS synthetic",
   "hasSamples": [
     {
-      "identifier": "bg:1884e35e-27d9-4479-822f-e80b1eff3622",
+      "identifier": "bg:a63aaaed-5abe-494c-8ad5-8cb84f44cf72",
       "label": "sub-01",
       "age": 34.1,
-      "sex": "bids:Female",
-      "isSubjectGroup": "purl:NCIT_C94342",
+      "sex": {
+        "identifier": "bids:Female",
+        "schemaKey": "Sex"
+      },
+      "isSubjectGroup": {
+        "identifier": "purl:NCIT_C94342",
+        "schemaKey": "SubjectGroup"
+      },
       "assessment": [
         {
           "identifier": "cogAtlas:1234",
@@ -70,10 +75,13 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "bg:5bdf1e85-7837-4f5f-97c8-40dcba970285",
+      "identifier": "bg:57a0edd2-bbed-471e-8f67-0dca88ed58e5",
       "label": "sub-02",
       "age": 38.1,
-      "sex": "bids:Male",
+      "sex": {
+        "identifier": "bids:Male",
+        "schemaKey": "Sex"
+      },
       "diagnosis": [
         {
           "identifier": "snomed:49049000",
@@ -89,11 +97,17 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "bg:baf6b7bd-7bbc-4963-aea8-bad00d8f2028",
+      "identifier": "bg:5e5bbec0-4625-480d-9aaf-0471b242b9d9",
       "label": "sub-03",
       "age": 22.1,
-      "sex": "bids:Male",
-      "isSubjectGroup": "purl:NCIT_C94342",
+      "sex": {
+        "identifier": "bids:Male",
+        "schemaKey": "Sex"
+      },
+      "isSubjectGroup": {
+        "identifier": "purl:NCIT_C94342",
+        "schemaKey": "SubjectGroup"
+      },
       "assessment": [
         {
           "identifier": "cogAtlas:1234",
@@ -103,11 +117,17 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "bg:4abdd0a5-e16c-48df-afd2-7570bcf10fca",
+      "identifier": "bg:b595fe1c-7202-48a9-80a4-d1b59cc2cb17",
       "label": "sub-04",
       "age": 21.1,
-      "sex": "bids:Female",
-      "isSubjectGroup": "purl:NCIT_C94342",
+      "sex": {
+        "identifier": "bids:Female",
+        "schemaKey": "Sex"
+      },
+      "isSubjectGroup": {
+        "identifier": "purl:NCIT_C94342",
+        "schemaKey": "SubjectGroup"
+      },
       "assessment": [
         {
           "identifier": "cogAtlas:4321",
@@ -117,10 +137,13 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "bg:df44b5f1-f7c5-41cc-befa-c6026b3c12d9",
+      "identifier": "bg:d5e885b0-98e9-461e-be7c-3e9b8d093984",
       "label": "sub-05",
       "age": 42.5,
-      "sex": "bids:Male",
+      "sex": {
+        "identifier": "bids:Male",
+        "schemaKey": "Sex"
+      },
       "diagnosis": [
         {
           "identifier": "snomed:49049000",

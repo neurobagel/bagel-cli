@@ -157,7 +157,6 @@ def test_invalid_age_heuristic():
     "model, attributes",
     [
         ("Bagel", ["identifier"]),
-        ("Image", ["identifier", "schemaKey"]),
         ("Acquisition", ["hasContrastType", "schemaKey"]),
         ("Session", ["label", "filePath", "hasAcquisition", "schemaKey"]),
         (

@@ -17,11 +17,6 @@ class Bagel(BaseModel, extra=Extra.forbid):
     )
 
 
-class Image(BaseModel, extra=Extra.forbid):
-    identifier: str
-    schemaKey: Literal["Image"] = "Image"
-
-
 class ControlledTerm(BaseModel):
     identifier: Union[str, HttpUrl]
     schemaKey: str

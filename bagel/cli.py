@@ -77,9 +77,12 @@ def pheno(
 
         subject = models.Subject(label=str(participant))
         if "sex" in column_mapping.keys():
-            subject.sex = models.ControlledTerm(identifier=putil.get_transformed_values(
-                column_mapping["sex"], _sub_pheno, data_dictionary
-            ), schemaKey="Sex")
+            subject.sex = models.ControlledTerm(
+                identifier=putil.get_transformed_values(
+                    column_mapping["sex"], _sub_pheno, data_dictionary
+                ),
+                schemaKey="Sex",
+            )
 
         if "diagnosis" in column_mapping.keys():
             _dx_val = putil.get_transformed_values(
@@ -88,9 +91,16 @@ def pheno(
             if _dx_val is None:
                 pass
             elif _dx_val == mappings.NEUROBAGEL["healthy_control"]:
-                subject.isSubjectGroup = mappings.NEUROBAGEL["healthy_control"]
+                subject.isSubjectGroup = models.ControlledTerm(
+                    identifier=mappings.NEUROBAGEL["healthy_control"],
+                    schemaKey="SubjectGroup",
+                )
             else:
-                subject.diagnosis = [models.ControlledTerm(identifier=_dx_val, schemaKey="Diagnosis")]
+                subject.diagnosis = [
+                    models.ControlledTerm(
+                        identifier=_dx_val, schemaKey="Diagnosis"
+                    )
+                ]
 
         if "age" in column_mapping.keys():
             subject.age = putil.get_transformed_values(

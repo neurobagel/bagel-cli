@@ -55,7 +55,7 @@ def pheno(
     You can upload this .jsonld file to the Neurobagel graph.
     """
     data_dictionary = load_json(dictionary)
-    pheno_df = pd.read_csv(pheno, sep="\t", keep_default_na=False)
+    pheno_df = pd.read_csv(pheno, sep="\t", keep_default_na=False, dtype=str)
     putil.validate_inputs(data_dictionary, pheno_df)
 
     subject_list = []

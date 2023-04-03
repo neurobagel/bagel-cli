@@ -22,8 +22,13 @@ class Image(BaseModel, extra=Extra.forbid):
     schemaKey: Literal["Image"] = "Image"
 
 
+class ControlledTerm(BaseModel):
+    identifier: Union[str, HttpUrl]
+    schemaKey: str
+
+
 class Acquisition(Bagel):
-    hasContrastType: Image
+    hasContrastType: ControlledTerm
     schemaKey: Literal["Acquisition"] = "Acquisition"
 
 
@@ -48,10 +53,10 @@ class Subject(Bagel):
     label: str
     hasSession: Optional[List[Session]] = None
     age: Optional[float] = None
-    sex: Optional[str] = None
-    isSubjectGroup: Optional[str] = None
-    diagnosis: Optional[List[Diagnosis]] = None
-    assessment: Optional[List[Assessment]] = None
+    sex: Optional[ControlledTerm] = None
+    isSubjectGroup: Optional[ControlledTerm] = None
+    diagnosis: Optional[List[ControlledTerm]] = None
+    assessment: Optional[List[ControlledTerm]] = None
     schemaKey: Literal["Subject"] = "Subject"
 
 

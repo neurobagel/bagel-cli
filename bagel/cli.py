@@ -90,7 +90,7 @@ def pheno(
             elif _dx_val == mappings.NEUROBAGEL["healthy_control"]:
                 subject.isSubjectGroup = mappings.NEUROBAGEL["healthy_control"]
             else:
-                subject.diagnosis = [models.Diagnosis(identifier=_dx_val)]
+                subject.diagnosis = [models.ControlledTerm(identifier=_dx_val, schemaKey="Diagnosis")]
 
         if "age" in column_mapping.keys():
             subject.age = putil.get_transformed_values(

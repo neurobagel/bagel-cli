@@ -119,10 +119,9 @@ def test_diagnosis_and_control_status_handled(
     assert pheno["hasSamples"][2]["isSubjectGroup"] == "purl:NCIT_C94342"
 
 
-@pytest.mark.parametrize("attribute", [
-    "sex"
-])
-def test_controlled_terms_have_identifiers(attribute, runner, test_data, tmp_path, load_test_json
+@pytest.mark.parametrize("attribute", ["sex", "diagnosis"])
+def test_controlled_terms_have_identifiers(
+    attribute, runner, test_data, tmp_path, load_test_json
 ):
     result = runner.invoke(
         bagel,
@@ -140,9 +139,15 @@ def test_controlled_terms_have_identifiers(attribute, runner, test_data, tmp_pat
     )
 
     pheno = load_test_json(tmp_path / "pheno.jsonld")
-    assert all([
-        "identifier" in sub.get(attribute) for sub in pheno["hasSamples"] if attribute in sub.keys()
-    ])
+
+    for sub in pheno["hasSamples"]:
+        if attribute in sub.keys():
+            value = sub.get(attribute)
+            if not isinstance(value, list):
+                value = [value]
+            assert all(
+                ["identifier" in entry for entry in value]
+            ), f"{attribute}: did not have an identifier for subject {sub} and value {value}"
 
 
 @pytest.mark.parametrize(

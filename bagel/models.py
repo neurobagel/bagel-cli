@@ -32,16 +32,6 @@ class Acquisition(Bagel):
     schemaKey: Literal["Acquisition"] = "Acquisition"
 
 
-class Diagnosis(BaseModel, extra=Extra.forbid):
-    identifier: Union[str, HttpUrl]
-    schemaKey: Literal["Diagnosis"] = "Diagnosis"
-
-
-class Assessment(BaseModel, extra=Extra.forbid):
-    identifier: Union[str, HttpUrl]
-    schemaKey: Literal["Assessment"] = "Assessment"
-
-
 class Session(Bagel):
     label: str
     filePath: Optional[str] = None

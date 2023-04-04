@@ -116,7 +116,40 @@ def test_diagnosis_and_control_status_handled(
     )
     assert "diagnosis" not in pheno["hasSamples"][1].keys()
     assert "diagnosis" not in pheno["hasSamples"][2].keys()
-    assert pheno["hasSamples"][2]["isSubjectGroup"] == "purl:NCIT_C94342"
+    assert pheno["hasSamples"][2]["isSubjectGroup"]["identifier"] == "purl:NCIT_C94342"
+
+
+@pytest.mark.parametrize(
+    "attribute", ["sex", "diagnosis", "assessment", "isSubjectGroup"]
+)
+def test_controlled_terms_have_identifiers(
+    attribute, runner, test_data, tmp_path, load_test_json
+):
+    result = runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example_synthetic.tsv",
+            "--dictionary",
+            test_data / "example_synthetic.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "do not care name",
+        ],
+    )
+
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
+
+    for sub in pheno["hasSamples"]:
+        if attribute in sub.keys():
+            value = sub.get(attribute)
+            if not isinstance(value, list):
+                value = [value]
+            assert all(
+                ["identifier" in entry for entry in value]
+            ), f"{attribute}: did not have an identifier for subject {sub} and value {value}"
 
 
 @pytest.mark.parametrize(

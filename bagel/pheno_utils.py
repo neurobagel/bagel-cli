@@ -286,9 +286,9 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     )
     if undefined_categorical_col_values:
         raise LookupError(
-            "Categorical column(s) in the phenotypic file have values not found in the data dictionary "
+            "Categorical column(s) in the phenotypic file have values not annotated in the data dictionary "
             f"(shown as <column_name>: [<undefined values>]): {undefined_categorical_col_values}. "
-            "Please check that the correct data dictionary has been selected."
+            "Please check that the correct data dictionary has been selected or make sure to annotate the missing values."
         )
 
     unused_missing_values = find_unused_missing_values(data_dict, pheno_df)

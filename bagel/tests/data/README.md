@@ -13,5 +13,7 @@ Example inputs to the CLI
 | invalid | valid, only exists to be used together with the (invalid) .json    | invalid, missing the `"TermURL"` attribute for identifiers                       | fail   |
 | 7       | has fewer columns than are annotated in `.json`                    | same as example 1                                                                | fail   |
 | 8       | valid, based on ex2 has multiple participant_id columns            | valid, based on ex2 multiple participant_id column annotations                   | fail*  |
+| 9       | valid, same as example 6            | invalid, based on example 6 but contains an unannotated value for `group`                   | fail  |
+| 10       | valid, based on example 6 but contains extra `"MissingValues"` not found in the .tsv           | valid, same as example 6                   | pass, with warning  |
 
 `* this is expected to fail until we enable multiple participant_ID handling`.

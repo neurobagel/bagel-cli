@@ -196,8 +196,9 @@ def find_undefined_categorical_column_values(
     data_dict: dict, pheno_df: pd.DataFrame
 ) -> dict:
     """
-    Returns a dictionary containing any categorical column names and specific column values not defined
-    in the corresponding data dictionary entry.
+    Checks that all categorical column values have annotations. Returns a dictionary containing
+    any categorical column names and specific column values not defined in the corresponding data
+    dictionary entry.
     """
     all_undefined_values = {}
     for col in data_dict.keys():
@@ -269,18 +270,18 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
         raise LookupError(
             "The provided data dictionary and phenotypic file are individually valid, "
             "but are not compatible. Make sure that you selected the correct data "
-            "dictionary for your phenotyic file. Every column described in the data "
+            "dictionary for your phenotypic file. Every column described in the data "
             "dictionary has to have a corresponding column with the same name in the "
             "phenotypic file"
         )
 
-    unknown_categorical_col_values = find_undefined_categorical_column_values(
-        data_dict, pheno_df
+    undefined_categorical_col_values = (
+        find_undefined_categorical_column_values(data_dict, pheno_df)
     )
-    if unknown_categorical_col_values:
+    if undefined_categorical_col_values:
         raise LookupError(
-            "Categorical column(s) in the phenotypic .tsv have values not found in the provided data dictionary "
-            f"(shown as <column_name>: {{<undefined values>}}): {unknown_categorical_col_values}. "
+            "Categorical column(s) in the phenotypic file have values not found in the data dictionary "
+            f"(shown as <column_name>: {{<undefined values>}}): {undefined_categorical_col_values}. "
             "Please check that the correct data dictionary has been selected."
         )
 

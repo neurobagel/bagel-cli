@@ -72,6 +72,39 @@ def test_invalid_inputs_are_handled_gracefully(
     assert expected_message in str(e.value)
 
 
+def test_unused_missing_values_raises_warning(
+    runner,
+    test_data,
+    tmp_path,
+):
+    """
+    Tests that an informative warning is raised when annotated missing values are not found in the
+    phenotypic file.
+    """
+    with pytest.warns(UserWarning) as w:
+        runner.invoke(
+            bagel,
+            [
+                "pheno",
+                "--pheno",
+                test_data / "example10.tsv",
+                "--dictionary",
+                test_data / "example10.json",
+                "--output",
+                tmp_path,
+                "--name",
+                "testing dataset",
+            ],
+            catch_exceptions=False,
+        )
+
+    assert len(w) == 1
+    assert (
+        "missing values in the data dictionary were not found in the corresponding phenotypic file column(s) "
+        "(<column_name>: [<unused missing values>]): {'group': ['MISSING'], 'tool_item1': ['none', ''], 'tool_item2': ['none', '']}"
+    ) in str(w[0].message.args[0])
+
+
 def test_that_output_file_contains_name(
     runner, test_data, tmp_path, load_test_json
 ):

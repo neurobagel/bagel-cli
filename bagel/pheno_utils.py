@@ -1,3 +1,4 @@
+import warnings
 from collections import defaultdict
 from typing import Union
 
@@ -213,6 +214,26 @@ def find_undefined_categorical_column_values(
     return all_undefined_values
 
 
+def find_unused_missing_values(
+    data_dict: dict, pheno_df: pd.DataFrame
+) -> dict:
+    """
+    Checks if missing values annotated in the data dictionary appear at least once in the phenotypic file.
+    Returns a dictionary containing any column names and annotated missing values not found in the phenotypic
+    file column.
+    """
+    all_unused_missing_vals = {}
+    for col, attr in data_dict.items():
+        unused_missing_vals = []
+        for missing_val in attr["Annotations"].get("MissingValues", []):
+            if missing_val not in pheno_df[col].unique():
+                unused_missing_vals.append(missing_val)
+        if unused_missing_vals:
+            all_unused_missing_vals[col] = unused_missing_vals
+
+    return all_unused_missing_vals
+
+
 def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     """Determines whether input data are valid"""
     try:
@@ -261,4 +282,13 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
             "Categorical column(s) in the phenotypic .tsv have values not found in the provided data dictionary "
             f"(shown as <column_name>: {{<undefined values>}}): {unknown_categorical_col_values}. "
             "Please check that the correct data dictionary has been selected."
+        )
+
+    unused_missing_values = find_unused_missing_values(data_dict, pheno_df)
+    if unused_missing_values:
+        warnings.warn(
+            "The following values annotated as missing values in the data dictionary were not found "
+            "in the corresponding phenotypic file column(s) (<column_name>: [<unused missing values>]): "
+            f"{unused_missing_values}. If this is not intentional, please check your data dictionary "
+            "and phenotypic file."
         )

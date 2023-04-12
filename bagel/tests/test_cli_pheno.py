@@ -41,6 +41,11 @@ def test_pheno_valid_inputs_run_successfully(
         ),
         ("example7", LookupError, "not compatible"),
         ("example8", ValueError, "more than one column"),
+        (
+            "example9",
+            LookupError,
+            "values not found in the provided data dictionary (shown as <column_name>: {<undefined values>}): {'group': {'SIB'}}",
+        ),
     ],
 )
 def test_invalid_inputs_are_handled_gracefully(
@@ -116,7 +121,10 @@ def test_diagnosis_and_control_status_handled(
     )
     assert "diagnosis" not in pheno["hasSamples"][1].keys()
     assert "diagnosis" not in pheno["hasSamples"][2].keys()
-    assert pheno["hasSamples"][2]["isSubjectGroup"]["identifier"] == "purl:NCIT_C94342"
+    assert (
+        pheno["hasSamples"][2]["isSubjectGroup"]["identifier"]
+        == "purl:NCIT_C94342"
+    )
 
 
 @pytest.mark.parametrize(
@@ -125,7 +133,7 @@ def test_diagnosis_and_control_status_handled(
 def test_controlled_terms_have_identifiers(
     attribute, runner, test_data, tmp_path, load_test_json
 ):
-    result = runner.invoke(
+    runner.invoke(
         bagel,
         [
             "pheno",

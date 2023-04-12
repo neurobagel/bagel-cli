@@ -201,14 +201,20 @@ def find_undefined_categorical_column_values(
     dictionary entry.
     """
     all_undefined_values = {}
-    for col in data_dict.keys():
+    for col, attr in data_dict.items():
         if is_column_categorical(col, data_dict):
-            known_values = list(data_dict[col]["Levels"].keys()) + data_dict[
-                col
-            ]["Annotations"].get("MissingValues", [])
-            unknown_values = set(pheno_df[col].unique()).difference(
-                known_values
-            )
+            known_values = list(attr["Levels"].keys()) + attr[
+                "Annotations"
+            ].get("MissingValues", [])
+            # NOTE: (also applies to find_unused_missing_values) The below comparison block could also be
+            # accomplished using difference of sets, however due to the unordered nature of the resultant set
+            # of unknown values, the order of specific values may be different than they appear in the input,
+            # leading to unexpected failed assertions / hard-to-formulate expected user messages in testing.
+            # To keep things simple, loops and basic conditionals are used here instead.
+            unknown_values = []
+            for value in pheno_df[col].unique():
+                if value not in known_values:
+                    unknown_values.append(value)
             if unknown_values:
                 all_undefined_values[col] = unknown_values
 
@@ -281,7 +287,7 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     if undefined_categorical_col_values:
         raise LookupError(
             "Categorical column(s) in the phenotypic file have values not found in the data dictionary "
-            f"(shown as <column_name>: {{<undefined values>}}): {undefined_categorical_col_values}. "
+            f"(shown as <column_name>: [<undefined values>]): {undefined_categorical_col_values}. "
             "Please check that the correct data dictionary has been selected."
         )
 

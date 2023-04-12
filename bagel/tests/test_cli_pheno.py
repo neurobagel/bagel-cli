@@ -44,7 +44,7 @@ def test_pheno_valid_inputs_run_successfully(
         (
             "example9",
             LookupError,
-            "values not found in the data dictionary (shown as <column_name>: {<undefined values>}): {'group': {'SIB'}}",
+            "values not found in the data dictionary (shown as <column_name>: [<undefined values>]): {'group': ['SIB']}",
         ),
     ],
 )

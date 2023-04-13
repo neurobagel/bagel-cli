@@ -192,7 +192,7 @@ def are_inputs_compatible(data_dict: dict, pheno_df: pd.DataFrame) -> bool:
     return all([key in pheno_df.columns for key in data_dict.keys()])
 
 
-def find_undefined_categorical_column_values(
+def find_undefined_cat_col_values(
     data_dict: dict, pheno_df: pd.DataFrame
 ) -> dict:
     """
@@ -276,13 +276,13 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
             "phenotypic file"
         )
 
-    undefined_categorical_col_values = (
-        find_undefined_categorical_column_values(data_dict, pheno_df)
+    undefined_cat_col_values = find_undefined_cat_col_values(
+        data_dict, pheno_df
     )
-    if undefined_categorical_col_values:
+    if undefined_cat_col_values:
         raise LookupError(
             "Categorical column(s) in the phenotypic file have values not annotated in the data dictionary "
-            f"(shown as <column_name>: [<undefined values>]): {undefined_categorical_col_values}. "
+            f"(shown as <column_name>: [<undefined values>]): {undefined_cat_col_values}. "
             "Please check that the correct data dictionary has been selected or make sure to annotate the missing values."
         )
 

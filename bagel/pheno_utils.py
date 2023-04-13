@@ -1,3 +1,4 @@
+import warnings
 from collections import defaultdict
 from typing import Union
 
@@ -191,6 +192,50 @@ def are_inputs_compatible(data_dict: dict, pheno_df: pd.DataFrame) -> bool:
     return all([key in pheno_df.columns for key in data_dict.keys()])
 
 
+def find_undefined_cat_col_values(
+    data_dict: dict, pheno_df: pd.DataFrame
+) -> dict:
+    """
+    Checks that all categorical column values have annotations. Returns a dictionary containing
+    any categorical column names and specific column values not defined in the corresponding data
+    dictionary entry.
+    """
+    all_undefined_values = {}
+    for col, attr in data_dict.items():
+        if is_column_categorical(col, data_dict):
+            known_values = list(attr["Levels"].keys()) + attr[
+                "Annotations"
+            ].get("MissingValues", [])
+            unknown_values = []
+            for value in pheno_df[col].unique():
+                if value not in known_values:
+                    unknown_values.append(value)
+            if unknown_values:
+                all_undefined_values[col] = unknown_values
+
+    return all_undefined_values
+
+
+def find_unused_missing_values(
+    data_dict: dict, pheno_df: pd.DataFrame
+) -> dict:
+    """
+    Checks if missing values annotated in the data dictionary appear at least once in the phenotypic file.
+    Returns a dictionary containing any column names and annotated missing values not found in the phenotypic
+    file column.
+    """
+    all_unused_missing_vals = {}
+    for col, attr in data_dict.items():
+        unused_missing_vals = []
+        for missing_val in attr["Annotations"].get("MissingValues", []):
+            if missing_val not in pheno_df[col].unique():
+                unused_missing_vals.append(missing_val)
+        if unused_missing_vals:
+            all_unused_missing_vals[col] = unused_missing_vals
+
+    return all_unused_missing_vals
+
+
 def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     """Determines whether input data are valid"""
     try:
@@ -226,7 +271,26 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
         raise LookupError(
             "The provided data dictionary and phenotypic file are individually valid, "
             "but are not compatible. Make sure that you selected the correct data "
-            "dictionary for your phenotyic file. Every column described in the data "
+            "dictionary for your phenotypic file. Every column described in the data "
             "dictionary has to have a corresponding column with the same name in the "
             "phenotypic file"
+        )
+
+    undefined_cat_col_values = find_undefined_cat_col_values(
+        data_dict, pheno_df
+    )
+    if undefined_cat_col_values:
+        raise LookupError(
+            "Categorical column(s) in the phenotypic file have values not annotated in the data dictionary "
+            f"(shown as <column_name>: [<undefined values>]): {undefined_cat_col_values}. "
+            "Please check that the correct data dictionary has been selected or make sure to annotate the missing values."
+        )
+
+    unused_missing_values = find_unused_missing_values(data_dict, pheno_df)
+    if unused_missing_values:
+        warnings.warn(
+            "The following values annotated as missing values in the data dictionary were not found "
+            "in the corresponding phenotypic file column(s) (<column_name>: [<unused missing values>]): "
+            f"{unused_missing_values}. If this is not intentional, please check your data dictionary "
+            "and phenotypic file."
         )

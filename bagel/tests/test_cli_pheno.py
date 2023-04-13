@@ -33,14 +33,22 @@ def test_pheno_valid_inputs_run_successfully(
 @pytest.mark.parametrize(
     "example,expected_exception,expected_message",
     [
-        ("example3", ValueError, "not a valid Neurobagel data dictionary"),
+        ("example3", ValueError, ["not a valid Neurobagel data dictionary"]),
         (
             "example_invalid",
             ValueError,
-            "not a valid Neurobagel data dictionary",
+            ["not a valid Neurobagel data dictionary"],
         ),
-        ("example7", LookupError, "not compatible"),
-        ("example8", ValueError, "more than one column"),
+        ("example7", LookupError, ["not compatible"]),
+        ("example8", ValueError, ["more than one column"]),
+        (
+            "example9",
+            LookupError,
+            [
+                "values not annotated in the data dictionary",
+                "'group': ['UNANNOTATED']",
+            ],
+        ),
     ],
 )
 def test_invalid_inputs_are_handled_gracefully(
@@ -64,7 +72,44 @@ def test_invalid_inputs_are_handled_gracefully(
             catch_exceptions=False,
         )
 
-    assert expected_message in str(e.value)
+    for substring in expected_message:
+        assert substring in str(e.value)
+
+
+def test_unused_missing_values_raises_warning(
+    runner,
+    test_data,
+    tmp_path,
+):
+    """
+    Tests that an informative warning is raised when annotated missing values are not found in the
+    phenotypic file.
+    """
+    with pytest.warns(UserWarning) as w:
+        runner.invoke(
+            bagel,
+            [
+                "pheno",
+                "--pheno",
+                test_data / "example10.tsv",
+                "--dictionary",
+                test_data / "example10.json",
+                "--output",
+                tmp_path,
+                "--name",
+                "testing dataset",
+            ],
+            catch_exceptions=False,
+        )
+
+    assert len(w) == 1
+    for warn_substring in [
+        "missing values in the data dictionary were not found",
+        "'group': ['NOT IN TSV']",
+        "'tool_item1': ['NOT IN TSV 1', 'NOT IN TSV 2']",
+        "'tool_item2': ['NOT IN TSV 1', 'NOT IN TSV 2']",
+    ]:
+        assert warn_substring in str(w[0].message.args[0])
 
 
 def test_that_output_file_contains_name(
@@ -116,7 +161,10 @@ def test_diagnosis_and_control_status_handled(
     )
     assert "diagnosis" not in pheno["hasSamples"][1].keys()
     assert "diagnosis" not in pheno["hasSamples"][2].keys()
-    assert pheno["hasSamples"][2]["isSubjectGroup"]["identifier"] == "purl:NCIT_C94342"
+    assert (
+        pheno["hasSamples"][2]["isSubjectGroup"]["identifier"]
+        == "purl:NCIT_C94342"
+    )
 
 
 @pytest.mark.parametrize(
@@ -125,7 +173,7 @@ def test_diagnosis_and_control_status_handled(
 def test_controlled_terms_have_identifiers(
     attribute, runner, test_data, tmp_path, load_test_json
 ):
-    result = runner.invoke(
+    runner.invoke(
         bagel,
         [
             "pheno",

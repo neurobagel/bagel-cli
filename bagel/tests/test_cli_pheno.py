@@ -33,18 +33,21 @@ def test_pheno_valid_inputs_run_successfully(
 @pytest.mark.parametrize(
     "example,expected_exception,expected_message",
     [
-        ("example3", ValueError, "not a valid Neurobagel data dictionary"),
+        ("example3", ValueError, ["not a valid Neurobagel data dictionary"]),
         (
             "example_invalid",
             ValueError,
-            "not a valid Neurobagel data dictionary",
+            ["not a valid Neurobagel data dictionary"],
         ),
-        ("example7", LookupError, "not compatible"),
-        ("example8", ValueError, "more than one column"),
+        ("example7", LookupError, ["not compatible"]),
+        ("example8", ValueError, ["more than one column"]),
         (
             "example9",
             LookupError,
-            "values not found in the data dictionary (shown as <column_name>: [<undefined values>]): {'group': ['SIB']}",
+            [
+                "values not annotated in the data dictionary",
+                "'group': ['UNANNOTATED']",
+            ],
         ),
     ],
 )
@@ -69,7 +72,8 @@ def test_invalid_inputs_are_handled_gracefully(
             catch_exceptions=False,
         )
 
-    assert expected_message in str(e.value)
+    for substring in expected_message:
+        assert substring in str(e.value)
 
 
 def test_unused_missing_values_raises_warning(
@@ -99,10 +103,13 @@ def test_unused_missing_values_raises_warning(
         )
 
     assert len(w) == 1
-    assert (
-        "missing values in the data dictionary were not found in the corresponding phenotypic file column(s) "
-        "(<column_name>: [<unused missing values>]): {'group': ['MISSING'], 'tool_item1': ['none', ''], 'tool_item2': ['none', '']}"
-    ) in str(w[0].message.args[0])
+    for warn_substring in [
+        "missing values in the data dictionary were not found",
+        "'group': ['NOT IN TSV']",
+        "'tool_item1': ['NOT IN TSV 1', 'NOT IN TSV 2']",
+        "'tool_item2': ['NOT IN TSV 1', 'NOT IN TSV 2']",
+    ]:
+        assert warn_substring in str(w[0].message.args[0])
 
 
 def test_that_output_file_contains_name(

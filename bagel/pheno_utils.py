@@ -206,11 +206,6 @@ def find_undefined_categorical_column_values(
             known_values = list(attr["Levels"].keys()) + attr[
                 "Annotations"
             ].get("MissingValues", [])
-            # NOTE: (also applies to find_unused_missing_values) The below comparison block could also be
-            # accomplished using difference of sets, however due to the unordered nature of the resultant set
-            # of unknown values, the order of specific values may be different than they appear in the input,
-            # leading to unexpected failed assertions / hard-to-formulate expected user messages in testing.
-            # To keep things simple, loops and basic conditionals are used here instead.
             unknown_values = []
             for value in pheno_df[col].unique():
                 if value not in known_values:

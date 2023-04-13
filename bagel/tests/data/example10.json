@@ -38,7 +38,7 @@
                     "Label": "Healthy Control"
                 }
             },
-            "MissingValues": ["OTHER", "MISSING"]
+            "MissingValues": ["OTHER", "NOT IN TSV"]
         }
     },
     "tool_item1": {
@@ -52,7 +52,7 @@
                 "TermURL": "cogAtlas:1234",
                 "Label": "Imaginary tool"
             },
-            "MissingValues": ["missing", "none", ""]
+            "MissingValues": ["missing", "NOT IN TSV 1", "NOT IN TSV 2"]
         }
     },
     "tool_item2": {
@@ -66,7 +66,7 @@
                 "TermURL": "cogAtlas:1234",
                 "Label": "Imaginary tool"
             },
-            "MissingValues": ["missing", "none", ""]
+            "MissingValues": ["missing", "NOT IN TSV 1", "NOT IN TSV 2"]
         }
     },
     "other_tool_item1": {

@@ -237,6 +237,12 @@ def find_unused_missing_values(
     return all_unused_missing_vals
 
 
+def get_rows_with_empty_strings(df: pd.DataFrame, columns: list) -> list:
+    """Returns the ids of rows with empty strings"""
+    empty_row = df[columns].applymap(lambda cell: cell == "").apply(lambda row: any([value for value in row]), axis=1)
+    return list(empty_row[empty_row].index)
+
+
 def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     """Determines whether input data are valid"""
     try:

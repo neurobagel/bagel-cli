@@ -49,6 +49,7 @@ def test_pheno_valid_inputs_run_successfully(
                 "'group': ['UNANNOTATED']",
             ],
         ),
+        ("example11", LookupError, ["missing values in participant or session id"])
     ],
 )
 def test_invalid_inputs_are_handled_gracefully(

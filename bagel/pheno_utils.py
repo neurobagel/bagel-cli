@@ -301,3 +301,15 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
             f"{unused_missing_values}. If this is not intentional, please check your data dictionary "
             "and phenotypic file."
         )
+
+    # TODO: see if we can save ourselves the call to map_categories_to_columns here.
+    # We cannot do the call earlier in the CLI (because it might fail for data invalid dictionaries)
+    # and we need to know the column mappings in order to do the subject and session validation
+    column_map = map_categories_to_columns(data_dict)
+    columns_about_ids = column_map.get("participant", []) + column_map.get("session", [])
+    if row_indices := get_rows_with_empty_strings(pheno_df, columns_about_ids):
+        raise LookupError(
+            "We have detected missing values in participant or session id columns. "
+            "Please make sure that every row has a non-empty participant id (and session id where applicable)."
+            f"We found missing values in the following rows (first row is zero): {row_indices}."
+        )

@@ -2,7 +2,7 @@
 
 Example inputs to the CLI
 
-| Ex#     | `.tsv`                                                             | `.json`                                                                          | Expect |
+| Example name     | `.tsv`                                                             | `.json`                                                                          | Expect |
 |---------|--------------------------------------------------------------------|----------------------------------------------------------------------------------|--------|
 | 1       | invalid, non-unique combinations of `participant` and `session` IDs | valid, has `IsAbout` annotations for `participant` and `session` ID columns      | fail   |
 | 2       | valid, unique `participant` and `session` IDs                      | same as example 1                                                                | pass   |
@@ -15,5 +15,6 @@ Example inputs to the CLI
 | 8       | valid, based on ex2 has multiple participant_id columns            | valid, based on ex2 multiple participant_id column annotations                   | fail*  |
 | 9       | invalid, based on example 6 but contains an unannotated value for `group`            | valid, based on example 6                   | fail  |
 | 10       | valid, same as example 6           | valid, based on example 6 but contains extra `"MissingValues"` not found in the .tsv                   | pass, with warning  |
+| synthetic       | valid, has `participant` and `session` IDs corresponding to the [`synthetic` example BIDS dataset](https://github.com/bids-standard/bids-examples/tree/master/synthetic)           | valid                   | pass  |
 
 `* this is expected to fail until we enable multiple participant_ID handling`.

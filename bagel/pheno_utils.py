@@ -19,6 +19,7 @@ def generate_context():
         "bg": "http://neurobagel.org/vocab/",
         "snomed": "https://identifiers.org/snomedct:",
         "nidm": "http://purl.org/nidash/nidm#",
+        "cogAtlas": "https://www.cognitiveatlas.org/task/id/",
     }
     fields = {}
     for val in dir(models):

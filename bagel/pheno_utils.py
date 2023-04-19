@@ -237,6 +237,14 @@ def find_unused_missing_values(
     return all_unused_missing_vals
 
 
+def get_rows_with_empty_strings(df: pd.DataFrame, columns: list) -> list:
+    """For specified columns, returns the indices of rows with empty strings"""
+    # NOTE: Profile this section if things get slow, transforming "" -> nan and then
+    # using .isna() will very likely be much faster
+    empty_row = df[columns].applymap(lambda cell: cell == "").apply(lambda row: any([value for value in row]), axis=1)
+    return list(empty_row[empty_row].index)
+
+
 def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     """Determines whether input data are valid"""
     try:
@@ -294,4 +302,16 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
             "in the corresponding phenotypic file column(s) (<column_name>: [<unused missing values>]): "
             f"{unused_missing_values}. If this is not intentional, please check your data dictionary "
             "and phenotypic file."
+        )
+
+    # TODO: see if we can save ourselves the call to map_categories_to_columns here.
+    # We cannot do the call earlier in the CLI (because it might fail for data invalid dictionaries)
+    # and we need to know the column mappings in order to do the subject and session validation
+    column_map = map_categories_to_columns(data_dict)
+    columns_about_ids = column_map.get("participant", []) + column_map.get("session", [])
+    if row_indices := get_rows_with_empty_strings(pheno_df, columns_about_ids):
+        raise LookupError(
+            "We have detected missing values in participant or session id columns. "
+            "Please make sure that every row has a non-empty participant id (and session id where applicable)."
+            f"We found missing values in the following rows (first row is zero): {row_indices}."
         )

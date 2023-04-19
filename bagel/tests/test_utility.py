@@ -109,6 +109,19 @@ def test_get_assessment_tool_availability(
 
 
 @pytest.mark.parametrize(
+    "columns, expected_indices",
+    [(["participant_id"], [0]), (["session_id"], [2])],
+)
+def test_missing_ids_in_columns(test_data, columns, expected_indices):
+    """
+    When a participant or session labeled column has missing values,
+    we raise and provide the list of offending row indices
+    """
+    pheno = pd.read_csv(test_data / "example11.tsv", sep="\t", keep_default_na=False, dtype=str)
+    assert expected_indices == putil.get_rows_with_empty_strings(pheno, columns=columns)
+
+
+@pytest.mark.parametrize(
     "raw_age,expected_age,heuristic",
     [
         ("11.0", 11.0, "bg:float"),

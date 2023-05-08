@@ -154,6 +154,15 @@ def bids(
         dir_okay=True,
     ),
 ):
+    """
+    Extract imaging metadata from a valid BIDS dataset and combine them
+    with phenotypic metadata created in a previous step using the 
+    bagel pheno command.
+
+    This tool will create a valid, subject-level instance of the Neurobagel
+    graph datamodel for the combined metadata in the .jsonld format.
+    You can upload this .jsonld file to the Neurobagel graph.
+    """
     jsonld = load_json(jsonld_path)
     layout = BIDSLayout(bids_dir, validate=True)
 

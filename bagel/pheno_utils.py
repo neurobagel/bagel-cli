@@ -16,24 +16,24 @@ def generate_context():
     # Direct copy of the dandi-schema context generation function
     # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
     field_preamble = {
-        "bg": "http://neurobagel.org/vocab/",
-        "snomed": "https://identifiers.org/snomedct:",
+        "nb": "http://neurobagel.org/vocab/",
+        "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
         "nidm": "http://purl.org/nidash/nidm#",
-        "cogAtlas": "https://www.cognitiveatlas.org/task/id/",
+        "cogatlas": "https://www.cognitiveatlas.org/task/id/",
     }
     fields = {}
     for val in dir(models):
         klass = getattr(models, val)
         if not isinstance(klass, pydantic.main.ModelMetaclass):
             continue
-        fields[klass.__name__] = "bg:" + klass.__name__
+        fields[klass.__name__] = "nb:" + klass.__name__
         for name, field in klass.__fields__.items():
             if name == "schemaKey":
                 fields[name] = "@type"
             elif name == "identifier":
                 fields[name] = "@id"
             elif name not in fields:
-                fields[name] = {"@id": "bg:" + name}
+                fields[name] = {"@id": "nb:" + name}
 
     field_preamble.update(**fields)
 
@@ -118,16 +118,16 @@ def get_age_heuristic(column: str, data_dict: dict) -> str:
 def transform_age(value: str, heuristic: str) -> float:
     is_recognized_heuristic = True
     try:
-        if heuristic in ["bg:float", "bg:int"]:
+        if heuristic in ["nb:float", "nb:int"]:
             return float(value)
-        if heuristic == "bg:euro":
+        if heuristic == "nb:euro":
             return float(value.replace(",", "."))
-        if heuristic == "bg:bounded":
+        if heuristic == "nb:bounded":
             return float(value.strip("+"))
-        if heuristic == "bg:range":
+        if heuristic == "nb:range":
             a_min, a_max = value.split("-")
             return (float(a_min) + float(a_max)) / 2
-        if heuristic == "bg:iso8601":
+        if heuristic == "nb:iso8601":
             if not value.startswith("P"):
                 value = "P" + value
             duration = isodate.parse_duration(value)
@@ -143,7 +143,7 @@ def transform_age(value: str, heuristic: str) -> float:
         raise ValueError(
             f"The provided data dictionary contains an unrecognized age transformation: {heuristic}. "
             "Ensure that the transformation TermURL is one of "
-            '["bg:float", "bg:int", "bg:euro", "bg:bounded", "bg:range", "bg:iso8601"].'
+            '["nb:float", "nb:int", "nb:euro", "nb:bounded", "nb:range", "nb:iso8601"].'
         )
 
 
@@ -241,7 +241,11 @@ def get_rows_with_empty_strings(df: pd.DataFrame, columns: list) -> list:
     """For specified columns, returns the indices of rows with empty strings"""
     # NOTE: Profile this section if things get slow, transforming "" -> nan and then
     # using .isna() will very likely be much faster
-    empty_row = df[columns].applymap(lambda cell: cell == "").apply(lambda row: any([value for value in row]), axis=1)
+    empty_row = (
+        df[columns]
+        .applymap(lambda cell: cell == "")
+        .apply(lambda row: any([value for value in row]), axis=1)
+    )
     return list(empty_row[empty_row].index)
 
 
@@ -308,7 +312,9 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     # We cannot do the call earlier in the CLI (because it might fail for data invalid dictionaries)
     # and we need to know the column mappings in order to do the subject and session validation
     column_map = map_categories_to_columns(data_dict)
-    columns_about_ids = column_map.get("participant", []) + column_map.get("session", [])
+    columns_about_ids = column_map.get("participant", []) + column_map.get(
+        "session", []
+    )
     if row_indices := get_rows_with_empty_strings(pheno_df, columns_about_ids):
         raise LookupError(
             "We have detected missing values in participant or session id columns. "

@@ -12,11 +12,11 @@ BIDS = {
     "asl": "nidm:ArterialSpinLabeling",
 }
 NEUROBAGEL = {
-    "participant": "bg:ParticipantID",
-    "session": "bg:SessionID",
-    "sex": "bg:sex",
-    "age": "bg:Age",
-    "diagnosis": "bg:diagnosis",
+    "participant": "nb:ParticipantID",  # TODO: Add to graph?
+    "session": "nb:SessionID",  # TODO: Add to graph?
+    "sex": "nb:Sex",
+    "age": "nb:Age",
+    "diagnosis": "nb:Diagnosis",
     "healthy_control": "purl:NCIT_C94342",
-    "assessment_tool": "bg:Assessment",
+    "assessment_tool": "nb:Assessment",
 }

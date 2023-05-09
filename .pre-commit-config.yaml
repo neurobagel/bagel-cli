@@ -31,6 +31,7 @@ repos:
           - --profile=black
           - --filter-files
           - --line-length=79
+
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.2
     hooks:

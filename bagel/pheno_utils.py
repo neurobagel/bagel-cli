@@ -8,32 +8,40 @@ import pandas as pd
 import pydantic
 
 from bagel import dictionary_models, mappings, models
+from bagel.mappings import COGATLAS, NB, NIDM, SNOMED
 
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
+
+AGE_HEURISTICS = {
+    "float": NB.pf + ":float",
+    "int": NB.pf + ":int",
+    "euro": NB.pf + ":euro",
+    "bounded": NB.pf + ":bounded",
+    "range": NB.pf + ":range",
+    "iso8601": NB.pf + ":iso8601",
+}
 
 
 def generate_context():
     # Direct copy of the dandi-schema context generation function
     # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
     field_preamble = {
-        "nb": "http://neurobagel.org/vocab/",
-        "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
-        "nidm": "http://purl.org/nidash/nidm#",
-        "cogatlas": "https://www.cognitiveatlas.org/task/id/",
+        namespace.pf: namespace.url
+        for namespace in [NB, SNOMED, NIDM, COGATLAS]
     }
     fields = {}
     for val in dir(models):
         klass = getattr(models, val)
         if not isinstance(klass, pydantic.main.ModelMetaclass):
             continue
-        fields[klass.__name__] = "nb:" + klass.__name__
+        fields[klass.__name__] = f"{NB.pf}:{klass.__name__}"
         for name, field in klass.__fields__.items():
             if name == "schemaKey":
                 fields[name] = "@type"
             elif name == "identifier":
                 fields[name] = "@id"
             elif name not in fields:
-                fields[name] = {"@id": "nb:" + name}
+                fields[name] = {"@id": f"{NB.pf}:{name}"}
 
     field_preamble.update(**fields)
 
@@ -118,16 +126,16 @@ def get_age_heuristic(column: str, data_dict: dict) -> str:
 def transform_age(value: str, heuristic: str) -> float:
     is_recognized_heuristic = True
     try:
-        if heuristic in ["nb:float", "nb:int"]:
+        if heuristic in [AGE_HEURISTICS["float"], AGE_HEURISTICS["int"]]:
             return float(value)
-        if heuristic == "nb:euro":
+        if heuristic == AGE_HEURISTICS["euro"]:
             return float(value.replace(",", "."))
-        if heuristic == "nb:bounded":
+        if heuristic == AGE_HEURISTICS["bounded"]:
             return float(value.strip("+"))
-        if heuristic == "nb:range":
+        if heuristic == AGE_HEURISTICS["range"]:
             a_min, a_max = value.split("-")
             return (float(a_min) + float(a_max)) / 2
-        if heuristic == "nb:iso8601":
+        if heuristic == AGE_HEURISTICS["iso8601"]:
             if not value.startswith("P"):
                 value = "P" + value
             duration = isodate.parse_duration(value)
@@ -142,8 +150,7 @@ def transform_age(value: str, heuristic: str) -> float:
     if not is_recognized_heuristic:
         raise ValueError(
             f"The provided data dictionary contains an unrecognized age transformation: {heuristic}. "
-            "Ensure that the transformation TermURL is one of "
-            '["nb:float", "nb:int", "nb:euro", "nb:bounded", "nb:range", "nb:iso8601"].'
+            f"Ensure that the transformation TermURL is one of {list(AGE_HEURISTICS.values())}."
         )
 
 

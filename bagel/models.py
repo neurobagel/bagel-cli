@@ -3,8 +3,10 @@ from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel, Extra, Field, HttpUrl
 
+from bagel.mappings import NB
+
 UUID_PATTERN = r"[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$"
-BAGEL_UUID_PATTERN = r"^nb:" + UUID_PATTERN
+BAGEL_UUID_PATTERN = rf"^{NB.pf}:{UUID_PATTERN}"
 
 
 class Bagel(BaseModel, extra=Extra.forbid):
@@ -13,7 +15,7 @@ class Bagel(BaseModel, extra=Extra.forbid):
 
     identifier: str = Field(
         regex=BAGEL_UUID_PATTERN,
-        default_factory=lambda: "nb:" + str(uuid.uuid4()),
+        default_factory=lambda: NB.pf + ":" + str(uuid.uuid4()),
     )
 
 

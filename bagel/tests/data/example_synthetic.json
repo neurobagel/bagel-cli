@@ -3,7 +3,7 @@
         "Description": "A participant ID",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:ParticipantID",
+                "TermURL": "nb:ParticipantID",
                 "Label": "Unique participant identifier"
             }
         }
@@ -12,7 +12,7 @@
         "Description": "A session ID",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:SessionID",
+                "TermURL": "nb:SessionID",
                 "Label": "Unique session identifier"
             }
         }
@@ -21,11 +21,11 @@
     "Description": "Age of the participant",
     "Annotations": {
       "IsAbout": {
-        "TermURL": "bg:Age",
+        "TermURL": "nb:Age",
         "Label": "Chronological age"
       },
       "Transformation": {
-        "TermURL": "bg:euro",
+        "TermURL": "nb:euro",
         "Label": "writing the time with a comma - why not"
       }
     }
@@ -38,16 +38,16 @@
     },
     "Annotations": {
       "IsAbout": {
-        "TermURL": "bg:sex",
+        "TermURL": "nb:Sex",
         "Label": "Sex"
       },
       "Levels": {
         "M": {
-          "TermURL": "bids:Male",
+          "TermURL": "snomed:248153007",
           "Label": "Male"
         },
         "F": {
-          "TermURL": "bids:Female",
+          "TermURL": "snomed:248152002",
           "Label": "Female"
         }
       }
@@ -62,7 +62,7 @@
         },
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:diagnosis",
+                "TermURL": "nb:Diagnosis",
                 "Label": "Diagnosis"
             },
             "Levels": {
@@ -81,11 +81,11 @@
         "Description": "item 1 scores for tool1",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:Assessment",
+                "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
             "IsPartOf": {
-                "TermURL": "cogAtlas:1234",
+                "TermURL": "cogatlas:1234",
                 "Label": "Imaginary tool"
             },
             "MissingValues": ["missing"]
@@ -95,11 +95,11 @@
         "Description": "item 2 scores for tool1",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:Assessment",
+                "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
             "IsPartOf": {
-                "TermURL": "cogAtlas:1234",
+                "TermURL": "cogatlas:1234",
                 "Label": "Imaginary tool"
             },
             "MissingValues": ["missing"]
@@ -109,11 +109,11 @@
         "Description": "item 1 scores for tool2",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:Assessment",
+                "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
             "IsPartOf": {
-                "TermURL": "cogAtlas:4321",
+                "TermURL": "cogatlas:4321",
                 "Label": "A different imaginary tool"
             },
             "MissingValues": ["not completed"]

@@ -10,7 +10,7 @@ BAGEL_UUID_PATTERN = rf"^{NB.pf}:{UUID_PATTERN}"
 
 
 class Bagel(BaseModel, extra=Extra.forbid):
-    """identifier has to be a valid UUID prepended by the nb: namespace
+    """identifier has to be a valid UUID prepended by the Neurobagel namespace
     by default, a random (uuid4) string UUID will be created"""
 
     identifier: str = Field(

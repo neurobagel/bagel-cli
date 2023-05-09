@@ -45,8 +45,8 @@ def test_map_categories_to_columns(test_data, load_test_json):
 @pytest.mark.parametrize(
     "tool, columns",
     [
-        ("cogAtlas:1234", ["tool_item1", "tool_item2"]),
-        ("cogAtlas:4321", ["other_tool_item1"]),
+        ("cogatlas:1234", ["tool_item1", "tool_item2"]),
+        ("cogatlas:4321", ["other_tool_item1"]),
     ],
 )
 def test_map_tools_to_columns(test_data, load_test_json, tool, columns):
@@ -62,7 +62,7 @@ def test_get_transformed_categorical_value(test_data, load_test_json):
     data_dict = load_test_json(test_data / "example2.json")
     pheno = pd.read_csv(test_data / "example2.tsv", sep="\t")
 
-    assert "bids:Male" == putil.get_transformed_values(
+    assert "snomed:248153007" == putil.get_transformed_values(
         columns=["sex"],
         row=pheno.iloc[0],
         data_dict=data_dict,
@@ -117,21 +117,25 @@ def test_missing_ids_in_columns(test_data, columns, expected_indices):
     When a participant or session labeled column has missing values,
     we raise and provide the list of offending row indices
     """
-    pheno = pd.read_csv(test_data / "example11.tsv", sep="\t", keep_default_na=False, dtype=str)
-    assert expected_indices == putil.get_rows_with_empty_strings(pheno, columns=columns)
+    pheno = pd.read_csv(
+        test_data / "example11.tsv", sep="\t", keep_default_na=False, dtype=str
+    )
+    assert expected_indices == putil.get_rows_with_empty_strings(
+        pheno, columns=columns
+    )
 
 
 @pytest.mark.parametrize(
     "raw_age,expected_age,heuristic",
     [
-        ("11.0", 11.0, "bg:float"),
-        ("11", 11.0, "bg:int"),
-        ("11,0", 11.0, "bg:euro"),
-        ("90+", 90.0, "bg:bounded"),
-        ("20-30", 25.0, "bg:range"),
-        ("20Y6M", 20.5, "bg:iso8601"),
-        ("P20Y6M", 20.5, "bg:iso8601"),
-        ("20Y9M", 20.75, "bg:iso8601"),
+        ("11.0", 11.0, "nb:float"),
+        ("11", 11.0, "nb:int"),
+        ("11,0", 11.0, "nb:euro"),
+        ("90+", 90.0, "nb:bounded"),
+        ("20-30", 25.0, "nb:range"),
+        ("20Y6M", 20.5, "nb:iso8601"),
+        ("P20Y6M", 20.5, "nb:iso8601"),
+        ("20Y9M", 20.75, "nb:iso8601"),
     ],
 )
 def test_age_gets_converted(raw_age, expected_age, heuristic):
@@ -141,10 +145,10 @@ def test_age_gets_converted(raw_age, expected_age, heuristic):
 @pytest.mark.parametrize(
     "raw_age, incorrect_heuristic",
     [
-        ("11,0", "bg:float"),
-        ("11.0", "bg:iso8601"),
-        ("11+", "bg:range"),
-        ("20-30", "bg:bounded"),
+        ("11,0", "nb:float"),
+        ("11.0", "nb:iso8601"),
+        ("11+", "nb:range"),
+        ("20-30", "nb:bounded"),
     ],
 )
 def test_incorrect_age_heuristic(raw_age, incorrect_heuristic):
@@ -161,9 +165,9 @@ def test_incorrect_age_heuristic(raw_age, incorrect_heuristic):
 def test_invalid_age_heuristic():
     """Given an age transformation that is not recognized, returns an informative ValueError."""
     with pytest.raises(ValueError) as e:
-        putil.transform_age("11,0", "bg:birthyear")
+        putil.transform_age("11,0", "nb:birthyear")
 
-    assert "unrecognized age transformation: bg:birthyear" in str(e.value)
+    assert "unrecognized age transformation: nb:birthyear" in str(e.value)
 
 
 @pytest.mark.parametrize(
@@ -171,21 +175,24 @@ def test_invalid_age_heuristic():
     [
         ("Bagel", ["identifier"]),
         ("Acquisition", ["hasContrastType", "schemaKey"]),
-        ("Session", ["label", "filePath", "hasAcquisition", "schemaKey"]),
+        (
+            "Session",
+            ["hasLabel", "hasFilePath", "hasAcquisition", "schemaKey"],
+        ),
         (
             "Subject",
             [
-                "label",
+                "hasLabel",
                 "hasSession",
-                "age",
-                "sex",
+                "hasAge",
+                "hasSex",
                 "isSubjectGroup",
-                "diagnosis",
-                "assessment",
+                "hasDiagnosis",
+                "hasAssessment",
                 "schemaKey",
             ],
         ),
-        ("Dataset", ["label", "hasSamples", "schemaKey"]),
+        ("Dataset", ["hasLabel", "hasSamples", "schemaKey"]),
     ],
 )
 def test_generate_context(get_test_context, model, attributes):

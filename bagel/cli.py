@@ -75,9 +75,9 @@ def pheno(
             f"{participants} == '{str(participant)}'"
         ).iloc[0]
 
-        subject = models.Subject(label=str(participant))
+        subject = models.Subject(hasLabel=str(participant))
         if "sex" in column_mapping.keys():
-            subject.sex = models.ControlledTerm(
+            subject.hasSex = models.ControlledTerm(
                 identifier=putil.get_transformed_values(
                     column_mapping["sex"], _sub_pheno, data_dictionary
                 ),
@@ -96,14 +96,14 @@ def pheno(
                     schemaKey="SubjectGroup",
                 )
             else:
-                subject.diagnosis = [
+                subject.hasDiagnosis = [
                     models.ControlledTerm(
                         identifier=_dx_val, schemaKey="Diagnosis"
                     )
                 ]
 
         if "age" in column_mapping.keys():
-            subject.age = putil.get_transformed_values(
+            subject.hasAge = putil.get_transformed_values(
                 column_mapping["age"], _sub_pheno, data_dictionary
             )
 
@@ -115,11 +115,11 @@ def pheno(
             ]
             if _assessments:
                 # Only set assignments for the subject if at least one is not missing
-                subject.assessment = _assessments
+                subject.hasAssessment = _assessments
 
         subject_list.append(subject)
 
-    dataset = models.Dataset(label=name, hasSamples=subject_list)
+    dataset = models.Dataset(hasLabel=name, hasSamples=subject_list)
     context = putil.generate_context()
     # We can't just exclude_unset here because the identifier and schemaKey
     # for each instance are created as default values and so technically are never set
@@ -176,7 +176,7 @@ def bids(
         print(err)
 
     pheno_subject_dict = {
-        pheno_subject.label: pheno_subject
+        pheno_subject.hasLabel: pheno_subject
         for pheno_subject in getattr(pheno_dataset, "hasSamples")
     }
     bids_subject_list = ["sub-" + sub_id for sub_id in layout.get_subjects()]
@@ -226,8 +226,8 @@ def bids(
             session_list.append(
                 # Add back "ses" prefix because pybids stripped it
                 models.Session(
-                    label="ses-" + session_label,
-                    filePath=session_path,
+                    hasLabel="ses-" + session_label,
+                    hasFilePath=session_path,
                     hasAcquisition=image_list,
                 )
             )

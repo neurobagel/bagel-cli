@@ -3,7 +3,7 @@
         "Description": "A participant ID",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:ParticipantID",
+                "TermURL": "nb:ParticipantID",
                 "Label": "Unique participant identifier"
             }
         }
@@ -12,7 +12,7 @@
         "Description": "A participant ID",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:ParticipantID",
+                "TermURL": "nb:ParticipantID",
                 "Label": "Unique participant identifier"
             }
         }
@@ -21,7 +21,7 @@
         "Description": "A session ID",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:SessionID",
+                "TermURL": "nb:SessionID",
                 "Label": "Unique session identifier"
             }
         }
@@ -34,7 +34,7 @@
         },
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:diagnosis",
+                "TermURL": "nb:Diagnosis",
                 "Label": "Diagnosis"
             },
             "Levels": {

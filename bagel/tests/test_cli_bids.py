@@ -49,7 +49,7 @@ def test_bids_sessions_have_correct_labels(
     pheno_bids = load_test_json(tmp_path / "pheno_bids.jsonld")
     for sub in pheno_bids["hasSamples"]:
         assert ["ses-01", "ses-02"] == [
-            ses["label"] for ses in sub["hasSession"]
+            ses["hasLabel"] for ses in sub["hasSession"]
         ]
 
 
@@ -79,7 +79,7 @@ def test_bids_data_with_sessions_have_correct_paths(
     pheno_bids = load_test_json(tmp_path / "pheno_bids.jsonld")
     for sub in pheno_bids["hasSamples"]:
         for ses in sub["hasSession"]:
-            assert sub["label"] in ses["filePath"]
-            assert ses["label"] in ses["filePath"]
-            assert Path(ses["filePath"]).is_absolute()
-            assert Path(ses["filePath"]).is_dir()
+            assert sub["hasLabel"] in ses["hasFilePath"]
+            assert ses["hasLabel"] in ses["hasFilePath"]
+            assert Path(ses["hasFilePath"]).is_absolute()
+            assert Path(ses["hasFilePath"]).is_dir()

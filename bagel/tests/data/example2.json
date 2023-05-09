@@ -3,7 +3,7 @@
     "Description": "A participant ID",
     "Annotations": {
       "IsAbout": {
-        "TermURL": "bg:ParticipantID",
+        "TermURL": "nb:ParticipantID",
         "Label": "Unique participant identifier"
       }
     }
@@ -12,7 +12,7 @@
     "Description": "A session ID",
     "Annotations": {
       "IsAbout": {
-        "TermURL": "bg:SessionID",
+        "TermURL": "nb:SessionID",
         "Label": "Unique session identifier"
       }
     }
@@ -25,7 +25,7 @@
     },
     "Annotations": {
       "IsAbout": {
-        "TermURL": "bg:diagnosis",
+        "TermURL": "nb:Diagnosis",
         "Label": "Diagnosis"
       },
       "Levels": {
@@ -48,16 +48,16 @@
     },
     "Annotations": {
       "IsAbout": {
-        "TermURL": "bg:sex",
+        "TermURL": "nb:Sex",
         "Label": "Sex"
       },
       "Levels": {
         "M": {
-          "TermURL": "bids:Male",
+          "TermURL": "snomed:248153007",
           "Label": "Male"
         },
         "F": {
-          "TermURL": "bids:Female",
+          "TermURL": "snomed:248152002",
           "Label": "Female"
         }
       }
@@ -67,11 +67,11 @@
     "Description": "Age of the participant",
     "Annotations": {
       "IsAbout": {
-        "TermURL": "bg:Age",
+        "TermURL": "nb:Age",
         "Label": "Chronological age"
       },
       "Transformation": {
-        "TermURL": "bg:iso8601",
+        "TermURL": "nb:iso8601",
         "Label": "A period of time defined according to the ISO8601 standard"
       }
     }

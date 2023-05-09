@@ -3,7 +3,7 @@
         "Description": "A participant ID",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:ParticipantID",
+                "TermURL": "nb:ParticipantID",
                 "Label": "Unique participant identifier"
             }
         }
@@ -12,7 +12,7 @@
         "Description": "A session ID",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:SessionID",
+                "TermURL": "nb:SessionID",
                 "Label": "Unique session identifier"
             }
         }
@@ -25,7 +25,7 @@
         },
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:diagnosis",
+                "TermURL": "nb:Diagnosis",
                 "Label": "Diagnosis"
             },
             "Levels": {
@@ -45,11 +45,11 @@
         "Description": "item 1 scores for an imaginary tool",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:Assessment",
+                "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
             "IsPartOf": {
-                "TermURL": "cogAtlas:1234",
+                "TermURL": "cogatlas:1234",
                 "Label": "Imaginary tool"
             },
             "MissingValues": ["missing"]
@@ -59,11 +59,11 @@
         "Description": "item 2 scores for an imaginary tool",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:Assessment",
+                "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
             "IsPartOf": {
-                "TermURL": "cogAtlas:1234",
+                "TermURL": "cogatlas:1234",
                 "Label": "Imaginary tool"
             },
             "MissingValues": ["missing"]
@@ -73,11 +73,11 @@
         "Description": "item 1 scores for a different imaginary tool",
         "Annotations": {
             "IsAbout": {
-                "TermURL": "bg:Assessment",
+                "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
             "IsPartOf": {
-                "TermURL": "cogAtlas:4321",
+                "TermURL": "cogatlas:4321",
                 "Label": "A different imaginary tool"
             },
             "MissingValues": ["none"]

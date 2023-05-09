@@ -1,163 +1,163 @@
 {
   "@context": {
     "bg": "http://neurobagel.org/vocab/",
-    "snomed": "https://identifiers.org/snomedct:",
+    "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
     "nidm": "http://purl.org/nidash/nidm#",
-    "cogAtlas": "https://www.cognitiveatlas.org/task/id/",
-    "Acquisition": "bg:Acquisition",
+    "cogatlas": "https://www.cognitiveatlas.org/task/id/",
+    "Acquisition": "nb:Acquisition",
     "identifier": "@id",
     "hasContrastType": {
-      "@id": "bg:hasContrastType"
+      "@id": "nb:hasContrastType"
     },
     "schemaKey": "@type",
-    "Bagel": "bg:Bagel",
-    "BaseModel": "bg:BaseModel",
-    "ControlledTerm": "bg:ControlledTerm",
-    "Dataset": "bg:Dataset",
-    "label": {
-      "@id": "bg:label"
+    "Bagel": "nb:Bagel",
+    "BaseModel": "nb:BaseModel",
+    "ControlledTerm": "nb:ControlledTerm",
+    "Dataset": "nb:Dataset",
+    "hasLabel": {
+      "@id": "nb:hasLabel"
     },
     "hasSamples": {
-      "@id": "bg:hasSamples"
+      "@id": "nb:hasSamples"
     },
-    "Image": "bg:Image",
-    "Session": "bg:Session",
-    "filePath": {
-      "@id": "bg:filePath"
+    "Image": "nb:Image",
+    "Session": "nb:Session",
+    "hasFilePath": {
+      "@id": "nb:hasFilePath"
     },
     "hasAcquisition": {
-      "@id": "bg:hasAcquisition"
+      "@id": "nb:hasAcquisition"
     },
-    "Subject": "bg:Subject",
+    "Subject": "nb:Subject",
     "hasSession": {
-      "@id": "bg:hasSession"
+      "@id": "nb:hasSession"
     },
-    "age": {
-      "@id": "bg:age"
+    "hasAge": {
+      "@id": "nb:hasAge"
     },
-    "sex": {
-      "@id": "bg:sex"
+    "hasSex": {
+      "@id": "nb:hasSex"
     },
     "isSubjectGroup": {
-      "@id": "bg:isSubjectGroup"
+      "@id": "nb:isSubjectGroup"
     },
-    "diagnosis": {
-      "@id": "bg:diagnosis"
+    "hasDiagnosis": {
+      "@id": "nb:hasDiagnosis"
     },
-    "assessment": {
-      "@id": "bg:assessment"
+    "hasAssessment": {
+      "@id": "nb:hasAssessment"
     }
   },
-  "identifier": "bg:d6da97be-3788-4865-824c-5bfd0dd09ebe",
-  "label": "BIDS synthetic",
+  "identifier": "nb:d6da97be-3788-4865-824c-5bfd0dd09ebe",
+  "hasLabel": "BIDS synthetic",
   "hasSamples": [
     {
-      "identifier": "bg:a63aaaed-5abe-494c-8ad5-8cb84f44cf72",
-      "label": "sub-01",
-      "age": 34.1,
-      "sex": {
-        "identifier": "bids:Female",
+      "identifier": "nb:a63aaaed-5abe-494c-8ad5-8cb84f44cf72",
+      "hasLabel": "sub-01",
+      "hasAge": 34.1,
+      "hasSex": {
+        "identifier": "snomed:248152002",
         "schemaKey": "Sex"
       },
       "isSubjectGroup": {
         "identifier": "purl:NCIT_C94342",
         "schemaKey": "SubjectGroup"
       },
-      "assessment": [
+      "hasAssessment": [
         {
-          "identifier": "cogAtlas:1234",
+          "identifier": "cogatlas:1234",
           "schemaKey": "Assessment"
         },
         {
-          "identifier": "cogAtlas:4321",
+          "identifier": "cogatlas:4321",
           "schemaKey": "Assessment"
         }
       ],
       "schemaKey": "Subject"
     },
     {
-      "identifier": "bg:57a0edd2-bbed-471e-8f67-0dca88ed58e5",
-      "label": "sub-02",
-      "age": 38.1,
-      "sex": {
-        "identifier": "bids:Male",
+      "identifier": "nb:57a0edd2-bbed-471e-8f67-0dca88ed58e5",
+      "hasLabel": "sub-02",
+      "hasAge": 38.1,
+      "hasSex": {
+        "identifier": "snomed:248153007",
         "schemaKey": "Sex"
       },
-      "diagnosis": [
+      "hasDiagnosis": [
         {
           "identifier": "snomed:49049000",
           "schemaKey": "Diagnosis"
         }
       ],
-      "assessment": [
+      "hasAssessment": [
         {
-          "identifier": "cogAtlas:4321",
+          "identifier": "cogatlas:4321",
           "schemaKey": "Assessment"
         }
       ],
       "schemaKey": "Subject"
     },
     {
-      "identifier": "bg:5e5bbec0-4625-480d-9aaf-0471b242b9d9",
-      "label": "sub-03",
-      "age": 22.1,
-      "sex": {
-        "identifier": "bids:Male",
+      "identifier": "nb:5e5bbec0-4625-480d-9aaf-0471b242b9d9",
+      "hasLabel": "sub-03",
+      "hasAge": 22.1,
+      "hasSex": {
+        "identifier": "snomed:248153007",
         "schemaKey": "Sex"
       },
       "isSubjectGroup": {
         "identifier": "purl:NCIT_C94342",
         "schemaKey": "SubjectGroup"
       },
-      "assessment": [
+      "hasAssessment": [
         {
-          "identifier": "cogAtlas:1234",
+          "identifier": "cogatlas:1234",
           "schemaKey": "Assessment"
         }
       ],
       "schemaKey": "Subject"
     },
     {
-      "identifier": "bg:b595fe1c-7202-48a9-80a4-d1b59cc2cb17",
-      "label": "sub-04",
-      "age": 21.1,
-      "sex": {
-        "identifier": "bids:Female",
+      "identifier": "nb:b595fe1c-7202-48a9-80a4-d1b59cc2cb17",
+      "hasLabel": "sub-04",
+      "hasAge": 21.1,
+      "hasSex": {
+        "identifier": "snomed:248152002",
         "schemaKey": "Sex"
       },
       "isSubjectGroup": {
         "identifier": "purl:NCIT_C94342",
         "schemaKey": "SubjectGroup"
       },
-      "assessment": [
+      "hasAssessment": [
         {
-          "identifier": "cogAtlas:4321",
+          "identifier": "cogatlas:4321",
           "schemaKey": "Assessment"
         }
       ],
       "schemaKey": "Subject"
     },
     {
-      "identifier": "bg:d5e885b0-98e9-461e-be7c-3e9b8d093984",
-      "label": "sub-05",
-      "age": 42.5,
-      "sex": {
-        "identifier": "bids:Male",
+      "identifier": "nb:d5e885b0-98e9-461e-be7c-3e9b8d093984",
+      "hasLabel": "sub-05",
+      "hasAge": 42.5,
+      "hasSex": {
+        "identifier": "snomed:248153007",
         "schemaKey": "Sex"
       },
-      "diagnosis": [
+      "hasDiagnosis": [
         {
           "identifier": "snomed:49049000",
           "schemaKey": "Diagnosis"
         }
       ],
-      "assessment": [
+      "hasAssessment": [
         {
-          "identifier": "cogAtlas:1234",
+          "identifier": "cogatlas:1234",
           "schemaKey": "Assessment"
         },
         {
-          "identifier": "cogAtlas:4321",
+          "identifier": "cogatlas:4321",
           "schemaKey": "Assessment"
         }
       ],

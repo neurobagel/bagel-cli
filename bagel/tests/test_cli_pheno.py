@@ -49,7 +49,11 @@ def test_pheno_valid_inputs_run_successfully(
                 "'group': ['UNANNOTATED']",
             ],
         ),
-        ("example11", LookupError, ["missing values in participant or session id"])
+        (
+            "example11",
+            LookupError,
+            ["missing values in participant or session id"],
+        ),
     ],
 )
 def test_invalid_inputs_are_handled_gracefully(
@@ -133,7 +137,7 @@ def test_that_output_file_contains_name(
 
     pheno = load_test_json(tmp_path / "pheno.jsonld")
 
-    assert pheno.get("label") == "my_dataset_name"
+    assert pheno.get("hasLabel") == "my_dataset_name"
 
 
 def test_diagnosis_and_control_status_handled(
@@ -157,11 +161,11 @@ def test_diagnosis_and_control_status_handled(
     pheno = load_test_json(tmp_path / "pheno.jsonld")
 
     assert (
-        pheno["hasSamples"][0]["diagnosis"][0]["identifier"]
+        pheno["hasSamples"][0]["hasDiagnosis"][0]["identifier"]
         == "snomed:49049000"
     )
-    assert "diagnosis" not in pheno["hasSamples"][1].keys()
-    assert "diagnosis" not in pheno["hasSamples"][2].keys()
+    assert "hasDiagnosis" not in pheno["hasSamples"][1].keys()
+    assert "hasDiagnosis" not in pheno["hasSamples"][2].keys()
     assert (
         pheno["hasSamples"][2]["isSubjectGroup"]["identifier"]
         == "purl:NCIT_C94342"
@@ -169,7 +173,7 @@ def test_diagnosis_and_control_status_handled(
 
 
 @pytest.mark.parametrize(
-    "attribute", ["sex", "diagnosis", "assessment", "isSubjectGroup"]
+    "attribute", ["hasSex", "hasDiagnosis", "hasAssessment", "isSubjectGroup"]
 )
 def test_controlled_terms_have_identifiers(
     attribute, runner, test_data, tmp_path, load_test_json
@@ -208,8 +212,8 @@ def test_controlled_terms_have_identifiers(
         (None, 1),
         (
             [
-                {"identifier": "cogAtlas:1234", "schemaKey": "Assessment"},
-                {"identifier": "cogAtlas:4321", "schemaKey": "Assessment"},
+                {"identifier": "cogatlas:1234", "schemaKey": "Assessment"},
+                {"identifier": "cogatlas:4321", "schemaKey": "Assessment"},
             ],
             2,
         ),
@@ -235,7 +239,7 @@ def test_assessment_data_are_parsed_correctly(
 
     pheno = load_test_json(tmp_path / "pheno.jsonld")
 
-    assert assessment == pheno["hasSamples"][subject].get("assessment")
+    assert assessment == pheno["hasSamples"][subject].get("hasAssessment")
 
 
 @pytest.mark.parametrize(
@@ -262,7 +266,7 @@ def test_cli_age_is_processed(
 
     pheno = load_test_json(tmp_path / "pheno.jsonld")
 
-    assert expected_age == pheno["hasSamples"][subject]["age"]
+    assert expected_age == pheno["hasSamples"][subject]["hasAge"]
 
 
 def test_output_includes_context(runner, test_data, tmp_path, load_test_json):

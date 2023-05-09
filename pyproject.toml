@@ -25,3 +25,7 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
+[tool.codespell]
+skip = '.git,*.pdf,*.svg'
+#
+# ignore-words-list = ''

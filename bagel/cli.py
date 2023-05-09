@@ -156,7 +156,7 @@ def bids(
 ):
     """
     Extract imaging metadata from a valid BIDS dataset and combine them
-    with phenotypic metadata created in a previous step using the 
+    with phenotypic metadata (.jsonld) created in a previous step using the 
     bagel pheno command.
 
     This tool will create a valid, subject-level instance of the Neurobagel

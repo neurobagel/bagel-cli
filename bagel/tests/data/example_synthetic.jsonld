@@ -1,6 +1,6 @@
 {
   "@context": {
-    "bg": "http://neurobagel.org/vocab/",
+    "nb": "http://neurobagel.org/vocab/",
     "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
     "nidm": "http://purl.org/nidash/nidm#",
     "cogatlas": "https://www.cognitiveatlas.org/task/id/",
@@ -10,6 +10,7 @@
       "@id": "nb:hasContrastType"
     },
     "schemaKey": "@type",
+    "Assessment": "nb:Assessment",
     "Bagel": "nb:Bagel",
     "BaseModel": "nb:BaseModel",
     "ControlledTerm": "nb:ControlledTerm",
@@ -20,6 +21,7 @@
     "hasSamples": {
       "@id": "nb:hasSamples"
     },
+    "Diagnosis": "nb:Diagnosis",
     "Image": "nb:Image",
     "Session": "nb:Session",
     "hasFilePath": {
@@ -28,6 +30,7 @@
     "hasAcquisition": {
       "@id": "nb:hasAcquisition"
     },
+    "Sex": "nb:Sex",
     "Subject": "nb:Subject",
     "hasSession": {
       "@id": "nb:hasSession"
@@ -46,13 +49,14 @@
     },
     "hasAssessment": {
       "@id": "nb:hasAssessment"
-    }
+    },
+    "SubjectGroup": "nb:SubjectGroup"
   },
-  "identifier": "nb:d6da97be-3788-4865-824c-5bfd0dd09ebe",
+  "identifier": "nb:afa66724-2e1c-41e8-9d46-ca157aa70e5a",
   "hasLabel": "BIDS synthetic",
   "hasSamples": [
     {
-      "identifier": "nb:a63aaaed-5abe-494c-8ad5-8cb84f44cf72",
+      "identifier": "nb:4702ca14-aa5e-49e7-a0e4-1b8289f997f6",
       "hasLabel": "sub-01",
       "hasAge": 34.1,
       "hasSex": {
@@ -76,7 +80,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:57a0edd2-bbed-471e-8f67-0dca88ed58e5",
+      "identifier": "nb:8d7c57c6-f14e-4692-8ea1-9dcb199dffcd",
       "hasLabel": "sub-02",
       "hasAge": 38.1,
       "hasSex": {
@@ -98,7 +102,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:5e5bbec0-4625-480d-9aaf-0471b242b9d9",
+      "identifier": "nb:2d936fdb-0837-4748-9d5f-704ddcaab2ca",
       "hasLabel": "sub-03",
       "hasAge": 22.1,
       "hasSex": {
@@ -118,7 +122,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:b595fe1c-7202-48a9-80a4-d1b59cc2cb17",
+      "identifier": "nb:4d816d19-6dd0-499c-b55d-c07e1f37c6a2",
       "hasLabel": "sub-04",
       "hasAge": 21.1,
       "hasSex": {
@@ -138,7 +142,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:d5e885b0-98e9-461e-be7c-3e9b8d093984",
+      "identifier": "nb:db2b55b5-96b5-45d4-83fd-ec3b9e46db6b",
       "hasLabel": "sub-05",
       "hasAge": 42.5,
       "hasSex": {

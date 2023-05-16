@@ -77,11 +77,10 @@ def pheno(
 
         subject = models.Subject(hasLabel=str(participant))
         if "sex" in column_mapping.keys():
-            subject.hasSex = models.ControlledTerm(
+            subject.hasSex = models.Sex(
                 identifier=putil.get_transformed_values(
                     column_mapping["sex"], _sub_pheno, data_dictionary
                 ),
-                schemaKey="Sex",
             )
 
         if "diagnosis" in column_mapping.keys():
@@ -91,16 +90,11 @@ def pheno(
             if _dx_val is None:
                 pass
             elif _dx_val == mappings.NEUROBAGEL["healthy_control"]:
-                subject.isSubjectGroup = models.ControlledTerm(
+                subject.isSubjectGroup = models.SubjectGroup(
                     identifier=mappings.NEUROBAGEL["healthy_control"],
-                    schemaKey="SubjectGroup",
                 )
             else:
-                subject.hasDiagnosis = [
-                    models.ControlledTerm(
-                        identifier=_dx_val, schemaKey="Diagnosis"
-                    )
-                ]
+                subject.hasDiagnosis = [models.Diagnosis(identifier=_dx_val)]
 
         if "age" in column_mapping.keys():
             subject.hasAge = putil.get_transformed_values(
@@ -109,7 +103,7 @@ def pheno(
 
         if tool_mapping:
             _assessments = [
-                models.ControlledTerm(identifier=tool, schemaKey="Assessment")
+                models.Assessment(identifier=tool)
                 for tool, columns in tool_mapping.items()
                 if putil.are_not_missing(columns, _sub_pheno, data_dictionary)
             ]
@@ -156,7 +150,7 @@ def bids(
 ):
     """
     Extract imaging metadata from a valid BIDS dataset and combine them
-    with phenotypic metadata (.jsonld) created in a previous step using the 
+    with phenotypic metadata (.jsonld) created in a previous step using the
     bagel pheno command.
 
     This tool will create a valid, subject-level instance of the Neurobagel

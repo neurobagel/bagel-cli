@@ -174,6 +174,11 @@ def test_invalid_age_heuristic():
     "model, attributes",
     [
         ("Bagel", ["identifier"]),
+        ("Sex", ["identifier", "schemaKey"]),
+        ("Diagnosis", ["identifier", "schemaKey"]),
+        ("SubjectGroup", ["identifier", "schemaKey"]),
+        ("Assessment", ["identifier", "schemaKey"]),
+        ("Image", ["identifier", "schemaKey"]),
         ("Acquisition", ["hasContrastType", "schemaKey"]),
         (
             "Session",

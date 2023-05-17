@@ -205,6 +205,37 @@ def test_controlled_terms_have_identifiers(
             ), f"{attribute}: did not have an identifier for subject {sub} and value {value}"
 
 
+def test_controlled_term_classes_have_uri_type(
+    runner, test_data, tmp_path, load_test_json
+):
+    """Tests that classes specified as schemaKeys (@type) for subject-level attributes in a .jsonld are also defined in the context."""
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example_synthetic.tsv",
+            "--dictionary",
+            test_data / "example_synthetic.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "do not care name",
+        ],
+    )
+
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
+
+    for sub in pheno["hasSamples"]:
+        for key, value in sub.items():
+            if isinstance(value, (list, dict)):
+                if not isinstance(value, list):
+                    value = [value]
+                assert all(
+                    entry["schemaKey"] in pheno["@context"] for entry in value
+                ), f"Attribute {key} for subject {sub} has a schemaKey that does not have a corresponding URI in the context."
+
+
 @pytest.mark.parametrize(
     "assessment, subject",
     [

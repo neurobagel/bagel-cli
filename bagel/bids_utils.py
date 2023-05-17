@@ -42,7 +42,7 @@ def create_acquisitions(
         if mapped_term:
             image_list.append(
                 models.Acquisition(
-                    hasContrastType=models.ControlledTerm(identifier=mapped_term, schemaKey="Image")
+                    hasContrastType=models.Image(identifier=mapped_term)
                 )
             )
 

@@ -24,8 +24,28 @@ class ControlledTerm(BaseModel):
     schemaKey: str
 
 
+class Sex(ControlledTerm):
+    schemaKey = "Sex"
+
+
+class Diagnosis(ControlledTerm):
+    schemaKey = "Diagnosis"
+
+
+class SubjectGroup(ControlledTerm):
+    schemaKey = "SubjectGroup"
+
+
+class Assessment(ControlledTerm):
+    schemaKey = "Assessment"
+
+
+class Image(ControlledTerm):
+    schemaKey = "Image"
+
+
 class Acquisition(Bagel):
-    hasContrastType: ControlledTerm
+    hasContrastType: Image
     schemaKey: Literal["Acquisition"] = "Acquisition"
 
 
@@ -40,10 +60,10 @@ class Subject(Bagel):
     hasLabel: str
     hasSession: Optional[List[Session]] = None
     hasAge: Optional[float] = None
-    hasSex: Optional[ControlledTerm] = None
-    isSubjectGroup: Optional[ControlledTerm] = None
-    hasDiagnosis: Optional[List[ControlledTerm]] = None
-    hasAssessment: Optional[List[ControlledTerm]] = None
+    hasSex: Optional[Sex] = None
+    isSubjectGroup: Optional[SubjectGroup] = None
+    hasDiagnosis: Optional[List[Diagnosis]] = None
+    hasAssessment: Optional[List[Assessment]] = None
     schemaKey: Literal["Subject"] = "Subject"
 
 

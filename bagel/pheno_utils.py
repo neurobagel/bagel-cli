@@ -17,7 +17,6 @@ AGE_HEURISTICS = {
     "int": NB.pf + ":int",
     "euro": NB.pf + ":euro",
     "bounded": NB.pf + ":bounded",
-    "range": NB.pf + ":range",
     "iso8601": NB.pf + ":iso8601",
 }
 
@@ -132,9 +131,6 @@ def transform_age(value: str, heuristic: str) -> float:
             return float(value.replace(",", "."))
         if heuristic == AGE_HEURISTICS["bounded"]:
             return float(value.strip("+"))
-        if heuristic == AGE_HEURISTICS["range"]:
-            a_min, a_max = value.split("-")
-            return (float(a_min) + float(a_max)) / 2
         if heuristic == AGE_HEURISTICS["iso8601"]:
             if not value.startswith("P"):
                 value = "P" + value

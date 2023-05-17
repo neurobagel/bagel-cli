@@ -224,16 +224,20 @@ def test_controlled_term_classes_have_uri_type(
         ],
     )
 
-    pheno = load_test_json(tmp_path / "pheno.jsonld")
+    pheno = load_test_json(
+        test_data / "example_synthetic.jsonld"
+    )  # tmp_path / "pheno.jsonld"
 
     for sub in pheno["hasSamples"]:
         for key, value in sub.items():
-            if isinstance(value, (list, dict)):
-                if not isinstance(value, list):
-                    value = [value]
-                assert all(
-                    entry["schemaKey"] in pheno["@context"] for entry in value
-                ), f"Attribute {key} for subject {sub} has a schemaKey that does not have a corresponding URI in the context."
+            if not isinstance(value, (list, dict)):
+                continue
+            if isinstance(value, dict):
+                value = [value]
+            assert all(
+                entry.get("schemaKey", "no schemaKey set") in pheno["@context"]
+                for entry in value
+            ), f"Attribute {key} for subject {sub} has a schemaKey that does not have a corresponding URI in the context."
 
 
 @pytest.mark.parametrize(

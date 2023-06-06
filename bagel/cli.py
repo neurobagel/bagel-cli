@@ -77,11 +77,11 @@ def pheno(
 
         subject = models.Subject(hasLabel=str(participant))
         if "sex" in column_mapping.keys():
-            subject.hasSex = models.Sex(
-                identifier=putil.get_transformed_values(
-                    column_mapping["sex"], _sub_pheno, data_dictionary
-                ),
+            _sex_val = putil.get_transformed_values(
+                column_mapping["sex"], _sub_pheno, data_dictionary
             )
+            if _sex_val:
+                subject.hasSex = models.Sex(identifier=_sex_val)
 
         if "diagnosis" in column_mapping.keys():
             _dx_val = putil.get_transformed_values(

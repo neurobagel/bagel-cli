@@ -52,11 +52,11 @@
     },
     "SubjectGroup": "nb:SubjectGroup"
   },
-  "identifier": "nb:afa66724-2e1c-41e8-9d46-ca157aa70e5a",
+  "identifier": "nb:b433145c-1c0e-4e86-ad5c-4f51d1487fc6",
   "hasLabel": "BIDS synthetic",
   "hasSamples": [
     {
-      "identifier": "nb:4702ca14-aa5e-49e7-a0e4-1b8289f997f6",
+      "identifier": "nb:39ea6d83-faaf-4a62-ab5e-8e4cb9881834",
       "hasLabel": "sub-01",
       "hasAge": 34.1,
       "hasSex": {
@@ -80,9 +80,8 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:8d7c57c6-f14e-4692-8ea1-9dcb199dffcd",
+      "identifier": "nb:5e61cc94-4991-4b67-900b-e264719c794c",
       "hasLabel": "sub-02",
-      "hasAge": 38.1,
       "hasSex": {
         "identifier": "snomed:248153007",
         "schemaKey": "Sex"
@@ -102,17 +101,9 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:2d936fdb-0837-4748-9d5f-704ddcaab2ca",
+      "identifier": "nb:1942072f-41bf-4b44-baef-30886d0c53ac",
       "hasLabel": "sub-03",
       "hasAge": 22.1,
-      "hasSex": {
-        "identifier": "snomed:248153007",
-        "schemaKey": "Sex"
-      },
-      "isSubjectGroup": {
-        "identifier": "purl:NCIT_C94342",
-        "schemaKey": "SubjectGroup"
-      },
       "hasAssessment": [
         {
           "identifier": "cogatlas:1234",
@@ -122,7 +113,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:4d816d19-6dd0-499c-b55d-c07e1f37c6a2",
+      "identifier": "nb:96a98956-f405-4b0b-9e8e-daa0208b0915",
       "hasLabel": "sub-04",
       "hasAge": 21.1,
       "hasSex": {
@@ -142,7 +133,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:db2b55b5-96b5-45d4-83fd-ec3b9e46db6b",
+      "identifier": "nb:9f0f785b-ac43-441e-bf90-741302e78498",
       "hasLabel": "sub-05",
       "hasAge": 42.5,
       "hasSex": {

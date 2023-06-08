@@ -19,3 +19,10 @@ Example inputs to the CLI
 | 11           | invalid, ex 6 with missing entries in `participant_id` and `session_id` columns                                                                                                           | valid, based on example 6                                                            | fail               |
 
 `* this is expected to fail until we enable multiple participant_ID handling`.
+
+## Example expected CLI outputs
+
+| Example                             | Description                                                                                                                                                                                                                                                                                                                         |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| example_synthetic.jsonld            | Sample output of `bagel pheno` command on the `synthetic` example inputs. Contains subject-level annotated phenotypic attributes obtained by essentially applying the data dictionary (.json) to the original tabular data (.tsv).                                                                                                  |
+| example_synthetic_pheno-bids.jsonld | Sample output of `bagel bids` command on the example_synthetic.jsonld and the [BIDS `synthetic` example dataset directory](https://github.com/bids-standard/bids-examples/tree/master/synthetic). Contains subject-level annotated imaging metadata (extracted directly from the BIDS dataset structure) on top of the subject-level annotated phenotypic attributes. |

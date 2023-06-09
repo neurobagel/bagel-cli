@@ -331,7 +331,7 @@ def test_output_includes_context(runner, test_data, tmp_path, load_test_json):
 @pytest.mark.parametrize(
     "sub_id, missing_val_property",
     [
-        ("sub-01", ["hasAge"]),
+        ("sub-02", ["hasAge"]),
         ("sub-03", ["hasSex"]),
         ("sub-03", ["hasDiagnosis", "isSubjectGroup"]),
     ],

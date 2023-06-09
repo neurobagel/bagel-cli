@@ -155,7 +155,10 @@ def get_transformed_values(
 ) -> Union[str, None]:
     """Convert a raw phenotypic value to the corresponding controlled term"""
     transf_val = []
-    # TODO: implement a way to handle cases where more than one column contains information
+    # TODO: Currently, this function accepts a list of columns + populates a list of transformed values because multiple columns should in theory
+    # be able to be annotated as being about a single Neurobagel concept/variable. However, we don't yet have a proper way to support multiple transformed values
+    # so this function returns just a single value or None.
+    # In future, we need to implement a way to handle cases where more than one column contains information.
     for col in columns[:1]:
         value = row[col]
         if is_missing_value(value, col, data_dict):

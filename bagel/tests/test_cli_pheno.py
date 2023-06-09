@@ -326,3 +326,43 @@ def test_output_includes_context(runner, test_data, tmp_path, load_test_json):
     assert all(
         [sub.get("identifier") is not None for sub in pheno["hasSamples"]]
     )
+
+
+@pytest.mark.parametrize(
+    "sub_id, missing_val_property",
+    [
+        ("sub-02", ["hasAge"]),
+        ("sub-03", ["hasSex"]),
+        ("sub-03", ["hasDiagnosis", "isSubjectGroup"]),
+    ],
+)
+def test_output_excludes_properties_for_missing_vals(
+    runner, test_data, tmp_path, load_test_json, sub_id, missing_val_property
+):
+    """
+    Tests that for occurrences of values annotated as missing for a Neurobagel variable, the corresponding property does not exist
+    for the subject node in the output .jsonld. NOTE: Excludes Assessment tool columns because these are treated (and tested) separately,
+    see https://www.neurobagel.org/documentation/dictionaries/#assessment-tool for reference.
+    """
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example_synthetic.tsv",
+            "--dictionary",
+            test_data / "example_synthetic.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "BIDS synthetic test",
+        ],
+    )
+
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
+    for sub in pheno["hasSamples"]:
+        if sub["hasLabel"] == sub_id:
+            for entry in missing_val_property:
+                assert (
+                    sub.get(entry) is None
+                ), f"{sub_id} output contains value for {entry} where annotated as missing"

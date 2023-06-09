@@ -27,7 +27,8 @@
       "Transformation": {
         "TermURL": "nb:euro",
         "Label": "writing the time with a comma - why not"
-      }
+      },
+      "MissingValues": ["NA"]
     }
   },
     "pheno_sex": {
@@ -50,7 +51,8 @@
           "TermURL": "snomed:248152002",
           "Label": "Female"
         }
-      }
+      },
+      "MissingValues": ["missing"]
     }
   },
 
@@ -74,7 +76,8 @@
                     "TermURL": "purl:NCIT_C94342",
                     "Label": "Healthy Control"
                 }
-            }
+            },
+            "MissingValues": ["NA"]
         }
     },
     "tool1_item1": {

@@ -69,5 +69,7 @@ class Subject(Bagel):
 
 class Dataset(Bagel):
     hasLabel: str
+    hasFilePath: Optional[str] = None
+    hasPortalURI: Optional[HttpUrl] = None
     hasSamples: List[Subject]
     schemaKey: Literal["Dataset"] = "Dataset"

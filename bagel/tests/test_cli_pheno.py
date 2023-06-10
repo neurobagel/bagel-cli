@@ -14,6 +14,8 @@ def test_pheno_valid_inputs_run_successfully(
         bagel,
         [
             "pheno",
+            "--dataset-dir",
+            test_data,
             "--pheno",
             test_data / f"{example}.tsv",
             "--dictionary",
@@ -65,6 +67,8 @@ def test_invalid_inputs_are_handled_gracefully(
             bagel,
             [
                 "pheno",
+                "--dataset-dir",
+                test_data,
                 "--pheno",
                 test_data / f"{example}.tsv",
                 "--dictionary",
@@ -95,6 +99,8 @@ def test_unused_missing_values_raises_warning(
             bagel,
             [
                 "pheno",
+                "--dataset-dir",
+                test_data,
                 "--pheno",
                 test_data / "example10.tsv",
                 "--dictionary",
@@ -124,6 +130,8 @@ def test_that_output_file_contains_name(
         bagel,
         [
             "pheno",
+            "--dataset-dir",
+            test_data,
             "--pheno",
             test_data / "example2.tsv",
             "--dictionary",
@@ -147,6 +155,8 @@ def test_diagnosis_and_control_status_handled(
         bagel,
         [
             "pheno",
+            "--dataset-dir",
+            test_data,
             "--pheno",
             test_data / "example6.tsv",
             "--dictionary",
@@ -182,6 +192,8 @@ def test_controlled_terms_have_identifiers(
         bagel,
         [
             "pheno",
+            "--dataset-dir",
+            test_data,
             "--pheno",
             test_data / "example_synthetic.tsv",
             "--dictionary",
@@ -213,6 +225,8 @@ def test_controlled_term_classes_have_uri_type(
         bagel,
         [
             "pheno",
+            "--dataset-dir",
+            test_data,
             "--pheno",
             test_data / "example_synthetic.tsv",
             "--dictionary",
@@ -261,6 +275,8 @@ def test_assessment_data_are_parsed_correctly(
         bagel,
         [
             "pheno",
+            "--dataset-dir",
+            test_data,
             "--pheno",
             test_data / "example6.tsv",
             "--dictionary",
@@ -288,6 +304,8 @@ def test_cli_age_is_processed(
         bagel,
         [
             "pheno",
+            "--dataset-dir",
+            test_data,
             "--pheno",
             test_data / "example2.tsv",
             "--dictionary",
@@ -309,6 +327,8 @@ def test_output_includes_context(runner, test_data, tmp_path, load_test_json):
         bagel,
         [
             "pheno",
+            "--dataset-dir",
+            test_data,
             "--pheno",
             test_data / "example2.tsv",
             "--dictionary",

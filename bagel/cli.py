@@ -16,15 +16,22 @@ bagel = typer.Typer()
 
 @bagel.command()
 def pheno(
-    pheno: Path = typer.Option(
+    dataset_dir: Path = typer.Option(
         ...,
+        help="The path to the directory containing the phenotypic data (.tsv and .json data dictionary) for the dataset.",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+    pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
+        default=None,
         help="The path to a phenotypic .tsv file.",
         exists=True,
         file_okay=True,
         dir_okay=False,
     ),
     dictionary: Path = typer.Option(
-        ...,
+        default=None,
         help="The path to the .json data dictionary "
         "corresponding to the phenotypic .tsv file.",
         exists=True,
@@ -44,6 +51,10 @@ def pheno(
         "This name is expected to match the name field in the BIDS "
         "dataset_description.json file.",
     ),
+    portal: str = typer.Option(
+        default=None,
+        help="URL to a website or page that describes the dataset.",
+    ),
 ):
     """
     Process a tabular phenotypic file (.tsv) that has been successfully annotated
@@ -54,6 +65,22 @@ def pheno(
     graph datamodel for the provided phenotypic file in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
+    if pheno is None:
+        pheno = dataset_dir / "participants.tsv"
+    if dictionary is None:
+        dictionary = dataset_dir / "participants.json"
+
+    for input_file in [pheno, dictionary]:
+        if not input_file.is_file():
+            raise FileNotFoundError(
+                f"File {input_file} not found. Verify that you have provided the correct dataset directory path, or use the individual file arguments to specify custom file names"
+                "for the tabular phenotypic file and/or data dictionary."
+            )
+        if input_file.resolve().parent != dataset_dir.resolve():
+            raise IOError(
+                f"The file {input_file} must be located at the top level of the dataset directory {dataset_dir}. Please try again."
+            )
+
     data_dictionary = load_json(dictionary)
     pheno_df = pd.read_csv(pheno, sep="\t", keep_default_na=False, dtype=str)
     putil.validate_inputs(data_dictionary, pheno_df)
@@ -114,6 +141,10 @@ def pheno(
         subject_list.append(subject)
 
     dataset = models.Dataset(hasLabel=name, hasSamples=subject_list)
+
+    if portal is not None:
+        dataset.hasPortalURI = portal
+
     context = putil.generate_context()
     # We can't just exclude_unset here because the identifier and schemaKey
     # for each instance are created as default values and so technically are never set

@@ -86,18 +86,16 @@ def test_get_transformed_categorical_value(test_data, load_test_json):
             True,
         ),
         (
-{
+            {
                 "column": {
-"Levels": {
-                            "val1": "some description"
-                        },
+                    "Levels": {"val1": "some description"},
                     "Annotations": {
                         "IsAbout": {"TermURL": "something", "Labels": "other"}
-                    }
+                    },
                 }
             },
-            False
-        )
+            False,
+        ),
     ],
 )
 def test_detect_categorical_column(example, expected_result):

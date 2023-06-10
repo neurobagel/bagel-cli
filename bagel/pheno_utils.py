@@ -106,7 +106,7 @@ def is_missing_value(
 
 def is_column_categorical(column: str, data_dict: dict) -> bool:
     """Determine whether a column in a Neurobagel data dictionary is categorical"""
-    if "Levels" in data_dict[column]:
+    if "Levels" in data_dict[column]["Annotations"]:
         return True
     return False
 

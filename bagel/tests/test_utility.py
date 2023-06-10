@@ -69,6 +69,28 @@ def test_get_transformed_categorical_value(test_data, load_test_json):
     )
 
 
+def test_detect_categorical_column():
+    good_example = {
+        "column": {
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "something",
+                    "Labels": "other"
+                },
+                "Levels": {
+                    "val1": {
+                        "TermURL": "something",
+                        "Label": "other"
+                    }
+                }
+            }
+        }
+    }
+    result = putil.is_column_categorical(column="column", data_dict=good_example)
+    
+    assert result is True
+
+
 @pytest.mark.parametrize(
     "value,column,expected",
     [

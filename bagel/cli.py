@@ -1,10 +1,11 @@
 import json
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 import typer
 from bids import BIDSLayout
-from pydantic import ValidationError
+from pydantic import HttpUrl, ValidationError, parse_obj_as
 
 import bagel.bids_utils as butil
 import bagel.pheno_utils as putil
@@ -26,7 +27,6 @@ def pheno(
     pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
         default=None,
         help="The path to a phenotypic .tsv file.",
-        exists=True,
         file_okay=True,
         dir_okay=False,
     ),
@@ -34,7 +34,6 @@ def pheno(
         default=None,
         help="The path to the .json data dictionary "
         "corresponding to the phenotypic .tsv file.",
-        exists=True,
         file_okay=True,
         dir_okay=False,
     ),
@@ -70,16 +69,24 @@ def pheno(
     if dictionary is None:
         dictionary = dataset_dir / "participants.json"
 
-    for input_file in [pheno, dictionary]:
-        if not input_file.is_file():
-            raise FileNotFoundError(
-                f"File {input_file} not found. Verify that you have provided the correct dataset directory path, or use the individual file arguments to specify custom file names"
-                "for the tabular phenotypic file and/or data dictionary."
-            )
-        if input_file.resolve().parent != dataset_dir.resolve():
+    for input_filename in [pheno, dictionary]:
+        if input_filename.resolve().parent != dataset_dir.resolve():
             raise IOError(
-                f"The file {input_file} must be located at the top level of the dataset directory {dataset_dir}. Please try again."
+                f"{input_filename} is not a top-level file in the dataset directory {dataset_dir}. Please try again."
             )
+        if not input_filename.is_file():
+            raise FileNotFoundError(
+                f"File {input_filename} not found. Verify that you have provided the correct dataset directory path, or that the correct file paths have been specified"
+                "if using custom names for the tabular phenotypic file and/or data dictionary."
+            )
+
+    try:
+        parse_obj_as(Optional[HttpUrl], portal)
+    except ValidationError as err:
+        raise ValueError(
+            "Value for --portal is not a valid http or https URL: "
+            f"{err.errors()[0]['msg']} \nPlease try again."
+        ) from err
 
     data_dictionary = load_json(dictionary)
     pheno_df = pd.read_csv(pheno, sep="\t", keep_default_na=False, dtype=str)
@@ -140,10 +147,12 @@ def pheno(
 
         subject_list.append(subject)
 
-    dataset = models.Dataset(hasLabel=name, hasSamples=subject_list)
-
-    if portal is not None:
-        dataset.hasPortalURI = portal
+    dataset = models.Dataset(
+        hasLabel=name,
+        hasFilePath=dataset_dir.resolve().as_posix(),
+        hasPortalURI=portal,
+        hasSamples=subject_list,
+    )
 
     context = putil.generate_context()
     # We can't just exclude_unset here because the identifier and schemaKey

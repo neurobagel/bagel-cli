@@ -85,6 +85,100 @@ def test_invalid_inputs_are_handled_gracefully(
         assert substring in str(e.value)
 
 
+@pytest.mark.parametrize(
+    "option, filepath, expected_exception, expected_message",
+    [
+        (
+            "--pheno",
+            "sub_data/example2.tsv",
+            IOError,
+            "not a top-level file",
+        ),
+        (
+            "--pheno",
+            "example2.tsv",
+            FileNotFoundError,
+            "participants.json not found",
+        ),
+        (
+            "--dictionary",
+            "example2.json",
+            FileNotFoundError,
+            "participants.tsv not found",
+        ),
+    ],
+)
+def test_invalid_input_filepaths_handled_gracefully(
+    runner,
+    test_data,
+    tmp_path,
+    option,
+    filepath,
+    expected_exception,
+    expected_message,
+):
+    """Tests that invalid paths for the tabular file and data dictionary result in informative errors."""
+    all_args = [
+        "pheno",
+        "--dataset-dir",
+        test_data,
+        "--output",
+        tmp_path,
+        "--name",
+        "test dataset 2",
+    ] + [option, test_data / filepath]
+
+    with pytest.raises(expected_exception) as e:
+        runner.invoke(
+            bagel,
+            all_args,
+            catch_exceptions=False,
+        )
+
+    for substring in expected_message:
+        assert substring in str(e.value)
+
+
+@pytest.mark.parametrize(
+    "portal",
+    [
+        "openneuro.org/datasets/ds002080",
+        "https://openneuro",
+        "not a url",
+        "www.github.com/mycoolrepo/mycooldataset",
+    ],
+)
+def test_invalid_portal_uris_raise_error(
+    runner,
+    test_data,
+    tmp_path,
+    portal,
+):
+    """Tests that invalid or non-HTTP/HTTPS URLs result in a user-friendly error."""
+    with pytest.raises(ValueError) as e:
+        runner.invoke(
+            bagel,
+            [
+                "pheno",
+                "--dataset-dir",
+                test_data,
+                "--pheno",
+                test_data / "example2.tsv",
+                "--dictionary",
+                test_data / "example2.json",
+                "--output",
+                tmp_path,
+                "--name",
+                "test dataset 2",
+                "--portal",
+                portal,
+            ],
+            catch_exceptions=False,
+        )
+
+    assert "not a valid http or https URL" in str(e.value)
+
+
 def test_unused_missing_values_raises_warning(
     runner,
     test_data,

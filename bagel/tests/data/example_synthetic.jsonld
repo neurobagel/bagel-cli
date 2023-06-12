@@ -18,15 +18,18 @@
     "hasLabel": {
       "@id": "nb:hasLabel"
     },
+    "hasFilePath": {
+      "@id": "nb:hasFilePath"
+    },
+    "hasPortalURI": {
+      "@id": "nb:hasPortalURI"
+    },
     "hasSamples": {
       "@id": "nb:hasSamples"
     },
     "Diagnosis": "nb:Diagnosis",
     "Image": "nb:Image",
     "Session": "nb:Session",
-    "hasFilePath": {
-      "@id": "nb:hasFilePath"
-    },
     "hasAcquisition": {
       "@id": "nb:hasAcquisition"
     },
@@ -52,11 +55,12 @@
     },
     "SubjectGroup": "nb:SubjectGroup"
   },
-  "identifier": "nb:b433145c-1c0e-4e86-ad5c-4f51d1487fc6",
+  "identifier": "nb:81e47a09-658d-48ea-b7c5-8d54820d038e",
   "hasLabel": "BIDS synthetic",
+  "hasPortalURI": "https://github.com/bids-standard/bids-examples",
   "hasSamples": [
     {
-      "identifier": "nb:39ea6d83-faaf-4a62-ab5e-8e4cb9881834",
+      "identifier": "nb:64894186-4c85-4306-b9d9-1902bb2b42b5",
       "hasLabel": "sub-01",
       "hasAge": 34.1,
       "hasSex": {
@@ -80,7 +84,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:5e61cc94-4991-4b67-900b-e264719c794c",
+      "identifier": "nb:673e6f04-73b2-4a14-96c9-7ffb0e54e2ad",
       "hasLabel": "sub-02",
       "hasSex": {
         "identifier": "snomed:248153007",
@@ -101,7 +105,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:1942072f-41bf-4b44-baef-30886d0c53ac",
+      "identifier": "nb:4ed39595-c80a-4a3f-94c4-024c96cea918",
       "hasLabel": "sub-03",
       "hasAge": 22.1,
       "hasAssessment": [
@@ -113,7 +117,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:96a98956-f405-4b0b-9e8e-daa0208b0915",
+      "identifier": "nb:b664f831-ee9b-401d-bd8a-c138a402493e",
       "hasLabel": "sub-04",
       "hasAge": 21.1,
       "hasSex": {
@@ -133,7 +137,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:9f0f785b-ac43-441e-bf90-741302e78498",
+      "identifier": "nb:70e1dc10-b3a1-4a2e-8218-7dba3210a881",
       "hasLabel": "sub-05",
       "hasAge": 42.5,
       "hasSex": {

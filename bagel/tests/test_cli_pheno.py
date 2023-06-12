@@ -81,6 +81,48 @@ def test_invalid_inputs_are_handled_gracefully(
         assert substring in str(e.value)
 
 
+@pytest.mark.parametrize(
+    "portal",
+    [
+        "openneuro.org/datasets/ds002080",
+        "https://openneuro",
+        "not a url",
+        "www.github.com/mycoolrepo/mycooldataset",
+    ],
+)
+def test_invalid_portal_uris_produces_error(
+    runner,
+    test_data,
+    tmp_path,
+    portal,
+):
+    """Tests that invalid or non-HTTP/HTTPS URLs result in a user-friendly error."""
+    result = runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example2.tsv",
+            "--dictionary",
+            test_data / "example2.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "test dataset 2",
+            "--portal",
+            portal,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code != 0
+    # For some reason, it seems the Rich formatting of the error causes problems
+    # with matching the entire error substring at once
+    assert all(
+        word in str(result.output) for word in "not a valid http or https URL"
+    )
+
+
 def test_unused_missing_values_raises_warning(
     runner,
     test_data,
@@ -117,7 +159,7 @@ def test_unused_missing_values_raises_warning(
         assert warn_substring in str(w[0].message.args[0])
 
 
-def test_that_output_file_contains_name(
+def test_that_output_file_contains_dataset_level_attributes(
     runner, test_data, tmp_path, load_test_json
 ):
     runner.invoke(
@@ -132,12 +174,15 @@ def test_that_output_file_contains_name(
             tmp_path,
             "--name",
             "my_dataset_name",
+            "--portal",
+            "http://my_dataset_site.com",
         ],
     )
 
     pheno = load_test_json(tmp_path / "pheno.jsonld")
 
     assert pheno.get("hasLabel") == "my_dataset_name"
+    assert pheno.get("hasPortalURI") == "http://my_dataset_site.com"
 
 
 def test_diagnosis_and_control_status_handled(
@@ -224,9 +269,7 @@ def test_controlled_term_classes_have_uri_type(
         ],
     )
 
-    pheno = load_test_json(
-        test_data / "example_synthetic.jsonld"
-    )  # tmp_path / "pheno.jsonld"
+    pheno = load_test_json(test_data / "example_synthetic.jsonld")
 
     for sub in pheno["hasSamples"]:
         for key, value in sub.items():

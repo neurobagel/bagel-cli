@@ -1,11 +1,12 @@
 import warnings
 from collections import defaultdict
-from typing import Union
+from typing import Optional, Union
 
 import isodate
 import jsonschema
 import pandas as pd
 import pydantic
+from typer import BadParameter
 
 from bagel import dictionary_models, mappings, models
 from bagel.mappings import COGATLAS, NB, NIDM, SNOMED
@@ -19,6 +20,19 @@ AGE_HEURISTICS = {
     "bounded": NB.pf + ":bounded",
     "iso8601": NB.pf + ":iso8601",
 }
+
+
+def validate_portal_uri(portal: str) -> Optional[str]:
+    """Custom validation that portal is a valid HttpUrl"""
+    try:
+        pydantic.parse_obj_as(Optional[pydantic.HttpUrl], portal)
+    except pydantic.ValidationError as err:
+        raise BadParameter(
+            "Not a valid http or https URL: "
+            f"{err.errors()[0]['msg']} \nPlease try again."
+        ) from err
+
+    return portal
 
 
 def generate_context():

@@ -230,7 +230,15 @@ def test_invalid_age_heuristic():
                 "schemaKey",
             ],
         ),
-        ("Dataset", ["hasLabel", "hasSamples", "schemaKey"]),
+        (
+            "Dataset",
+            [
+                "hasLabel",
+                "hasPortalURI",
+                "hasSamples",
+                "schemaKey",
+            ],
+        ),
     ],
 )
 def test_generate_context(get_test_context, model, attributes):

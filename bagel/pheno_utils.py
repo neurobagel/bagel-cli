@@ -1,11 +1,12 @@
 import warnings
 from collections import defaultdict
-from typing import Union
+from typing import Optional, Union
 
 import isodate
 import jsonschema
 import pandas as pd
 import pydantic
+from typer import BadParameter
 
 from bagel import dictionary_models, mappings, models
 from bagel.mappings import COGATLAS, NB, NIDM, SNOMED
@@ -19,6 +20,19 @@ AGE_HEURISTICS = {
     "bounded": NB.pf + ":bounded",
     "iso8601": NB.pf + ":iso8601",
 }
+
+
+def validate_portal_uri(portal: str) -> Optional[str]:
+    """Custom validation that portal is a valid HttpUrl"""
+    try:
+        pydantic.parse_obj_as(Optional[pydantic.HttpUrl], portal)
+    except pydantic.ValidationError as err:
+        raise BadParameter(
+            "Not a valid http or https URL: "
+            f"{err.errors()[0]['msg']} \nPlease try again."
+        ) from err
+
+    return portal
 
 
 def generate_context():
@@ -106,7 +120,7 @@ def is_missing_value(
 
 def is_column_categorical(column: str, data_dict: dict) -> bool:
     """Determine whether a column in a Neurobagel data dictionary is categorical"""
-    if "Levels" in data_dict[column]:
+    if "Levels" in data_dict[column]["Annotations"]:
         return True
     return False
 
@@ -155,7 +169,10 @@ def get_transformed_values(
 ) -> Union[str, None]:
     """Convert a raw phenotypic value to the corresponding controlled term"""
     transf_val = []
-    # TODO: implement a way to handle cases where more than one column contains information
+    # TODO: Currently, this function accepts a list of columns + populates a list of transformed values because multiple columns should in theory
+    # be able to be annotated as being about a single Neurobagel concept/variable. However, we don't yet have a proper way to support multiple transformed values
+    # so this function returns just a single value or None.
+    # In future, we need to implement a way to handle cases where more than one column contains information.
     for col in columns[:1]:
         value = row[col]
         if is_missing_value(value, col, data_dict):

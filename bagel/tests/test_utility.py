@@ -70,6 +70,41 @@ def test_get_transformed_categorical_value(test_data, load_test_json):
 
 
 @pytest.mark.parametrize(
+    "example,expected_result",
+    [
+        (
+            {
+                "column": {
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "something", "Labels": "other"},
+                        "Levels": {
+                            "val1": {"TermURL": "something", "Label": "other"}
+                        },
+                    }
+                }
+            },
+            True,
+        ),
+        (
+            {
+                "column": {
+                    "Levels": {"val1": "some description"},
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "something", "Labels": "other"}
+                    },
+                }
+            },
+            False,
+        ),
+    ],
+)
+def test_detect_categorical_column(example, expected_result):
+    result = putil.is_column_categorical(column="column", data_dict=example)
+
+    assert result is expected_result
+
+
+@pytest.mark.parametrize(
     "value,column,expected",
     [
         ("test_value", "test_column", True),
@@ -195,7 +230,15 @@ def test_invalid_age_heuristic():
                 "schemaKey",
             ],
         ),
-        ("Dataset", ["hasLabel", "hasSamples", "schemaKey"]),
+        (
+            "Dataset",
+            [
+                "hasLabel",
+                "hasPortalURI",
+                "hasSamples",
+                "schemaKey",
+            ],
+        ),
     ],
 )
 def test_generate_context(get_test_context, model, attributes):

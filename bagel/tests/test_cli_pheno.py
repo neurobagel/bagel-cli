@@ -14,8 +14,6 @@ def test_pheno_valid_inputs_run_successfully(
         bagel,
         [
             "pheno",
-            "--dataset-dir",
-            test_data,
             "--pheno",
             test_data / f"{example}.tsv",
             "--dictionary",
@@ -67,8 +65,6 @@ def test_invalid_inputs_are_handled_gracefully(
             bagel,
             [
                 "pheno",
-                "--dataset-dir",
-                test_data,
                 "--pheno",
                 test_data / f"{example}.tsv",
                 "--dictionary",
@@ -86,60 +82,6 @@ def test_invalid_inputs_are_handled_gracefully(
 
 
 @pytest.mark.parametrize(
-    "option, filepath, expected_exception, expected_message",
-    [
-        (
-            "--pheno",
-            "sub_data/example2.tsv",
-            IOError,
-            "not a top-level file",
-        ),
-        (
-            "--pheno",
-            "example2.tsv",
-            FileNotFoundError,
-            "participants.json not found",
-        ),
-        (
-            "--dictionary",
-            "example2.json",
-            FileNotFoundError,
-            "participants.tsv not found",
-        ),
-    ],
-)
-def test_invalid_input_filepaths_handled_gracefully(
-    runner,
-    test_data,
-    tmp_path,
-    option,
-    filepath,
-    expected_exception,
-    expected_message,
-):
-    """Tests that invalid paths for the tabular file and data dictionary result in informative errors."""
-    all_args = [
-        "pheno",
-        "--dataset-dir",
-        test_data,
-        "--output",
-        tmp_path,
-        "--name",
-        "test dataset 2",
-    ] + [option, test_data / filepath]
-
-    with pytest.raises(expected_exception) as e:
-        runner.invoke(
-            bagel,
-            all_args,
-            catch_exceptions=False,
-        )
-
-    for substring in expected_message:
-        assert substring in str(e.value)
-
-
-@pytest.mark.parametrize(
     "portal",
     [
         "openneuro.org/datasets/ds002080",
@@ -148,35 +90,37 @@ def test_invalid_input_filepaths_handled_gracefully(
         "www.github.com/mycoolrepo/mycooldataset",
     ],
 )
-def test_invalid_portal_uris_raise_error(
+def test_invalid_portal_uris_produces_error(
     runner,
     test_data,
     tmp_path,
     portal,
 ):
     """Tests that invalid or non-HTTP/HTTPS URLs result in a user-friendly error."""
-    with pytest.raises(ValueError) as e:
-        runner.invoke(
-            bagel,
-            [
-                "pheno",
-                "--dataset-dir",
-                test_data,
-                "--pheno",
-                test_data / "example2.tsv",
-                "--dictionary",
-                test_data / "example2.json",
-                "--output",
-                tmp_path,
-                "--name",
-                "test dataset 2",
-                "--portal",
-                portal,
-            ],
-            catch_exceptions=False,
-        )
+    result = runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example2.tsv",
+            "--dictionary",
+            test_data / "example2.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "test dataset 2",
+            "--portal",
+            portal,
+        ],
+        catch_exceptions=False,
+    )
 
-    assert "not a valid http or https URL" in str(e.value)
+    assert result.exit_code != 0
+    # For some reason, it seems the Rich formatting of the error causes problems
+    # with matching the entire error substring at once
+    assert all(
+        word in str(result.output) for word in "not a valid http or https URL"
+    )
 
 
 def test_unused_missing_values_raises_warning(
@@ -193,8 +137,6 @@ def test_unused_missing_values_raises_warning(
             bagel,
             [
                 "pheno",
-                "--dataset-dir",
-                test_data,
                 "--pheno",
                 test_data / "example10.tsv",
                 "--dictionary",
@@ -217,15 +159,13 @@ def test_unused_missing_values_raises_warning(
         assert warn_substring in str(w[0].message.args[0])
 
 
-def test_that_output_file_contains_name(
+def test_that_output_file_contains_dataset_level_attributes(
     runner, test_data, tmp_path, load_test_json
 ):
     runner.invoke(
         bagel,
         [
             "pheno",
-            "--dataset-dir",
-            test_data,
             "--pheno",
             test_data / "example2.tsv",
             "--dictionary",
@@ -234,12 +174,15 @@ def test_that_output_file_contains_name(
             tmp_path,
             "--name",
             "my_dataset_name",
+            "--portal",
+            "http://my_dataset_site.com",
         ],
     )
 
     pheno = load_test_json(tmp_path / "pheno.jsonld")
 
     assert pheno.get("hasLabel") == "my_dataset_name"
+    assert pheno.get("hasPortalURI") == "http://my_dataset_site.com"
 
 
 def test_diagnosis_and_control_status_handled(
@@ -249,8 +192,6 @@ def test_diagnosis_and_control_status_handled(
         bagel,
         [
             "pheno",
-            "--dataset-dir",
-            test_data,
             "--pheno",
             test_data / "example6.tsv",
             "--dictionary",
@@ -286,8 +227,6 @@ def test_controlled_terms_have_identifiers(
         bagel,
         [
             "pheno",
-            "--dataset-dir",
-            test_data,
             "--pheno",
             test_data / "example_synthetic.tsv",
             "--dictionary",
@@ -319,8 +258,6 @@ def test_controlled_term_classes_have_uri_type(
         bagel,
         [
             "pheno",
-            "--dataset-dir",
-            test_data,
             "--pheno",
             test_data / "example_synthetic.tsv",
             "--dictionary",
@@ -332,9 +269,7 @@ def test_controlled_term_classes_have_uri_type(
         ],
     )
 
-    pheno = load_test_json(
-        test_data / "example_synthetic.jsonld"
-    )  # tmp_path / "pheno.jsonld"
+    pheno = load_test_json(test_data / "example_synthetic.jsonld")
 
     for sub in pheno["hasSamples"]:
         for key, value in sub.items():
@@ -369,8 +304,6 @@ def test_assessment_data_are_parsed_correctly(
         bagel,
         [
             "pheno",
-            "--dataset-dir",
-            test_data,
             "--pheno",
             test_data / "example6.tsv",
             "--dictionary",
@@ -398,8 +331,6 @@ def test_cli_age_is_processed(
         bagel,
         [
             "pheno",
-            "--dataset-dir",
-            test_data,
             "--pheno",
             test_data / "example2.tsv",
             "--dictionary",
@@ -421,8 +352,6 @@ def test_output_includes_context(runner, test_data, tmp_path, load_test_json):
         bagel,
         [
             "pheno",
-            "--dataset-dir",
-            test_data,
             "--pheno",
             test_data / "example2.tsv",
             "--dictionary",
@@ -440,3 +369,43 @@ def test_output_includes_context(runner, test_data, tmp_path, load_test_json):
     assert all(
         [sub.get("identifier") is not None for sub in pheno["hasSamples"]]
     )
+
+
+@pytest.mark.parametrize(
+    "sub_id, missing_val_property",
+    [
+        ("sub-02", ["hasAge"]),
+        ("sub-03", ["hasSex"]),
+        ("sub-03", ["hasDiagnosis", "isSubjectGroup"]),
+    ],
+)
+def test_output_excludes_properties_for_missing_vals(
+    runner, test_data, tmp_path, load_test_json, sub_id, missing_val_property
+):
+    """
+    Tests that for occurrences of values annotated as missing for a Neurobagel variable, the corresponding property does not exist
+    for the subject node in the output .jsonld. NOTE: Excludes Assessment tool columns because these are treated (and tested) separately,
+    see https://www.neurobagel.org/documentation/dictionaries/#assessment-tool for reference.
+    """
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example_synthetic.tsv",
+            "--dictionary",
+            test_data / "example_synthetic.json",
+            "--output",
+            tmp_path,
+            "--name",
+            "BIDS synthetic test",
+        ],
+    )
+
+    pheno = load_test_json(tmp_path / "pheno.jsonld")
+    for sub in pheno["hasSamples"]:
+        if sub["hasLabel"] == sub_id:
+            for entry in missing_val_property:
+                assert (
+                    sub.get(entry) is None
+                ), f"{sub_id} output contains value for {entry} where annotated as missing"

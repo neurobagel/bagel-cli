@@ -1,11 +1,10 @@
 import json
 from pathlib import Path
-from typing import Optional
 
 import pandas as pd
 import typer
 from bids import BIDSLayout
-from pydantic import HttpUrl, ValidationError, parse_obj_as
+from pydantic import ValidationError
 
 import bagel.bids_utils as butil
 import bagel.pheno_utils as putil
@@ -17,25 +16,21 @@ bagel = typer.Typer()
 
 @bagel.command()
 def pheno(
-    dataset_dir: Path = typer.Option(
-        ...,
-        help="The path to the directory containing the phenotypic data (.tsv and .json data dictionary) for the dataset.",
-        exists=True,
-        file_okay=False,
-        dir_okay=True,
-    ),
     pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
-        default=None,
-        help="The path to a phenotypic .tsv file.",
+        ...,
+        help="The path to a phenotypic .tsv file",
+        exists=True,
         file_okay=True,
         dir_okay=False,
+        resolve_path=True,
     ),
     dictionary: Path = typer.Option(
-        default=None,
-        help="The path to the .json data dictionary "
-        "corresponding to the phenotypic .tsv file.",
+        ...,
+        help="The path to the .json data dictionary corresponding to the phenotypic .tsv file.",
+        exists=True,
         file_okay=True,
         dir_okay=False,
+        resolve_path=True,
     ),
     output: Path = typer.Option(
         ...,
@@ -43,6 +38,7 @@ def pheno(
         exists=True,
         file_okay=False,
         dir_okay=True,
+        resolve_path=True,
     ),
     name: str = typer.Option(
         ...,
@@ -52,7 +48,8 @@ def pheno(
     ),
     portal: str = typer.Option(
         default=None,
-        help="URL to a website or page that describes the dataset.",
+        callback=putil.validate_portal_uri,
+        help="URL (HTTP/HTTPS) to a website or page that describes the dataset and access instructions (if available).",
     ),
 ):
     """
@@ -64,33 +61,17 @@ def pheno(
     graph datamodel for the provided phenotypic file in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
-    if pheno is None:
-        pheno = dataset_dir / "participants.tsv"
-    if dictionary is None:
-        dictionary = dataset_dir / "participants.json"
-
-    for input_filename in [pheno, dictionary]:
-        if input_filename.resolve().parent != dataset_dir.resolve():
-            raise IOError(
-                f"{input_filename} is not a top-level file in the dataset directory {dataset_dir}. Please try again."
-            )
-        if not input_filename.is_file():
-            raise FileNotFoundError(
-                f"File {input_filename} not found. Verify that you have provided the correct dataset directory path, or that the correct file paths have been specified"
-                "if using custom names for the tabular phenotypic file and/or data dictionary."
-            )
-
-    try:
-        parse_obj_as(Optional[HttpUrl], portal)
-    except ValidationError as err:
-        raise ValueError(
-            "Value for --portal is not a valid http or https URL: "
-            f"{err.errors()[0]['msg']} \nPlease try again."
-        ) from err
-
     data_dictionary = load_json(dictionary)
     pheno_df = pd.read_csv(pheno, sep="\t", keep_default_na=False, dtype=str)
     putil.validate_inputs(data_dictionary, pheno_df)
+
+    # Display validated input paths to user
+    space = 25
+    print(
+        "Processing phenotypic annotations:\n"
+        f"   {'Tabular file (.tsv):' : <{space}} {pheno}\n"
+        f"   {'Data dictionary (.json):' : <{space}} {dictionary}\n"
+    )
 
     subject_list = []
 
@@ -111,11 +92,11 @@ def pheno(
 
         subject = models.Subject(hasLabel=str(participant))
         if "sex" in column_mapping.keys():
-            subject.hasSex = models.Sex(
-                identifier=putil.get_transformed_values(
-                    column_mapping["sex"], _sub_pheno, data_dictionary
-                ),
+            _sex_val = putil.get_transformed_values(
+                column_mapping["sex"], _sub_pheno, data_dictionary
             )
+            if _sex_val:
+                subject.hasSex = models.Sex(identifier=_sex_val)
 
         if "diagnosis" in column_mapping.keys():
             _dx_val = putil.get_transformed_values(
@@ -149,7 +130,6 @@ def pheno(
 
     dataset = models.Dataset(
         hasLabel=name,
-        hasFilePath=dataset_dir.resolve().as_posix(),
         hasPortalURI=portal,
         hasSamples=subject_list,
     )
@@ -160,8 +140,11 @@ def pheno(
     # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
     context.update(**dataset.dict(exclude_none=True))
 
-    with open(output / "pheno.jsonld", "w") as f:
+    output_filename = output / "pheno.jsonld"
+    with open(output_filename, "w") as f:
         f.write(json.dumps(context, indent=2))
+
+    print(f"Saved output to:  {output_filename}")
 
 
 @bagel.command()
@@ -172,6 +155,7 @@ def bids(
         exists=True,
         file_okay=True,
         dir_okay=False,
+        resolve_path=True,
     ),
     bids_dir: Path = typer.Option(
         ...,
@@ -179,6 +163,7 @@ def bids(
         exists=True,
         file_okay=False,
         dir_okay=True,
+        resolve_path=True,
     ),
     output: Path = typer.Option(
         ...,
@@ -186,6 +171,7 @@ def bids(
         exists=True,
         file_okay=False,
         dir_okay=True,
+        resolve_path=True,
     ),
 ):
     """
@@ -218,6 +204,14 @@ def bids(
     butil.check_unique_bids_subjects(
         pheno_subjects=pheno_subject_dict.keys(),
         bids_subjects=bids_subject_list,
+    )
+
+    # Display validated input paths to user
+    space = 32
+    print(
+        "Parsing BIDS metadata to be merged with phenotypic annotations:\n"
+        f"   {'Phenotypic .jsonld to augment:' : <{space}} {jsonld_path}\n"
+        f"   {'BIDS dataset directory:' : <{space}} {bids_dir}\n"
     )
 
     for bids_sub_id in layout.get_subjects():
@@ -270,5 +264,8 @@ def bids(
 
     merged_dataset = {**context, **pheno_dataset.dict(exclude_none=True)}
 
-    with open(output / "pheno_bids.jsonld", "w") as f:
+    output_filename = output / "pheno_bids.jsonld"
+    with open(output_filename, "w") as f:
         f.write(json.dumps(merged_dataset, indent=2))
+
+    print(f"Saved output to:  {output_filename}")

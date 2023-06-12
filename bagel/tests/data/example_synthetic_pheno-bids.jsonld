@@ -1,0 +1,577 @@
+{
+  "@context": {
+    "nb": "http://neurobagel.org/vocab/",
+    "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
+    "nidm": "http://purl.org/nidash/nidm#",
+    "cogatlas": "https://www.cognitiveatlas.org/task/id/",
+    "Acquisition": "nb:Acquisition",
+    "identifier": "@id",
+    "hasContrastType": {
+      "@id": "nb:hasContrastType"
+    },
+    "schemaKey": "@type",
+    "Assessment": "nb:Assessment",
+    "Bagel": "nb:Bagel",
+    "BaseModel": "nb:BaseModel",
+    "ControlledTerm": "nb:ControlledTerm",
+    "Dataset": "nb:Dataset",
+    "hasLabel": {
+      "@id": "nb:hasLabel"
+    },
+    "hasFilePath": {
+      "@id": "nb:hasFilePath"
+    },
+    "hasPortalURI": {
+      "@id": "nb:hasPortalURI"
+    },
+    "hasSamples": {
+      "@id": "nb:hasSamples"
+    },
+    "Diagnosis": "nb:Diagnosis",
+    "Image": "nb:Image",
+    "Session": "nb:Session",
+    "hasAcquisition": {
+      "@id": "nb:hasAcquisition"
+    },
+    "Sex": "nb:Sex",
+    "Subject": "nb:Subject",
+    "hasSession": {
+      "@id": "nb:hasSession"
+    },
+    "hasAge": {
+      "@id": "nb:hasAge"
+    },
+    "hasSex": {
+      "@id": "nb:hasSex"
+    },
+    "isSubjectGroup": {
+      "@id": "nb:isSubjectGroup"
+    },
+    "hasDiagnosis": {
+      "@id": "nb:hasDiagnosis"
+    },
+    "hasAssessment": {
+      "@id": "nb:hasAssessment"
+    },
+    "SubjectGroup": "nb:SubjectGroup"
+  },
+  "identifier": "nb:81e47a09-658d-48ea-b7c5-8d54820d038e",
+  "hasLabel": "BIDS synthetic",
+  "hasPortalURI": "https://github.com/bids-standard/bids-examples",
+  "hasSamples": [
+    {
+      "identifier": "nb:64894186-4c85-4306-b9d9-1902bb2b42b5",
+      "hasLabel": "sub-01",
+      "hasSession": [
+        {
+          "identifier": "nb:3ed364a7-8e4c-4143-be16-024129a3a0f0",
+          "hasLabel": "ses-01",
+          "hasFilePath": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-01/ses-01",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:7a20b693-a369-4dc2-a85b-1558d6ce450a",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:d325bf61-f75b-4200-8eb1-ab2a73f24cce",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:2093da23-af5c-48c7-aba3-cca605db60db",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:219109af-320c-4d6b-bee9-235dd496036a",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "Session"
+        },
+        {
+          "identifier": "nb:1b5fc6ab-2d1b-4caa-ba24-5952a0d8a371",
+          "hasLabel": "ses-02",
+          "hasFilePath": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-01/ses-02",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:96f1e62e-d87d-4bcb-8c31-3b09b234648c",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:5872f947-36dc-44e5-b91f-71b4b851608d",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:3848b825-1a39-4192-95ee-0f87144bb1d2",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:90dddd31-b9c8-4258-9831-3cca9a3c3efb",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "Session"
+        }
+      ],
+      "hasAge": 34.1,
+      "hasSex": {
+        "identifier": "snomed:248152002",
+        "schemaKey": "Sex"
+      },
+      "isSubjectGroup": {
+        "identifier": "purl:NCIT_C94342",
+        "schemaKey": "SubjectGroup"
+      },
+      "hasAssessment": [
+        {
+          "identifier": "cogatlas:1234",
+          "schemaKey": "Assessment"
+        },
+        {
+          "identifier": "cogatlas:4321",
+          "schemaKey": "Assessment"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "nb:673e6f04-73b2-4a14-96c9-7ffb0e54e2ad",
+      "hasLabel": "sub-02",
+      "hasSession": [
+        {
+          "identifier": "nb:fe4f2268-a071-4f9c-8995-94a877a386f8",
+          "hasLabel": "ses-01",
+          "hasFilePath": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-02/ses-01",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:6c15530c-16cf-4ebf-a234-778f771ed0c3",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:415e146d-5336-4fc0-bccd-263cbadfa50c",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:9c370473-e82e-44aa-90b6-6c5f04ea3238",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:8aea740d-a64f-4a85-a8ab-0e8c09652853",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "Session"
+        },
+        {
+          "identifier": "nb:a9c62260-8772-4768-8be9-d6400d436233",
+          "hasLabel": "ses-02",
+          "hasFilePath": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-02/ses-02",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:b442f05b-6a4a-4906-944e-af38e831945a",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:cc575e1f-21d2-48e4-a244-741f917c5e83",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:ffec21a5-f432-4627-9c85-eb2ddf2fd626",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:b8e36ad6-705e-494a-893c-aa174f4dd894",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "Session"
+        }
+      ],
+      "hasSex": {
+        "identifier": "snomed:248153007",
+        "schemaKey": "Sex"
+      },
+      "hasDiagnosis": [
+        {
+          "identifier": "snomed:49049000",
+          "schemaKey": "Diagnosis"
+        }
+      ],
+      "hasAssessment": [
+        {
+          "identifier": "cogatlas:4321",
+          "schemaKey": "Assessment"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "nb:4ed39595-c80a-4a3f-94c4-024c96cea918",
+      "hasLabel": "sub-03",
+      "hasSession": [
+        {
+          "identifier": "nb:40016c93-996d-4a31-b9d4-a7084a18cf6a",
+          "hasLabel": "ses-01",
+          "hasFilePath": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-03/ses-01",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:cdb734a6-c549-4747-bbbd-98f0419a5225",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:4bcc9872-fbb2-4cf0-a2d2-7c3df44c2c1c",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:cbf3fa36-4a53-4540-8cf3-2458cd767adc",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:d251521f-ac87-4deb-8ac5-18ce2310b2f6",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "Session"
+        },
+        {
+          "identifier": "nb:b3db25b0-2fdd-49c7-bb18-cc3ed4843637",
+          "hasLabel": "ses-02",
+          "hasFilePath": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-03/ses-02",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:4b75b005-5712-4b9e-9201-2f49934dc3b2",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:915e9d2a-b8e1-4e77-9c9f-63c2bde83160",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:3d94f298-ca3f-4353-b08b-d8a940dd88a6",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:fc7e3422-fd37-41ce-b849-34ebda980aa3",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "Session"
+        }
+      ],
+      "hasAge": 22.1,
+      "hasAssessment": [
+        {
+          "identifier": "cogatlas:1234",
+          "schemaKey": "Assessment"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "nb:b664f831-ee9b-401d-bd8a-c138a402493e",
+      "hasLabel": "sub-04",
+      "hasSession": [
+        {
+          "identifier": "nb:b537910f-5352-4f42-aac9-3ee2efb3bdbf",
+          "hasLabel": "ses-01",
+          "hasFilePath": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-04/ses-01",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:8102e0bc-359b-48ea-ae1f-0fc53db8a067",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:75de19d8-5844-4c67-a173-5e81a4f60fe3",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:82dc68a2-8bb1-4626-8e27-13c44ccb2f75",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:e01c5180-8407-479f-b952-ff48113463c4",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "Session"
+        },
+        {
+          "identifier": "nb:332ac9a1-0960-4d61-b8b0-52c94683a54b",
+          "hasLabel": "ses-02",
+          "hasFilePath": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-04/ses-02",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:05965d57-3a80-47b7-9887-025218c5c9f0",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:560e7d92-a148-4a00-b5a8-0de467aa8e87",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:2a0c0894-5771-4b9f-8de3-933ef520b49d",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:391bb7d2-cfb3-4b6c-b2c6-14f8e43bd927",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "Session"
+        }
+      ],
+      "hasAge": 21.1,
+      "hasSex": {
+        "identifier": "snomed:248152002",
+        "schemaKey": "Sex"
+      },
+      "isSubjectGroup": {
+        "identifier": "purl:NCIT_C94342",
+        "schemaKey": "SubjectGroup"
+      },
+      "hasAssessment": [
+        {
+          "identifier": "cogatlas:4321",
+          "schemaKey": "Assessment"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "nb:70e1dc10-b3a1-4a2e-8218-7dba3210a881",
+      "hasLabel": "sub-05",
+      "hasSession": [
+        {
+          "identifier": "nb:a0015aed-a4e8-4e2b-8863-fd18053ea73d",
+          "hasLabel": "ses-01",
+          "hasFilePath": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-05/ses-01",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:0279521b-38fc-49ec-a83b-196eb0ccd239",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:d662c1a9-86e9-4d07-9b3b-fa8cd9710c5e",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:e80a4b47-081c-4898-aca1-45c52c22b3ac",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:7d26b1fa-2739-4935-8df8-ee0cb3dbde14",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "Session"
+        },
+        {
+          "identifier": "nb:4cdad5e6-bc1c-40de-af68-75be890c4858",
+          "hasLabel": "ses-02",
+          "hasFilePath": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-05/ses-02",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:ccaf5c05-a541-4c47-be2f-9ed439752f82",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:14384d38-214b-4773-ae80-791a5ee56e8c",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:dbef5543-0334-4cf5-88d1-1c54cb61fa44",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:9459d7d8-3f12-4575-8325-dfb36466e366",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "Session"
+        }
+      ],
+      "hasAge": 42.5,
+      "hasSex": {
+        "identifier": "snomed:248153007",
+        "schemaKey": "Sex"
+      },
+      "hasDiagnosis": [
+        {
+          "identifier": "snomed:49049000",
+          "schemaKey": "Diagnosis"
+        }
+      ],
+      "hasAssessment": [
+        {
+          "identifier": "cogatlas:1234",
+          "schemaKey": "Assessment"
+        },
+        {
+          "identifier": "cogatlas:4321",
+          "schemaKey": "Assessment"
+        }
+      ],
+      "schemaKey": "Subject"
+    }
+  ],
+  "schemaKey": "Dataset"
+}

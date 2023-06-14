@@ -3,7 +3,7 @@
 Example inputs to the CLI
 
 | Example name | `.tsv`                                                                                                                                                                   | `.json`                                                                              | Expect             |
-|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|--------------------|
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ------------------ |
 | 1            | invalid, non-unique combinations of `participant` and `session` IDs                                                                                                      | valid, has `IsAbout` annotations for `participant` and `session` ID columns          | fail               |
 | 2            | valid, unique `participant` and `session` IDs                                                                                                                            | same as example 1                                                                    | pass               |
 | 3            | same as example 2                                                                                                                                                        | valid BIDS data dictionary, BUT: does not contain Neurobagel `"Annotations"` key     | fail               |
@@ -16,7 +16,8 @@ Example inputs to the CLI
 | 9            | invalid, based on example 6 but contains an unannotated value for `group`                                                                                                | valid, based on example 6                                                            | fail               |
 | 10           | valid, same as example 6                                                                                                                                                 | valid, based on example 6 but contains extra `"MissingValues"` not found in the .tsv | pass, with warning |
 | synthetic    | valid, has `participant` and `session` IDs corresponding to the [`synthetic` example BIDS dataset](https://github.com/bids-standard/bids-examples/tree/master/synthetic) | valid                                                                                | pass               |
-| 11           | invalid, ex 6 with missing entries in `participant_id` and `session_id` columns                                                                                                           | valid, based on example 6                                                            | fail               |
+| 11           | invalid, ex 6 with missing entries in `participant_id` and `session_id` columns                                                                                          | valid, based on example 6                                                            | fail               |
+| 12           | Valid, same as example 2                                                                                                                                                                    | Valid, based on example 2 but missing BIDS "Levels" attribute for group column                                | Pass |
 
 `* this is expected to fail until we enable multiple participant_ID handling`.
 

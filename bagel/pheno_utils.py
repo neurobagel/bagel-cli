@@ -193,6 +193,7 @@ def get_transformed_values(
     return transf_val[0]
 
 
+# TODO: Check all columns and then return list of offending columns' names
 def categorical_cols_have_bids_levels(data_dict: dict) -> bool:
     for col, attrs in data_dict.items():
         if (
@@ -313,7 +314,7 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
 
     if not categorical_cols_have_bids_levels(data_dict):
         warnings.warn(
-            "looks like a categorical column but lacks a BIDS 'Levels' attribute"
+            "The data dictionary contains at least one column that looks categorical but lacks a BIDS 'Levels' attribute."
         )
 
     if not are_inputs_compatible(data_dict, pheno_df):

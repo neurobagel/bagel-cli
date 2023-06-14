@@ -147,9 +147,8 @@ def test_missing_bids_levels_raises_warning(
         )
 
     assert len(w) == 1
-    assert (
-        "looks like a categorical column but lacks a BIDS 'Levels' attribute"
-        in str(w[0].message.args[0])
+    assert "looks categorical but lacks a BIDS 'Levels' attribute" in str(
+        w[0].message.args[0]
     )
 
 

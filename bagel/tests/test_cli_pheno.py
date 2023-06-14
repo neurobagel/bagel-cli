@@ -4,7 +4,8 @@ from bagel.cli import bagel
 
 
 @pytest.mark.parametrize(
-    "example", ["example2", "example4", "example6", "example_synthetic"]
+    "example",
+    ["example2", "example4", "example6", "example12", "example_synthetic"],
 )
 def test_pheno_valid_inputs_run_successfully(
     runner, test_data, tmp_path, example

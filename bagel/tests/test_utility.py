@@ -104,10 +104,6 @@ def test_detect_categorical_column(example, expected_result):
     assert result is expected_result
 
 
-def test_find_undefined_cat_col_values():
-    assert False
-
-
 @pytest.mark.parametrize(
     "value,column,expected",
     [

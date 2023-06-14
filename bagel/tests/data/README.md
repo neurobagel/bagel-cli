@@ -17,7 +17,8 @@ Example inputs to the CLI
 | 10           | valid, same as example 6                                                                                                                                                 | valid, based on example 6 but contains extra `"MissingValues"` not found in the .tsv | pass, with warning |
 | synthetic    | valid, has `participant` and `session` IDs corresponding to the [`synthetic` example BIDS dataset](https://github.com/bids-standard/bids-examples/tree/master/synthetic) | valid                                                                                | pass               |
 | 11           | invalid, ex 6 with missing entries in `participant_id` and `session_id` columns                                                                                          | valid, based on example 6                                                            | fail               |
-| 12           | Valid, same as example 2                                                                                                                                                                    | Valid, based on example 2 but missing BIDS "Levels" attribute for group column                                | Pass |
+| 12           | Valid, same as example 2                                                                                                                                                 | Valid, based on example 2 but missing BIDS "Levels" attribute for group column       | Pass, with warning               |
+| 13           | Valid, same as example_synthetic                                                                                                                                                | Valid, based on example_synthetic but with mismatched levels for group column | Pass, with warning                   |
 
 `* this is expected to fail until we enable multiple participant_ID handling`.
 

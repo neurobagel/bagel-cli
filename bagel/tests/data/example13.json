@@ -1,0 +1,128 @@
+{
+    "participant_id": {
+        "Description": "A participant ID",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:ParticipantID",
+                "Label": "Unique participant identifier"
+            }
+        }
+    },
+    "session_id": {
+        "Description": "A session ID",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:SessionID",
+                "Label": "Unique session identifier"
+            }
+        }
+    },
+      "pheno_age": {
+    "Description": "Age of the participant",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Age",
+        "Label": "Chronological age"
+      },
+      "Transformation": {
+        "TermURL": "nb:euro",
+        "Label": "writing the time with a comma - why not"
+      },
+      "MissingValues": ["NA"]
+    }
+  },
+    "pheno_sex": {
+    "Description": "Sex variable",
+    "Levels": {
+      "M": "Male",
+      "F": "Female",
+      "missing": "Missing sex",
+      "O": "Other unimportant level"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Sex",
+        "Label": "Sex"
+      },
+      "Levels": {
+        "M": {
+          "TermURL": "snomed:248153007",
+          "Label": "Male"
+        },
+        "F": {
+          "TermURL": "snomed:248152002",
+          "Label": "Female"
+        }
+      },
+      "MissingValues": ["missing"]
+    }
+  },
+
+    "pheno_group": {
+        "Description": "Group variable",
+        "Levels": {
+            "PAT": "Patient",
+            "CTRL": "Control subject",
+            "NA": "Missing group"
+        },
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:Diagnosis",
+                "Label": "Diagnosis"
+            },
+            "Levels": {
+                "PAT": {
+                    "TermURL": "snomed:49049000",
+                    "Label": "Parkinson's disease"
+                },
+                "CTRL": {
+                    "TermURL": "purl:NCIT_C94342",
+                    "Label": "Healthy Control"
+                }
+            },
+            "MissingValues": ["NA"]
+        }
+    },
+    "tool1_item1": {
+        "Description": "item 1 scores for tool1",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:Assessment",
+                "Label": "Assessment tool"
+            },
+            "IsPartOf": {
+                "TermURL": "cogatlas:1234",
+                "Label": "Imaginary tool"
+            },
+            "MissingValues": ["missing"]
+        }
+    },
+    "tool1_item2": {
+        "Description": "item 2 scores for tool1",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:Assessment",
+                "Label": "Assessment tool"
+            },
+            "IsPartOf": {
+                "TermURL": "cogatlas:1234",
+                "Label": "Imaginary tool"
+            },
+            "MissingValues": ["missing"]
+        }
+    },
+    "tool2_item1": {
+        "Description": "item 1 scores for tool2",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:Assessment",
+                "Label": "Assessment tool"
+            },
+            "IsPartOf": {
+                "TermURL": "cogatlas:4321",
+                "Label": "A different imaginary tool"
+            },
+            "MissingValues": ["not completed"]
+        }
+    }
+}

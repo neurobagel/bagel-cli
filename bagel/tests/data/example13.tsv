@@ -1,0 +1,11 @@
+participant_id	session_id	pheno_age	pheno_sex	pheno_group	tool1_item1	tool1_item2	tool2_item1
+sub-01	ses-01	34,1	F	CTRL	good	far	hello
+sub-01	ses-02	35,3	F	CTRL	bad	near	world
+sub-02	ses-01	NA	M	PAT	ok	missing	hello
+sub-02	ses-02	39,0	M	PAT	good	middle	friends
+sub-03	ses-01	22,1	missing	NA	bad	near	not completed
+sub-03	ses-02	23,2	missing	PAT	ok	far	hello
+sub-04	ses-01	21,1	F	CTRL	missing	missing	hello
+sub-04	ses-02	22,3	F	CTRL	good	middle	friends
+sub-05	ses-01	42,5	M	PAT	bad	near	friends
+sub-05	ses-02	43,2	M	PAT	good	far	world

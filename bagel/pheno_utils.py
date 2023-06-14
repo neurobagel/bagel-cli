@@ -193,6 +193,17 @@ def get_transformed_values(
     return transf_val[0]
 
 
+def categorical_cols_have_bids_levels(data_dict: dict) -> bool:
+    for col, attrs in data_dict.items():
+        if (
+            is_column_categorical(col, data_dict)
+            and attrs.get("Levels") is None
+        ):
+            return False
+
+    return True
+
+
 def are_not_missing(columns: list, row: pd.Series, data_dict: dict) -> bool:
     """
     Checks that all values in the specified columns are not missing values. This is mainly useful
@@ -298,6 +309,11 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
         raise ValueError(
             "The provided data dictionary has more than one column about participant ID or session ID."
             "Please make sure that only one column is annotated for participant and session IDs."
+        )
+
+    if not categorical_cols_have_bids_levels(data_dict):
+        warnings.warn(
+            "looks like a categorical column but lacks a BIDS 'Levels' attribute"
         )
 
     if not are_inputs_compatible(data_dict, pheno_df):

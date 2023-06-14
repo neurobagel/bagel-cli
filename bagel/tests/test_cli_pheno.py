@@ -124,6 +124,35 @@ def test_invalid_portal_uris_produces_error(
     )
 
 
+def test_missing_bids_levels_raises_warning(
+    runner,
+    test_data,
+    tmp_path,
+):
+    with pytest.warns(UserWarning) as w:
+        runner.invoke(
+            bagel,
+            [
+                "pheno",
+                "--pheno",
+                test_data / "example12.tsv",
+                "--dictionary",
+                test_data / "example12.json",
+                "--output",
+                tmp_path,
+                "--name",
+                "testing dataset",
+            ],
+            catch_exceptions=False,
+        )
+
+    assert len(w) == 1
+    assert (
+        "looks like a categorical column but lacks a BIDS 'Levels' attribute"
+        in str(w[0].message.args[0])
+    )
+
+
 def test_unused_missing_values_raises_warning(
     runner,
     test_data,

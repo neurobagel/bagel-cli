@@ -224,7 +224,7 @@ def find_undefined_cat_col_values(
     all_undefined_values = {}
     for col, attr in data_dict.items():
         if is_column_categorical(col, data_dict):
-            known_values = list(attr["Levels"].keys()) + attr[
+            known_values = list(attr["Annotations"]["Levels"].keys()) + attr[
                 "Annotations"
             ].get("MissingValues", [])
             unknown_values = []

@@ -5,7 +5,14 @@ from bagel.cli import bagel
 
 @pytest.mark.parametrize(
     "example",
-    ["example2", "example4", "example6", "example12", "example_synthetic"],
+    [
+        "example2",
+        "example4",
+        "example6",
+        "example12",
+        "example13",
+        "example_synthetic",
+    ],
 )
 def test_pheno_valid_inputs_run_successfully(
     runner, test_data, tmp_path, example
@@ -149,6 +156,38 @@ def test_missing_bids_levels_raises_warning(
     assert len(w) == 1
     assert "looks categorical but lacks a BIDS 'Levels' attribute" in str(
         w[0].message.args[0]
+    )
+
+
+def test_bids_neurobagel_levels_mismatch_raises_warning(
+    runner,
+    test_data,
+    tmp_path,
+):
+    with pytest.warns(UserWarning) as w:
+        runner.invoke(
+            bagel,
+            [
+                "pheno",
+                "--pheno",
+                test_data / "example13.tsv",
+                "--dictionary",
+                test_data / "example13.json",
+                "--output",
+                tmp_path,
+                "--name",
+                "testing dataset",
+            ],
+            catch_exceptions=False,
+        )
+
+    assert len(w) == 1
+    assert all(
+        warn_substring in str(w[0].message.args[0])
+        for warn_substring in [
+            "columns with mismatched levels",
+            "['pheno_sex']",
+        ]
     )
 
 

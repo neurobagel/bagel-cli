@@ -8,7 +8,8 @@
       "IsAbout": {
         "TermURL": "nb:SessionID",
         "Label": "Unique session identifier"
-      }
+      },
+      "Identifies": "session"
     }
   },
   "group": {

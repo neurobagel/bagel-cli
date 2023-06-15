@@ -45,8 +45,9 @@ def test_get_columns_with_annotations():
             },
         },
     }
-    result = putil.get_annotated_columns(example)
-    assert result == ["participant_id"]
+    (result,) = putil.get_annotated_columns(example)
+    assert result[0] == "participant_id"
+    assert result[1] == example["participant_id"]
 
 
 def test_map_categories_to_columns(test_data, load_test_json):

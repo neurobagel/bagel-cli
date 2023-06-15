@@ -11,6 +11,7 @@ from bagel.cli import bagel
         "example6",
         "example12",
         "example13",
+        "example14",
         "example_synthetic",
     ],
 )

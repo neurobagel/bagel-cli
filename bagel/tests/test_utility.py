@@ -5,7 +5,6 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from bids import BIDSLayout
-from jsonschema.exceptions import ValidationError
 
 import bagel.bids_utils as butil
 import bagel.pheno_utils as putil
@@ -37,7 +36,7 @@ def test_schema_invalid_column_raises_error():
         },
     )
 
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(ValueError) as e:
         putil.validate_data_dict(partial_data_dict)
 
     assert "not a valid Neurobagel data dictionary" in str(e.value)

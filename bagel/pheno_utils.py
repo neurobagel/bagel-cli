@@ -207,7 +207,8 @@ def categorical_cols_have_bids_levels(data_dict: dict) -> bool:
 
 def get_mismatched_categorical_levels(data_dict: dict) -> list:
     """
-    Returns list of any categorical columns from a data dictionary that have different entries for the "Levels" key between the column's BIDS and Neurobagel annotations.
+    Returns list of any categorical columns from a data dictionary that have different entries
+    for the "Levels" key between the column's BIDS and Neurobagel annotations.
     """
     mismatched_cols = []
     for col, attrs in data_dict.items():

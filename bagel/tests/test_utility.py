@@ -20,7 +20,7 @@ def get_test_context():
 def test_get_columns_that_are_about_concept(test_data, load_test_json):
     """Test that matching annotated columns are returned as a list,
     and that empty list is returned if nothing matches"""
-    data_dict = load_test_json(test_data / "example1.json")
+    data_dict = load_test_json(test_data / "example14.json")
 
     assert ["participant_id"] == putil.get_columns_about(
         data_dict, concept=mappings.NEUROBAGEL["participant"]

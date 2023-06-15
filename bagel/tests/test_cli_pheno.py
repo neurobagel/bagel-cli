@@ -101,28 +101,6 @@ def test_invalid_inputs_are_handled_gracefully(
         assert substring in str(e.value)
 
 
-# def test_no_annotated_columns_returns_error(runner, test_data, tmp_path):
-#     """Tests that a dataset with no annotated columns returns an error"""
-#     with pytest.raises(ValueError) as e:
-#         runner.invoke(
-#             bagel,
-#             [
-#                 "pheno",
-#                 "--pheno",
-#                 test_data / "example10.tsv",
-#                 "--dictionary",
-#                 test_data / "example10.json",
-#                 "--output",
-#                 tmp_path,
-#                 "--name",
-#                 "do not care name",
-#             ],
-#             catch_exceptions=False,
-#         )
-
-#     assert
-
-
 @pytest.mark.parametrize(
     "portal",
     [

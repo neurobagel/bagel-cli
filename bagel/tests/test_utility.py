@@ -45,7 +45,7 @@ def test_get_columns_with_annotations():
             },
         },
     }
-    (result,) = putil.get_annotated_columns(example)
+    result = putil.get_annotated_columns(example)[0]
     assert result[0] == "participant_id"
     assert result[1] == example["participant_id"]
 

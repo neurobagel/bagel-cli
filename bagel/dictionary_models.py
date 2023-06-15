@@ -33,12 +33,6 @@ class Neurobagel(BaseModel):
         "invalid responses, typos, or missing data",
         alias="MissingValues",
     )
-    isPartOf: Optional[Identifier] = Field(
-        None,
-        description="If the column is a subscale or item of an assessment tool "
-        "then the assessment tool should be specified here.",
-        alias="IsPartOf",
-    )
 
     class Config:
         extra = Extra.forbid
@@ -79,6 +73,17 @@ class IdentifierNeurobagel(Neurobagel):
     )
 
 
+class ToolNeurobagel(Neurobagel):
+    """A Neurobagel annotation for an assessment tool column"""
+
+    isPartOf: Optional[Identifier] = Field(
+        ...,
+        description="If the column is a subscale or item of an assessment tool "
+        "then the assessment tool should be specified here.",
+        alias="IsPartOf",
+    )
+
+
 class Column(BaseModel):
     """The base model for a BIDS column description"""
 
@@ -88,7 +93,10 @@ class Column(BaseModel):
         alias="Description",
     )
     annotations: Union[
-        CategoricalNeurobagel, ContinuousNeurobagel, IdentifierNeurobagel
+        CategoricalNeurobagel,
+        ContinuousNeurobagel,
+        IdentifierNeurobagel,
+        ToolNeurobagel,
     ] = Field(None, description="Semantic annotations", alias="Annotations")
 
 

@@ -42,7 +42,11 @@ def test_pheno_valid_inputs_run_successfully(
 @pytest.mark.parametrize(
     "example,expected_exception,expected_message",
     [
-        ("example3", ValueError, ["not a valid Neurobagel data dictionary"]),
+        (
+            "example3",
+            ValueError,
+            ["must contain at least one column with Neurobagel annotations"],
+        ),
         (
             "example_invalid",
             ValueError,
@@ -88,6 +92,28 @@ def test_invalid_inputs_are_handled_gracefully(
 
     for substring in expected_message:
         assert substring in str(e.value)
+
+
+# def test_no_annotated_columns_returns_error(runner, test_data, tmp_path):
+#     """Tests that a dataset with no annotated columns returns an error"""
+#     with pytest.raises(ValueError) as e:
+#         runner.invoke(
+#             bagel,
+#             [
+#                 "pheno",
+#                 "--pheno",
+#                 test_data / "example10.tsv",
+#                 "--dictionary",
+#                 test_data / "example10.json",
+#                 "--output",
+#                 tmp_path,
+#                 "--name",
+#                 "do not care name",
+#             ],
+#             catch_exceptions=False,
+#         )
+
+#     assert
 
 
 @pytest.mark.parametrize(

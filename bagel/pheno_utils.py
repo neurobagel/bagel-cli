@@ -321,6 +321,13 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
             "Make sure that each annotated column contains an 'Annotations' key."
         ) from e
 
+    if get_annotated_columns(data_dict) != []:
+        pass
+    else:
+        raise ValueError(
+            "The provided data dictionary must contain at least one column with Neurobagel annotations."
+        )
+
     # TODO: remove this validation when we start handling multiple participant and / or session ID columns
     if (
         len(

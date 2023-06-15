@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from bids import BIDSLayout
+from jsonschema.exceptions import ValidationError
 
 import bagel.bids_utils as butil
 import bagel.pheno_utils as putil
@@ -15,6 +16,31 @@ from bagel import mappings
 def get_test_context():
     """Generate an @context dictionary to test against."""
     return putil.generate_context()
+
+
+def test_schema_invalid_column_raises_error():
+    partial_data_dict = (
+        {
+            "participant_id": {
+                "Description": "A participant ID",
+                "Annotations": {
+                    "IsAbout": {
+                        "TermURL": "nb:ParticipantID",
+                        "Label": "Unique participant identifier",
+                    }
+                },
+            },
+            "sex": {
+                "Description": "Participant sex",
+                "Annotations": {"IsAbout": {"TermURL": "nb:Sex", "Label": ""}},
+            },
+        },
+    )
+
+    with pytest.raises(ValidationError) as e:
+        putil.validate_data_dict(partial_data_dict)
+
+    assert "not a valid Neurobagel data dictionary" in str(e.value)
 
 
 def test_get_columns_that_are_about_concept(test_data, load_test_json):

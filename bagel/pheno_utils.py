@@ -111,7 +111,7 @@ def map_tools_to_columns(data_dict: dict) -> dict:
     are mapped to it.
     """
     out_dict = defaultdict(list)
-    for col, content in data_dict.items():
+    for col, content in get_annotated_columns(data_dict):
         part_of = content["Annotations"].get("IsPartOf")
         if part_of is not None:
             out_dict[part_of.get("TermURL")].append(col)
@@ -203,10 +203,10 @@ def get_transformed_values(
 
 # TODO: Check all columns and then return list of offending columns' names
 def categorical_cols_have_bids_levels(data_dict: dict) -> bool:
-    for col, attrs in data_dict.items():
+    for col, content in get_annotated_columns(data_dict):
         if (
             is_column_categorical(col, data_dict)
-            and attrs.get("Levels") is None
+            and content.get("Levels") is None
         ):
             return False
 
@@ -219,12 +219,12 @@ def get_mismatched_categorical_levels(data_dict: dict) -> list:
     for the "Levels" key between the column's BIDS and Neurobagel annotations.
     """
     mismatched_cols = []
-    for col, attrs in data_dict.items():
+    for col, content in get_annotated_columns(data_dict):
         if is_column_categorical(col, data_dict):
-            known_levels = list(attrs["Annotations"]["Levels"].keys()) + attrs[
-                "Annotations"
-            ].get("MissingValues", [])
-            if set(attrs.get("Levels", {}).keys()).difference(known_levels):
+            known_levels = list(
+                content["Annotations"]["Levels"].keys()
+            ) + content["Annotations"].get("MissingValues", [])
+            if set(content.get("Levels", {}).keys()).difference(known_levels):
                 mismatched_cols.append(col)
 
     return mismatched_cols
@@ -247,7 +247,12 @@ def are_inputs_compatible(data_dict: dict, pheno_df: pd.DataFrame) -> bool:
     """
     Determines whether the provided data dictionary and phenotypic file make sense together
     """
-    return all([key in pheno_df.columns for key in data_dict.keys()])
+    return all(
+        [
+            col in pheno_df.columns
+            for col, _ in get_annotated_columns(data_dict)
+        ]
+    )
 
 
 def find_undefined_cat_col_values(
@@ -259,11 +264,11 @@ def find_undefined_cat_col_values(
     dictionary entry.
     """
     all_undefined_values = {}
-    for col, attr in data_dict.items():
+    for col, content in get_annotated_columns(data_dict):
         if is_column_categorical(col, data_dict):
-            known_values = list(attr["Annotations"]["Levels"].keys()) + attr[
-                "Annotations"
-            ].get("MissingValues", [])
+            known_values = list(
+                content["Annotations"]["Levels"].keys()
+            ) + content["Annotations"].get("MissingValues", [])
             unknown_values = []
             for value in pheno_df[col].unique():
                 if value not in known_values:
@@ -283,9 +288,9 @@ def find_unused_missing_values(
     file column.
     """
     all_unused_missing_vals = {}
-    for col, attr in data_dict.items():
+    for col, content in get_annotated_columns(data_dict):
         unused_missing_vals = []
-        for missing_val in attr["Annotations"].get("MissingValues", []):
+        for missing_val in content["Annotations"].get("MissingValues", []):
             if missing_val not in pheno_df[col].unique():
                 unused_missing_vals.append(missing_val)
         if unused_missing_vals:

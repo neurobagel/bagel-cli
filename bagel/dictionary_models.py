@@ -75,7 +75,7 @@ class Column(BaseModel):
         alias="Description",
     )
     annotations: Union[CategoricalNeurobagel, ContinuousNeurobagel] = Field(
-        ..., description="Semantic annotations", alias="Annotations"
+        None, description="Semantic annotations", alias="Annotations"
     )
 
 

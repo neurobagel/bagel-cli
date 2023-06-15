@@ -311,8 +311,7 @@ def get_rows_with_empty_strings(df: pd.DataFrame, columns: list) -> list:
     return list(empty_row[empty_row].index)
 
 
-def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
-    """Determines whether input data are valid"""
+def validate_data_dict(data_dict: dict) -> None:
     try:
         jsonschema.validate(data_dict, DICTIONARY_SCHEMA)
     except jsonschema.ValidationError as e:
@@ -368,6 +367,11 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
         warnings.warn(
             f"The data dictionary contains columns with mismatched levels between the BIDS and Neurobagel annotations: {mismatched_cols}"
         )
+
+
+def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
+    """Determines whether input data are valid"""
+    validate_data_dict(data_dict)
 
     if not are_inputs_compatible(data_dict, pheno_df):
         raise LookupError(

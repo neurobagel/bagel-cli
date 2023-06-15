@@ -19,6 +19,7 @@ Example inputs to the CLI
 | 11           | invalid, ex 6 with missing entries in `participant_id` and `session_id` columns                                                                                          | valid, based on example 6                                                            | fail               |
 | 12           | Valid, same as example 2                                                                                                                                                 | Valid, based on example 2 but missing BIDS "Levels" attribute for group column       | Pass, with warning |
 | 13           | Valid, same as example_synthetic                                                                                                                                         | Valid, based on example_synthetic but with mismatched levels for group column        | Pass, with warning |
+| 14           | Valid, same as example 2                                                                                                                                                 | Valid, based on example 2, but with an extra column annotation without Neurobagel    | Pass               |
 
 `* this is expected to fail until we enable multiple participant_ID handling`.
 

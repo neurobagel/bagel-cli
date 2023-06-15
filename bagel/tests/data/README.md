@@ -3,7 +3,7 @@
 Example inputs to the CLI
 
 | Example name | `.tsv`                                                                                                                                                                   | `.json`                                                                              | Expect             |
-|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|--------------------|
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ------------------ |
 | 1            | invalid, non-unique combinations of `participant` and `session` IDs                                                                                                      | valid, has `IsAbout` annotations for `participant` and `session` ID columns          | fail               |
 | 2            | valid, unique `participant` and `session` IDs                                                                                                                            | same as example 1                                                                    | pass               |
 | 3            | same as example 2                                                                                                                                                        | valid BIDS data dictionary, BUT: does not contain Neurobagel `"Annotations"` key     | fail               |
@@ -20,6 +20,7 @@ Example inputs to the CLI
 | 12           | Valid, same as example 2                                                                                                                                                 | Valid, based on example 2 but missing BIDS "Levels" attribute for group column       | Pass, with warning |
 | 13           | Valid, same as example_synthetic                                                                                                                                         | Valid, based on example_synthetic but with mismatched levels for group column        | Pass, with warning |
 | 14           | Valid, same as example 2                                                                                                                                                 | Valid, based on example 2, but with an extra column annotation without Neurobagel    | Pass               |
+| 15           | Valid, same as example 2                                                                                                                                                 | Invalid, based on example 2, but participant ID column lacks Neurobagel annotations | Fail                   |
 
 `* this is expected to fail until we enable multiple participant_ID handling`.
 

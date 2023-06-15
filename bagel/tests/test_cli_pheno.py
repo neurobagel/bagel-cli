@@ -44,7 +44,7 @@ def test_pheno_valid_inputs_run_successfully(
     [
         (
             "example3",
-            ValueError,
+            LookupError,
             ["must contain at least one column with Neurobagel annotations"],
         ),
         (
@@ -66,6 +66,13 @@ def test_pheno_valid_inputs_run_successfully(
             "example11",
             LookupError,
             ["missing values in participant or session id"],
+        ),
+        (
+            "example15",
+            LookupError,
+            [
+                "must contain at least one column annotated as being about participant ID"
+            ],
         ),
     ],
 )

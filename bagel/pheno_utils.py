@@ -80,9 +80,16 @@ def get_columns_about(data_dict: dict, concept: str) -> list:
     """
     return [
         col
+        for col in get_annotated_columns(data_dict)
+        if data_dict.get(col)["Annotations"]["IsAbout"]["TermURL"] == concept
+    ]
+
+
+def get_annotated_columns(data_dict: dict) -> list:
+    return [
+        col
         for col, annotations in data_dict.items()
         if "Annotations" in annotations
-        and annotations["Annotations"]["IsAbout"]["TermURL"] == concept
     ]
 
 

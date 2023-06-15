@@ -30,6 +30,25 @@ def test_get_columns_that_are_about_concept(test_data, load_test_json):
     )
 
 
+def test_get_columns_with_annotations():
+    example = {
+        "someOtherColumn": {
+            "Description": "This is cool in BIDS, but not in Neurobagel"
+        },
+        "participant_id": {
+            "Description": "A participant ID",
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "nb:ParticipantID",
+                    "Label": "Unique participant identifier",
+                }
+            },
+        },
+    }
+    result = putil.get_annotated_columns(example)
+    assert result == ["participant_id"]
+
+
 def test_map_categories_to_columns(test_data, load_test_json):
     """Test that inverse mapping of concepts to columns is correctly created"""
     data_dict = load_test_json(test_data / "example2.json")

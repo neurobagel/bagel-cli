@@ -20,7 +20,7 @@ def get_test_context():
 def test_get_columns_that_are_about_concept(test_data, load_test_json):
     """Test that matching annotated columns are returned as a list,
     and that empty list is returned if nothing matches"""
-    data_dict = load_test_json(test_data / "example1.json")
+    data_dict = load_test_json(test_data / "example14.json")
 
     assert ["participant_id"] == putil.get_columns_about(
         data_dict, concept=mappings.NEUROBAGEL["participant"]
@@ -28,6 +28,26 @@ def test_get_columns_that_are_about_concept(test_data, load_test_json):
     assert [] == putil.get_columns_about(
         data_dict, concept="does not exist concept"
     )
+
+
+def test_get_columns_with_annotations():
+    example = {
+        "someOtherColumn": {
+            "Description": "This is cool in BIDS, but not in Neurobagel"
+        },
+        "participant_id": {
+            "Description": "A participant ID",
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "nb:ParticipantID",
+                    "Label": "Unique participant identifier",
+                }
+            },
+        },
+    }
+    result = putil.get_annotated_columns(example)[0]
+    assert result[0] == "participant_id"
+    assert result[1] == example["participant_id"]
 
 
 def test_map_categories_to_columns(test_data, load_test_json):

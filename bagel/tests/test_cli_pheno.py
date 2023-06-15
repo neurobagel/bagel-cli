@@ -11,6 +11,7 @@ from bagel.cli import bagel
         "example6",
         "example12",
         "example13",
+        "example14",
         "example_synthetic",
     ],
 )
@@ -41,7 +42,11 @@ def test_pheno_valid_inputs_run_successfully(
 @pytest.mark.parametrize(
     "example,expected_exception,expected_message",
     [
-        ("example3", ValueError, ["not a valid Neurobagel data dictionary"]),
+        (
+            "example3",
+            LookupError,
+            ["must contain at least one column with Neurobagel annotations"],
+        ),
         (
             "example_invalid",
             ValueError,
@@ -61,6 +66,13 @@ def test_pheno_valid_inputs_run_successfully(
             "example11",
             LookupError,
             ["missing values in participant or session id"],
+        ),
+        (
+            "example15",
+            LookupError,
+            [
+                "must contain at least one column annotated as being about participant ID"
+            ],
         ),
     ],
 )

@@ -193,6 +193,35 @@ def get_transformed_values(
     return transf_val[0]
 
 
+# TODO: Check all columns and then return list of offending columns' names
+def categorical_cols_have_bids_levels(data_dict: dict) -> bool:
+    for col, attrs in data_dict.items():
+        if (
+            is_column_categorical(col, data_dict)
+            and attrs.get("Levels") is None
+        ):
+            return False
+
+    return True
+
+
+def get_mismatched_categorical_levels(data_dict: dict) -> list:
+    """
+    Returns list of any categorical columns from a data dictionary that have different entries
+    for the "Levels" key between the column's BIDS and Neurobagel annotations.
+    """
+    mismatched_cols = []
+    for col, attrs in data_dict.items():
+        if is_column_categorical(col, data_dict):
+            known_levels = list(attrs["Annotations"]["Levels"].keys()) + attrs[
+                "Annotations"
+            ].get("MissingValues", [])
+            if set(attrs.get("Levels", {}).keys()).difference(known_levels):
+                mismatched_cols.append(col)
+
+    return mismatched_cols
+
+
 def are_not_missing(columns: list, row: pd.Series, data_dict: dict) -> bool:
     """
     Checks that all values in the specified columns are not missing values. This is mainly useful
@@ -224,7 +253,7 @@ def find_undefined_cat_col_values(
     all_undefined_values = {}
     for col, attr in data_dict.items():
         if is_column_categorical(col, data_dict):
-            known_values = list(attr["Levels"].keys()) + attr[
+            known_values = list(attr["Annotations"]["Levels"].keys()) + attr[
                 "Annotations"
             ].get("MissingValues", [])
             unknown_values = []
@@ -298,6 +327,16 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
         raise ValueError(
             "The provided data dictionary has more than one column about participant ID or session ID."
             "Please make sure that only one column is annotated for participant and session IDs."
+        )
+
+    if not categorical_cols_have_bids_levels(data_dict):
+        warnings.warn(
+            "The data dictionary contains at least one column that looks categorical but lacks a BIDS 'Levels' attribute."
+        )
+
+    if mismatched_cols := get_mismatched_categorical_levels(data_dict):
+        warnings.warn(
+            f"The data dictionary contains columns with mismatched levels between the BIDS and Neurobagel annotations: {mismatched_cols}"
         )
 
     if not are_inputs_compatible(data_dict, pheno_df):

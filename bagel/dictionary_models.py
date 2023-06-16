@@ -1,6 +1,6 @@
 from typing import Dict, Optional, Union
 
-from pydantic import BaseModel, Field, conlist
+from pydantic import BaseModel, Extra, Field, conlist
 
 
 class Identifier(BaseModel):
@@ -33,12 +33,9 @@ class Neurobagel(BaseModel):
         "invalid responses, typos, or missing data",
         alias="MissingValues",
     )
-    isPartOf: Optional[Identifier] = Field(
-        None,
-        description="If the column is a subscale or item of an assessment tool "
-        "then the assessment tool should be specified here.",
-        alias="IsPartOf",
-    )
+
+    class Config:
+        extra = Extra.forbid
 
 
 class CategoricalNeurobagel(Neurobagel):
@@ -57,12 +54,33 @@ class ContinuousNeurobagel(Neurobagel):
     """A Neurobagel annotation for a continuous column"""
 
     transformation: Identifier = Field(
-        None,
+        ...,
         description="For continuous columns this field can be used to describe"
         "a transformation that can be applied to the values in this"
         "column in order to match the desired format of a standardized"
         "data element referenced in the IsAbout attribute.",
         alias="Transformation",
+    )
+
+
+class IdentifierNeurobagel(Neurobagel):
+    """A Neurobagel annotation for an identifier column"""
+
+    identifies: "str" = Field(
+        ...,
+        description="For identifier columns, the type of observation uniquely identified by this column.",
+        alias="Identifies",
+    )
+
+
+class ToolNeurobagel(Neurobagel):
+    """A Neurobagel annotation for an assessment tool column"""
+
+    isPartOf: Optional[Identifier] = Field(
+        ...,
+        description="If the column is a subscale or item of an assessment tool "
+        "then the assessment tool should be specified here.",
+        alias="IsPartOf",
     )
 
 
@@ -74,9 +92,12 @@ class Column(BaseModel):
         description="Free-form natural language description",
         alias="Description",
     )
-    annotations: Union[CategoricalNeurobagel, ContinuousNeurobagel] = Field(
-        None, description="Semantic annotations", alias="Annotations"
-    )
+    annotations: Union[
+        CategoricalNeurobagel,
+        ContinuousNeurobagel,
+        IdentifierNeurobagel,
+        ToolNeurobagel,
+    ] = Field(None, description="Semantic annotations", alias="Annotations")
 
 
 class CategoricalColumn(Column):

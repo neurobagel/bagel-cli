@@ -17,6 +17,31 @@ def get_test_context():
     return putil.generate_context()
 
 
+def test_schema_invalid_column_raises_error():
+    partial_data_dict = (
+        {
+            "participant_id": {
+                "Description": "A participant ID",
+                "Annotations": {
+                    "IsAbout": {
+                        "TermURL": "nb:ParticipantID",
+                        "Label": "Unique participant identifier",
+                    }
+                },
+            },
+            "sex": {
+                "Description": "Participant sex",
+                "Annotations": {"IsAbout": {"TermURL": "nb:Sex", "Label": ""}},
+            },
+        },
+    )
+
+    with pytest.raises(ValueError) as e:
+        putil.validate_data_dict(partial_data_dict)
+
+    assert "not a valid Neurobagel data dictionary" in str(e.value)
+
+
 def test_get_columns_that_are_about_concept(test_data, load_test_json):
     """Test that matching annotated columns are returned as a list,
     and that empty list is returned if nothing matches"""

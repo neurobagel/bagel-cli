@@ -62,20 +62,10 @@ def get_session_path(
             # switch to using layout.get() snippet below to fetch subject path.
             bids_dir
             / f"sub-{bids_sub_id}"
-            # layout.get(
-            #     subject=bids_sub_id,
-            #     target="subject",
-            #     return_type="dir",
-            # )[0]
         )
     else:
-        session_path = Path(
-            layout.get(
-                subject=bids_sub_id,
-                session=session,
-                target="session",
-                return_type="dir",
-            )[0]
+        session_path = (
+            Path(layout.root) / f"sub-{bids_sub_id}" / f"ses-{session}"
         )
 
     return session_path.resolve().as_posix()

@@ -3,15 +3,15 @@
 
 cff-version: 1.2.0
 
-title: "neurobagel_api"
+title: "neurobagel cli"
 
 version: 0.2.0
 
-abstract: "The Neurobagel API is a REST API, developed in [Python](https://www.python.org/) using [FastAPI](https://fastapi.tiangolo.com/) and [pydantic](https://docs.pydantic.dev/)."
+abstract: "The Bagel CLI is a simple Python command line tool to automatically read and annotate a [BIDS dataset](https://bids-specification.readthedocs.io/en/stable/) so that it can be integrated into the Neurobagel graph."
 
 message: "If you use this software, please cite it as below."
 
-repository-code: "https://github.com/neurobagel/api.git"
+repository-code: "https://github.com/neurobagel/bagel-cli.git"
 
 contact:
   - affiliation: "ORIGAMI lab, McGill University, Montréal, Canada"

@@ -3,9 +3,9 @@
 
 cff-version: 1.2.0
 
-title: "neurobagel cli"
+title: "Neurobagel CLI: Command line tool for Neurobagel data parsing and annotation"
 
-version: 0.2.0
+version: 0.1.0
 
 abstract: "The Bagel CLI is a simple Python command line tool to automatically read and annotate a [BIDS dataset](https://bids-specification.readthedocs.io/en/stable/) so that it can be integrated into the Neurobagel graph."
 

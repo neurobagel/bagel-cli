@@ -1,0 +1,52 @@
+# doc: https://citation-file-format.github.io/
+# schema: https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md
+
+cff-version: 1.2.0
+
+title: "Neurobagel CLI: Command line tool for Neurobagel data parsing and annotation"
+
+version: 0.1.0
+
+abstract: "The Bagel CLI is a simple Python command line tool to automatically read and annotate a [BIDS dataset](https://bids-specification.readthedocs.io/en/stable/) so that it can be integrated into the Neurobagel graph."
+
+message: "If you use this software, please cite it as below."
+
+repository-code: "https://github.com/neurobagel/bagel-cli.git"
+
+contact:
+  - affiliation: "ORIGAMI lab, McGill University, Montréal, Canada"
+    family-names: Urchs
+    given-names: Sebastian 
+
+authors:
+  - affiliation: "ORIGAMI lab, McGill University, Montréal, Canada"
+    family-names: Urchs
+    given-names: Sebastian 
+    orcid: "https://orcid.org/0000-0001-5504-8579"
+
+  - affiliation: "ORIGAMI lab, McGill University, Montréal, Canada"
+    family-names: Dai
+    given-names: Alyssa
+    orcid: "https://orcid.org/0000-0003-0174-6800"
+
+  - affiliation: "ORIGAMI lab, McGill University, Montréal, Canada"
+    family-names: Armoza
+    given-names: Jonathan
+    orcid: "https://orcid.org/0000-0002-7193-9344"
+
+  - affiliation: "ORIGAMI lab, McGill University, Montréal, Canada"
+    family-names: Jahanpour
+    given-names: Arman    
+
+  - affiliation: "ORIGAMI lab, McGill University, Montréal, Canada"
+    email:  nikhil.bhagwat@mcgill.ca
+    family-names: Bhagwat
+    given-names: Nikhil
+    orcid: "https://orcid.org/0000-0001-6073-7141"
+
+  - affiliation: "ORIGAMI lab, McGill University, Montréal, Canada"
+    family-names: Poline
+    given-names: Jean-Baptiste
+    orcid: "https://orcid.org/0000-0002-9794-749X"    
+
+license: MIT

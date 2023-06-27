@@ -7,7 +7,7 @@ title: "Neurobagel CLI: Command line tool for Neurobagel data parsing and annota
 
 version: 0.1.0
 
-abstract: "The Bagel CLI is a simple Python command line tool to automatically read and annotate a [BIDS dataset](https://bids-specification.readthedocs.io/en/stable/) so that it can be integrated into the Neurobagel graph."
+abstract: "The Bagel CLI is a simple Python command line tool to automatically read and annotate a <a href="https://bids-specification.readthedocs.io/en/stable/">BIDS dataset</a> so that it can be integrated into the Neurobagel graph."
 
 message: "If you use this software, please cite it as below."
 

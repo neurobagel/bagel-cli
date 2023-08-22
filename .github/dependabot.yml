@@ -6,8 +6,16 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+    labels:
+      - "@ bot"
+      - "maint:dependency"
+      - "type:maintenance"
 
   - package-ecosystem: 'gitsubmodule'
     directory: '/'
     schedule:
       interval: 'weekly'
+    labels:
+      - "@ bot"
+      - "maint:dependency"
+      - "type:maintenance"

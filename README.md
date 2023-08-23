@@ -93,7 +93,46 @@ docker run --rm --volume=$PWD:$PWD -w $PWD bagel bids \
 
 ## Development environment
 
-To set up a development environment, please run
-```python
-pip install -e '.[all]'
+To ensure that our Docker images are built in a predictable way,
+we use `requirements.txt` as a lock-file.
+That is, `requirements.txt` includes the entire dependency tree of our tool,
+with pinned versions for every dependency (see [also](https://pip.pypa.io/en/latest/topics/repeatable-installs/#repeatability))
+
+
+### Setting up a local development environment
+We suggest that you create a development environment 
+that is as close as possible to the environment we run in production.
+
+To do so, we first need to install the dependencies from our lockfile (`dev_requirements.txt`):
+
+```bash
+pip install -r dev_requirements.txt
 ```
+
+And then we install the CLI without touching the dependencies
+
+```bash
+pip install --no-deps -e .
+```
+
+### Update python lock-file
+The `requirements.txt` file is automatically generated from the `setup.cfg`
+constraints. To update it, we use `pip-compile` from the `pip-tools` package.
+Here is how you can use these tools to update the `requirements.txt` file.
+
+To install:
+```bash
+pip install pip-tools
+```
+
+To update the runtime dependencies in `requirements.txt`, run
+```bash
+pip-compile -o requirements.txt --upgrade
+```
+
+The above command only updates the runtime dependencies.
+To update the developer dependencies in `dev_requirements.txt`, run:
+```bash
+pip-compile -o dev_requirements.txt --extra all
+```
+

@@ -4,8 +4,6 @@
 #
 #    pip-compile
 #
-annotated-types==0.5.0
-    # via pydantic
 astor==0.8.1
     # via formulaic
 attrs==23.1.0
@@ -55,10 +53,8 @@ pandas==2.0.3
     #   pybids
 pybids==0.16.3
     # via bagel (setup.py)
-pydantic==2.2.1
+pydantic==1.10.12
     # via bagel (setup.py)
-pydantic-core==2.6.1
-    # via pydantic
 pygments==2.16.1
     # via rich
 python-dateutil==2.8.2
@@ -91,7 +87,6 @@ typing-extensions==4.7.1
     # via
     #   formulaic
     #   pydantic
-    #   pydantic-core
     #   sqlalchemy
     #   typer
 tzdata==2023.3

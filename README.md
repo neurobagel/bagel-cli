@@ -12,7 +12,7 @@ so that it can be integrated into the Neurobagel graph.
 
 ## Installation
 ### Docker
-Option 1 (RECOMMENDED): Pull the Docker image for the CLI from DockerHub: `docker pull neurobagel/bagelcli`
+Option 1 (RECOMMENDED): Pull the Docker image for the CLI from Docker Hub: `docker pull neurobagel/bagelcli`
 
 Option 2: Clone the repository and build the Docker image locally:
 ```bash
@@ -22,13 +22,13 @@ docker build -t bagel .
 ```
 
 ### Singularity
-Build a Singularity image for `bagel-cli` using the DockerHub image:  
+Build a Singularity image for `bagel-cli` using the Docker Hub image:  
 `singularity pull bagel.sif docker://neurobagel/bagelcli`
 
 ## Running the CLI
 CLI commands can be accessed using the Docker/Singularity image.
 
-NOTE: The Docker examples below assume you are using the DockerHub image for the CLI. 
+NOTE: The Docker examples below assume that you are using the official [Neurobagel Docker Hub](https://hub.docker.com/u/neurobagel) image for the CLI. 
 If you have instead locally built an image, replace `neurobagel/bagelcli` in commands with your built image tag.
 
 ### To see the CLI options:

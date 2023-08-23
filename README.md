@@ -91,9 +91,31 @@ docker run --rm --volume=$PWD:$PWD -w $PWD bagel bids \
     --output "neurobagel"
 ```
 
+## Update python lock-file
+
+To ensure that our Docker images are built in a predictable way,
+we use `requirements.txt` as a lock-file.
+That is, `requirements.txt` includes the entire dependency tree of our tool,
+with pinned versions for every dependency (see [also](https://pip.pypa.io/en/latest/topics/repeatable-installs/#repeatability))
+
+The `requirements.txt` file is automatically generated from the `setup.cfg`
+constraints. To update it, we use `pip-compile` from the `pip-tools` package.
+Here is how you can use these tools to update the `requirements.txt` file.
+
+To install:
+```bash
+pip install pip-tools
+```
+
+To run
+```bash
+pip-compile -o requirements.txt --upgrade
+```
+
 ## Development environment
 
 To set up a development environment, please run
 ```python
 pip install -e '.[all]'
 ```
+

@@ -118,12 +118,13 @@ And then we install the CLI without touching the dependencies
 pip install --no-deps -e .
 ```
 
-Finally, we can install the `bids-examples` submodule used for testing:
+Finally, to run the test suite we need to install the `bids-examples` submodule:
 ```bash
 git submodule init
 git submodule update
 ```
-
+Confirm that everything works well by running a test
+`pytest .`
 ### Update python lock-file
 The `requirements.txt` file is automatically generated from the `setup.cfg`
 constraints. To update it, we use `pip-compile` from the `pip-tools` package.

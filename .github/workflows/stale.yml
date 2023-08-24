@@ -14,4 +14,5 @@ jobs:
             We have applied the stale-issue label to indicate that this issue should be reviewed again and then either prioritized or closed.
           days-before-stale: 30
           days-before-close: -1
-          stale-issue-label: Stale issue
+          stale-issue-label: '@ flag:stale'
+          exempt-issue-labels: ['Roadmap', 'Milestone', 'Epic', 'someday']

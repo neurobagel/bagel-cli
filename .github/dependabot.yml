@@ -16,6 +16,6 @@ updates:
     schedule:
       interval: 'weekly'
     labels:
-      - "@ bot"
+      - "_bot"
       - "maint:dependency"
       - "type:maintenance"

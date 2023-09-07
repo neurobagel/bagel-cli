@@ -1,6 +1,6 @@
 [submodule "bids-examples"]
 	path = bids-examples
 	url = https://github.com/bids-standard/bids-examples.git
-[submodule "data-upload"]
-	path = data-upload
+[submodule "neurobagel_examples"]
+	path = neurobagel_examples
 	url = https://github.com/neurobagel/neurobagel_examples.git

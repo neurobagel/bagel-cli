@@ -4,7 +4,7 @@ from bagel.cli import bagel
 
 
 def test_bids_valid_inputs_run_successfully(
-    runner, test_pheno_data, bids_synthetic, tmp_path
+    runner, test_data_upload_path, bids_synthetic, tmp_path
 ):
     """Basic smoke test for the "add-bids" subcommand"""
     result = runner.invoke(
@@ -12,7 +12,7 @@ def test_bids_valid_inputs_run_successfully(
         [
             "bids",
             "--jsonld-path",
-            test_pheno_data / "example_synthetic.jsonld",
+            test_data_upload_path / "example_synthetic.jsonld",
             "--bids-dir",
             bids_synthetic,
             "--output",
@@ -27,7 +27,7 @@ def test_bids_valid_inputs_run_successfully(
 
 def test_bids_sessions_have_correct_labels(
     runner,
-    test_pheno_data,
+    test_data_upload_path,
     bids_synthetic,
     tmp_path,
     load_test_json,
@@ -38,7 +38,7 @@ def test_bids_sessions_have_correct_labels(
         [
             "bids",
             "--jsonld-path",
-            test_pheno_data / "example_synthetic.jsonld",
+            test_data_upload_path / "example_synthetic.jsonld",
             "--bids-dir",
             bids_synthetic,
             "--output",
@@ -55,7 +55,7 @@ def test_bids_sessions_have_correct_labels(
 
 def test_bids_data_with_sessions_have_correct_paths(
     runner,
-    test_pheno_data,
+    test_data_upload_path,
     tmp_path,
     load_test_json,
 ):
@@ -68,7 +68,7 @@ def test_bids_data_with_sessions_have_correct_paths(
         [
             "bids",
             "--jsonld-path",
-            test_pheno_data / "example_synthetic.jsonld",
+            test_data_upload_path / "example_synthetic.jsonld",
             "--bids-dir",
             Path(__file__).parent / "../../bids-examples/synthetic",
             "--output",

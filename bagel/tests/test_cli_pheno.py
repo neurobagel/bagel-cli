@@ -16,7 +16,7 @@ from bagel.cli import bagel
     ],
 )
 def test_pheno_valid_inputs_run_successfully(
-    runner, test_data, test_pheno_data, tmp_path, example
+    runner, test_data, test_data_upload_path, tmp_path, example
 ):
     """Basic smoke test for the "pheno" subcommand"""
     if example == "example_synthetic":
@@ -25,9 +25,9 @@ def test_pheno_valid_inputs_run_successfully(
             [
                 "pheno",
                 "--pheno",
-                test_pheno_data / f"{example}.tsv",
+                test_data_upload_path / f"{example}.tsv",
                 "--dictionary",
-                test_pheno_data / f"{example}.json",
+                test_data_upload_path / f"{example}.json",
                 "--output",
                 tmp_path,
                 "--name",
@@ -317,16 +317,16 @@ def test_diagnosis_and_control_status_handled(
     "attribute", ["hasSex", "hasDiagnosis", "hasAssessment", "isSubjectGroup"]
 )
 def test_controlled_terms_have_identifiers(
-    attribute, runner, test_pheno_data, tmp_path, load_test_json
+    attribute, runner, test_data_upload_path, tmp_path, load_test_json
 ):
     runner.invoke(
         bagel,
         [
             "pheno",
             "--pheno",
-            test_pheno_data / "example_synthetic.tsv",
+            test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
-            test_pheno_data / "example_synthetic.json",
+            test_data_upload_path / "example_synthetic.json",
             "--output",
             tmp_path,
             "--name",
@@ -347,7 +347,7 @@ def test_controlled_terms_have_identifiers(
 
 
 def test_controlled_term_classes_have_uri_type(
-    runner, test_pheno_data, tmp_path, load_test_json
+    runner, test_data_upload_path, tmp_path, load_test_json
 ):
     """Tests that classes specified as schemaKeys (@type) for subject-level attributes in a .jsonld are also defined in the context."""
     runner.invoke(
@@ -355,9 +355,9 @@ def test_controlled_term_classes_have_uri_type(
         [
             "pheno",
             "--pheno",
-            test_pheno_data / "example_synthetic.tsv",
+            test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
-            test_pheno_data / "example_synthetic.json",
+            test_data_upload_path / "example_synthetic.json",
             "--output",
             tmp_path,
             "--name",
@@ -365,7 +365,7 @@ def test_controlled_term_classes_have_uri_type(
         ],
     )
 
-    pheno = load_test_json(test_pheno_data / "example_synthetic.jsonld")
+    pheno = load_test_json(test_data_upload_path / "example_synthetic.jsonld")
 
     for sub in pheno["hasSamples"]:
         for key, value in sub.items():
@@ -477,7 +477,7 @@ def test_output_includes_context(runner, test_data, tmp_path, load_test_json):
 )
 def test_output_excludes_properties_for_missing_vals(
     runner,
-    test_pheno_data,
+    test_data_upload_path,
     tmp_path,
     load_test_json,
     sub_id,
@@ -493,9 +493,9 @@ def test_output_excludes_properties_for_missing_vals(
         [
             "pheno",
             "--pheno",
-            test_pheno_data / "example_synthetic.tsv",
+            test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
-            test_pheno_data / "example_synthetic.json",
+            test_data_upload_path / "example_synthetic.json",
             "--output",
             tmp_path,
             "--name",

@@ -27,13 +27,13 @@ def test_data():
 
 
 @pytest.fixture(scope="session")
-def data_upload_path(tmp_path_factory):
-    return Path(__file__).absolute().parent.parent.parent / "data-upload"
+def neurobagel_examples_path(tmp_path_factory):
+    return Path(__file__).absolute().parent.parent.parent / "neurobagel_examples"
 
 
 @pytest.fixture(scope="session")
-def test_pheno_data(data_upload_path):
-    return data_upload_path / "data-upload"
+def test_data_upload_path(neurobagel_examples_path):
+    return neurobagel_examples_path / "data-upload"
 
 
 @pytest.fixture(scope="session")

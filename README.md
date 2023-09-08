@@ -118,7 +118,7 @@ And then we install the CLI without touching the dependencies
 pip install --no-deps -e .
 ```
 
-Finally, to run the test suite we need to install the `bids-examples` submodule:
+Finally, to run the test suite we need to install the `bids-examples` and `neurobagel_examples` submodules:
 ```bash
 git submodule init
 git submodule update

@@ -22,3 +22,6 @@ Example inputs to the CLI
 | 15           | Valid, same as example 2                                                                                                                                                 | Invalid, based on example 2, but participant ID column lacks Neurobagel annotations | Fail                   |
 
 `* this is expected to fail until we enable multiple participant_ID handling`.
+
+## Example expected CLI outputs
+You can find example expected CLI outputs [here](https://github.com/neurobagel/neurobagel_examples).

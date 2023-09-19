@@ -9,7 +9,7 @@ import pydantic
 from typer import BadParameter
 
 from bagel import dictionary_models, mappings, models
-from bagel.mappings import COGATLAS, NB, NIDM, SNOMED
+from bagel.mappings import COGATLAS, NB, NCIT, NIDM, SNOMED
 
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
 
@@ -40,7 +40,7 @@ def generate_context():
     # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
     field_preamble = {
         namespace.pf: namespace.url
-        for namespace in [NB, SNOMED, NIDM, COGATLAS]
+        for namespace in [NB, SNOMED, NIDM, COGATLAS, NCIT]
     }
     fields = {}
     for val in dir(models):

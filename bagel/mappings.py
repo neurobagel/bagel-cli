@@ -3,7 +3,7 @@ from collections import namedtuple
 Namespace = namedtuple("Namespace", ["pf", "url"])
 COGATLAS = Namespace("cogatlas", "https://www.cognitiveatlas.org/task/id/")
 NB = Namespace("nb", "http://neurobagel.org/vocab/")
-NCIT = Namespace("ncit", "http://purl.obolibrary.org/obo/NCIT_")
+NCIT = Namespace("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#")
 NIDM = Namespace("nidm", "http://purl.org/nidash/nidm#")
 SNOMED = Namespace("snomed", "http://purl.bioontology.org/ontology/SNOMEDCT/")
 

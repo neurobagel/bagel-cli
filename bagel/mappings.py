@@ -1,10 +1,11 @@
 from collections import namedtuple
 
 Namespace = namedtuple("Namespace", ["pf", "url"])
-NB = Namespace("nb", "http://neurobagel.org/vocab/")
-SNOMED = Namespace("snomed", "http://purl.bioontology.org/ontology/SNOMEDCT/")
-NIDM = Namespace("nidm", "http://purl.org/nidash/nidm#")
 COGATLAS = Namespace("cogatlas", "https://www.cognitiveatlas.org/task/id/")
+NB = Namespace("nb", "http://neurobagel.org/vocab/")
+NCIT = Namespace("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#")
+NIDM = Namespace("nidm", "http://purl.org/nidash/nidm#")
+SNOMED = Namespace("snomed", "http://purl.bioontology.org/ontology/SNOMEDCT/")
 
 BIDS = {
     "anat": NIDM.pf + ":Anatomical",
@@ -25,6 +26,6 @@ NEUROBAGEL = {
     "sex": NB.pf + ":Sex",
     "age": NB.pf + ":Age",
     "diagnosis": NB.pf + ":Diagnosis",
-    "healthy_control": "purl:NCIT_C94342",
+    "healthy_control": NCIT.pf + ":C94342",
     "assessment_tool": NB.pf + ":Assessment",
 }

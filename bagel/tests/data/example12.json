@@ -32,7 +32,7 @@
           "Label": "Parkinson's disease"
         },
         "CTRL": {
-          "TermURL": "purl:NCIT_C94342",
+          "TermURL": "ncit:C94342",
           "Label": "Healthy Control"
         }
       }

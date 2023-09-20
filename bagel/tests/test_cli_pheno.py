@@ -308,8 +308,7 @@ def test_diagnosis_and_control_status_handled(
     assert "hasDiagnosis" not in pheno["hasSamples"][1].keys()
     assert "hasDiagnosis" not in pheno["hasSamples"][2].keys()
     assert (
-        pheno["hasSamples"][2]["isSubjectGroup"]["identifier"]
-        == "purl:NCIT_C94342"
+        pheno["hasSamples"][2]["isSubjectGroup"]["identifier"] == "ncit:C94342"
     )
 
 

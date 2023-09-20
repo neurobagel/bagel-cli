@@ -44,10 +44,13 @@ def test_all_used_namespaces_have_urls(
     data_dict = load_test_json(
         test_data_upload_path / "example_synthetic.json"
     )
-    prefixes = list(get_values_by_key(data_dict, "TermURL"))
 
-    for idx, _ in enumerate(prefixes):
-        prefixes[idx] = prefixes[idx].split(":")[0]
+    prefixes = list(
+        map(
+            lambda term: term.split(":")[0],
+            get_values_by_key(data_dict, "TermURL"),
+        )
+    )
 
     # add nidm to the list of tested prefixes manually since it is the only one not present in the data dictionary
     # but is used automatically during the bids step

@@ -255,7 +255,20 @@ def test_unused_missing_values_raises_warning(
         assert warn_substring in str(w[0].message.args[0])
 
 
-def test_providing_csv_file_raises_error(runner, test_data, tmp_path):
+@pytest.mark.parametrize(
+    "pheno_file,dictionary_file",
+    [
+        ("example2.csv", "example2.json"),
+        ("example16.tsv", "example16.json"),
+    ],
+)
+def test_providing_csv_file_raises_error(
+    pheno_file,
+    dictionary_file,
+    runner,
+    test_data,
+    tmp_path,
+):
     """Providing a .csv file or a file with .tsv extension but incorrect encoding should be handled with an infomrative error."""
     with pytest.raises(ValueError) as e:
         runner.invoke(
@@ -263,9 +276,9 @@ def test_providing_csv_file_raises_error(runner, test_data, tmp_path):
             [
                 "pheno",
                 "--pheno",
-                test_data / "example2.csv",
+                test_data / pheno_file,
                 "--dictionary",
-                test_data / "example2.json",
+                test_data / dictionary_file,
                 "--output",
                 tmp_path,
                 "--name",

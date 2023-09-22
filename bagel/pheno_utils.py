@@ -7,6 +7,7 @@ import isodate
 import jsonschema
 import pandas as pd
 import pydantic
+from pandas import DataFrame
 from typer import BadParameter
 
 from bagel import dictionary_models, mappings, models
@@ -36,15 +37,28 @@ def validate_portal_uri(portal: str) -> Optional[str]:
     return portal
 
 
-def load_pheno(input_p: Path) -> dict:
+def load_pheno(input_p: Path) -> pd.DataFrame | None:
     """Load a .tsv pheno file and do some basic validation."""
-    if input_p.suffix == ".csv":
-        raise ValueError(
-            f"Your phenotypic input file ({input_p}) looks like a .csv file."
-            " Please provide a valid .tsv pheno file!"
+    if input_p.suffix != ".csv":
+        pheno_df: DataFrame = pd.read_csv(
+            input_p, sep="\t", keep_default_na=False, dtype=str
         )
 
-    return pd.read_csv(input_p, sep="\t", keep_default_na=False, dtype=str)
+        if pheno_df.shape[1] > 1:
+            # We only extracted one column, this might mean that we have a sneaky .csv
+            return pheno_df
+        elif len(pheno_df.columns[0].split(",")) == 1:
+            warnings.warn(
+                f"Your phenotypic input file {input_p} has only one column."
+                " Although this is not invalid, such a file is not valid."
+                " Please check your input again!"
+            )
+            return pheno_df
+
+    raise ValueError(
+        f"Your phenotypic input file ({input_p}) looks like a .csv file."
+        " Please provide a valid .tsv pheno file!"
+    )
 
 
 def generate_context():

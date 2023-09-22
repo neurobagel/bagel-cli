@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
 from pathlib import Path
@@ -37,7 +39,7 @@ def validate_portal_uri(portal: str) -> Optional[str]:
     return portal
 
 
-def load_pheno(input_p: Path) -> Union[pd.DataFrame, None]:
+def load_pheno(input_p: Path) -> pd.DataFrame | None:
     """Load a .tsv pheno file and do some basic validation."""
     if input_p.suffix != ".csv":
         pheno_df: DataFrame = pd.read_csv(

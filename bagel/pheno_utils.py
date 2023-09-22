@@ -1,5 +1,6 @@
 import warnings
 from collections import defaultdict
+from pathlib import Path
 from typing import Optional, Union
 
 import isodate
@@ -33,6 +34,17 @@ def validate_portal_uri(portal: str) -> Optional[str]:
         ) from err
 
     return portal
+
+
+def load_pheno(input_p: Path) -> dict:
+    """Load a .tsv pheno file and do some basic validation."""
+    if input_p.suffix == ".csv":
+        raise ValueError(
+            f"Your phenotypic input file ({input_p}) looks like a .csv file."
+            " Please provide a valid .tsv pheno file!"
+        )
+
+    return pd.read_csv(input_p, sep="\t", keep_default_na=False, dtype=str)
 
 
 def generate_context():

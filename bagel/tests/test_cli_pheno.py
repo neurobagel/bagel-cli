@@ -255,6 +255,28 @@ def test_unused_missing_values_raises_warning(
         assert warn_substring in str(w[0].message.args[0])
 
 
+def test_providing_csv_file_raises_error(runner, test_data, tmp_path):
+    """Providing a .csv file or a file with .tsv extension but incorrect encoding should be handled with an infomrative error."""
+    with pytest.raises(ValueError) as e:
+        runner.invoke(
+            bagel,
+            [
+                "pheno",
+                "--pheno",
+                test_data / "example2.csv",
+                "--dictionary",
+                test_data / "example2.json",
+                "--output",
+                tmp_path,
+                "--name",
+                "testing dataset",
+            ],
+            catch_exceptions=False,
+        )
+
+    assert "Please provide a valid .tsv pheno file" in str(e.value)
+
+
 def test_that_output_file_contains_dataset_level_attributes(
     runner, test_data, tmp_path, load_test_json
 ):

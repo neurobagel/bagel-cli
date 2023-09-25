@@ -9,7 +9,7 @@ from pydantic import ValidationError
 import bagel.bids_utils as butil
 import bagel.pheno_utils as putil
 from bagel import mappings, models
-from bagel.utility import load_json
+from bagel.utility import check_overwrite, load_json
 
 bagel = typer.Typer()
 
@@ -65,6 +65,9 @@ def pheno(
     graph datamodel for the provided phenotypic file in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
+    # Check if output file already exists
+    check_overwrite(output, overwrite)
+
     data_dictionary = load_json(dictionary)
     pheno_df = pd.read_csv(pheno, sep="\t", keep_default_na=False, dtype=str)
     putil.validate_inputs(data_dictionary, pheno_df)
@@ -191,6 +194,9 @@ def bids(
     graph datamodel for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
+    # Check if output file already exists
+    check_overwrite(output, overwrite)
+
     jsonld = load_json(jsonld_path)
     layout = BIDSLayout(bids_dir, validate=True)
 

@@ -32,14 +32,6 @@ def pheno(
         dir_okay=False,
         resolve_path=True,
     ),
-    output: Path = typer.Option(
-        ...,
-        help="The directory where outputs should be created.",
-        exists=True,
-        file_okay=False,
-        dir_okay=True,
-        resolve_path=True,
-    ),
     name: str = typer.Option(
         ...,
         help="A descriptive name for the dataset the input belongs to. "
@@ -50,6 +42,18 @@ def pheno(
         default=None,
         callback=putil.validate_portal_uri,
         help="URL (HTTP/HTTPS) to a website or page that describes the dataset and access instructions (if available).",
+    ),
+    output: Path = typer.Option(
+        default="pheno.jsonld",
+        help="The path for the output .jsonld file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    overwrite: bool = typer.Option(
+        False,
+        "--overwrite",
+        help="Overwrite output file if it already exists.",
     ),
 ):
     """
@@ -166,12 +170,16 @@ def bids(
         resolve_path=True,
     ),
     output: Path = typer.Option(
-        ...,
-        help="The directory where outputs should be created",
-        exists=True,
-        file_okay=False,
-        dir_okay=True,
+        help="The path for the output .jsonld file.",
+        default="pheno_bids.jsonld",
+        file_okay=True,
+        dir_okay=False,
         resolve_path=True,
+    ),
+    overwrite: bool = typer.Option(
+        False,
+        "--overwrite",
+        help="Overwrite output file if it already exists.",
     ),
 ):
     """

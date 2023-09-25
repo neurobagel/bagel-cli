@@ -16,7 +16,7 @@ def test_bids_valid_inputs_run_successfully(
             "--bids-dir",
             bids_synthetic,
             "--output",
-            tmp_path,
+            tmp_path / "pheno_bids.jsonld",
         ],
     )
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
@@ -42,7 +42,7 @@ def test_bids_sessions_have_correct_labels(
             "--bids-dir",
             bids_synthetic,
             "--output",
-            tmp_path,
+            tmp_path / "pheno_bids.jsonld",
         ],
     )
 
@@ -72,7 +72,7 @@ def test_bids_data_with_sessions_have_correct_paths(
             "--bids-dir",
             Path(__file__).parent / "../../bids-examples/synthetic",
             "--output",
-            tmp_path,
+            tmp_path / "pheno_bids.jsonld",
         ],
     )
 

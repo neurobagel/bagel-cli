@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from bagel.cli import bagel
@@ -29,7 +31,7 @@ def test_pheno_valid_inputs_run_successfully(
                 "--dictionary",
                 test_data_upload_path / f"{example}.json",
                 "--output",
-                tmp_path,
+                tmp_path / "pheno.jsonld",
                 "--name",
                 "synthetic",
             ],
@@ -44,7 +46,7 @@ def test_pheno_valid_inputs_run_successfully(
                 "--dictionary",
                 test_data / f"{example}.json",
                 "--output",
-                tmp_path,
+                tmp_path / "pheno.jsonld",
                 "--name",
                 "do not care name",
             ],
@@ -106,7 +108,7 @@ def test_invalid_inputs_are_handled_gracefully(
                 "--dictionary",
                 test_data / f"{example}.json",
                 "--output",
-                tmp_path,
+                tmp_path / "pheno.jsonld",
                 "--name",
                 "do not care name",
             ],
@@ -142,7 +144,7 @@ def test_invalid_portal_uris_produces_error(
             "--dictionary",
             test_data / "example2.json",
             "--output",
-            tmp_path,
+            tmp_path / "pheno.jsonld",
             "--name",
             "test dataset 2",
             "--portal",
@@ -174,7 +176,7 @@ def test_missing_bids_levels_raises_warning(
                 "--dictionary",
                 test_data / "example12.json",
                 "--output",
-                tmp_path,
+                tmp_path / "pheno.jsonld",
                 "--name",
                 "testing dataset",
             ],
@@ -202,7 +204,7 @@ def test_bids_neurobagel_levels_mismatch_raises_warning(
                 "--dictionary",
                 test_data / "example13.json",
                 "--output",
-                tmp_path,
+                tmp_path / "pheno.jsonld",
                 "--name",
                 "testing dataset",
             ],
@@ -238,7 +240,7 @@ def test_unused_missing_values_raises_warning(
                 "--dictionary",
                 test_data / "example10.json",
                 "--output",
-                tmp_path,
+                tmp_path / "pheno.jsonld",
                 "--name",
                 "testing dataset",
             ],
@@ -267,7 +269,7 @@ def test_that_output_file_contains_dataset_level_attributes(
             "--dictionary",
             test_data / "example2.json",
             "--output",
-            tmp_path,
+            tmp_path / "pheno.jsonld",
             "--name",
             "my_dataset_name",
             "--portal",
@@ -293,7 +295,7 @@ def test_diagnosis_and_control_status_handled(
             "--dictionary",
             test_data / "example6.json",
             "--output",
-            tmp_path,
+            tmp_path / "pheno.jsonld",
             "--name",
             "my_dataset_name",
         ],
@@ -327,7 +329,7 @@ def test_controlled_terms_have_identifiers(
             "--dictionary",
             test_data_upload_path / "example_synthetic.json",
             "--output",
-            tmp_path,
+            tmp_path / "pheno.jsonld",
             "--name",
             "do not care name",
         ],
@@ -358,7 +360,7 @@ def test_controlled_term_classes_have_uri_type(
             "--dictionary",
             test_data_upload_path / "example_synthetic.json",
             "--output",
-            tmp_path,
+            tmp_path / "pheno.jsonld",
             "--name",
             "do not care name",
         ],
@@ -404,7 +406,7 @@ def test_assessment_data_are_parsed_correctly(
             "--dictionary",
             test_data / "example6.json",
             "--output",
-            tmp_path,
+            tmp_path / "pheno.jsonld",
             "--name",
             "my_dataset_name",
         ],
@@ -431,7 +433,7 @@ def test_cli_age_is_processed(
             "--dictionary",
             test_data / "example2.json",
             "--output",
-            tmp_path,
+            tmp_path / "pheno.jsonld",
             "--name",
             "my_dataset_name",
         ],
@@ -452,7 +454,7 @@ def test_output_includes_context(runner, test_data, tmp_path, load_test_json):
             "--dictionary",
             test_data / "example2.json",
             "--output",
-            tmp_path,
+            tmp_path / "pheno.jsonld",
             "--name",
             "my_dataset_name",
         ],
@@ -496,7 +498,7 @@ def test_output_excludes_properties_for_missing_vals(
             "--dictionary",
             test_data_upload_path / "example_synthetic.json",
             "--output",
-            tmp_path,
+            tmp_path / "pheno.jsonld",
             "--name",
             "BIDS synthetic test",
         ],
@@ -509,3 +511,23 @@ def test_output_excludes_properties_for_missing_vals(
                 assert (
                     sub.get(entry) is None
                 ), f"{sub_id} output contains value for {entry} where annotated as missing"
+
+
+def test_default_output_filename(runner, test_data_upload_path, tmp_path):
+    """Tests that the default output filename is used correctly when --output is not set."""
+    os.chdir(tmp_path)
+
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data_upload_path / "example_synthetic.tsv",
+            "--dictionary",
+            test_data_upload_path / "example_synthetic.json",
+            "--name",
+            "BIDS synthetic test",
+        ],
+    )
+
+    assert (tmp_path / "pheno.jsonld").exists()

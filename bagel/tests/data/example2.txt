@@ -1,0 +1,5 @@
+participant_id,session_id,group,sex,participant_age
+sub-01,ses-01,PAT,M,"P20Y6M"
+sub-01,ses-02,PAT,M,"P20Y8M"
+sub-02,ses-01,CTRL,F,"P25Y8M"
+sub-02,ses-02,CTRL,F,"P26Y4M"

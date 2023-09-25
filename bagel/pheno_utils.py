@@ -41,7 +41,7 @@ def validate_portal_uri(portal: str) -> Optional[str]:
 
 def load_pheno(input_p: Path) -> pd.DataFrame | None:
     """Load a .tsv pheno file and do some basic validation."""
-    if input_p.suffix != ".csv":
+    if input_p.suffix == ".tsv":
         pheno_df: DataFrame = pd.read_csv(
             input_p, sep="\t", keep_default_na=False, dtype=str
         )

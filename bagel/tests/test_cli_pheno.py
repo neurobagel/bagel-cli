@@ -260,6 +260,7 @@ def test_unused_missing_values_raises_warning(
     [
         ("example2.csv", "example2.json"),
         ("example16.tsv", "example16.json"),
+        ("example2.txt", "example2.json"),
     ],
 )
 def test_providing_csv_file_raises_error(

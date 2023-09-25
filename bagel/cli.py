@@ -147,11 +147,10 @@ def pheno(
     # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
     context.update(**dataset.dict(exclude_none=True))
 
-    output_filename = output / "pheno.jsonld"
-    with open(output_filename, "w") as f:
+    with open(output, "w") as f:
         f.write(json.dumps(context, indent=2))
 
-    print(f"Saved output to:  {output_filename}")
+    print(f"Saved output to:  {output}")
 
 
 @bagel.command()
@@ -278,8 +277,7 @@ def bids(
 
     merged_dataset = {**context, **pheno_dataset.dict(exclude_none=True)}
 
-    output_filename = output / "pheno_bids.jsonld"
-    with open(output_filename, "w") as f:
+    with open(output, "w") as f:
         f.write(json.dumps(merged_dataset, indent=2))
 
-    print(f"Saved output to:  {output_filename}")
+    print(f"Saved output to:  {output}")

@@ -531,3 +531,48 @@ def test_default_output_filename(runner, test_data_upload_path, tmp_path):
     )
 
     assert (tmp_path / "pheno.jsonld").exists()
+
+
+@pytest.mark.parametrize(
+    "overwrite_flag, expected_stdout",
+    [
+        ([], "already exists"),
+        (["--overwrite"], "Saved output to"),
+    ],
+)
+def test_overwrite_flag_behaviour(
+    runner, test_data_upload_path, tmp_path, overwrite_flag, expected_stdout
+):
+    """Tests that an existing output file is only overwritten if --overwrite is used."""
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data_upload_path / "example_synthetic.tsv",
+            "--dictionary",
+            test_data_upload_path / "example_synthetic.json",
+            "--name",
+            "BIDS synthetic test",
+            "--output",
+            tmp_path / "synthetic_dataset.jsonld",
+        ],
+    )
+
+    overwrite_result = runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data_upload_path / "example_synthetic.tsv",
+            "--dictionary",
+            test_data_upload_path / "example_synthetic.json",
+            "--name",
+            "BIDS synthetic test",
+            "--output",
+            tmp_path / "synthetic_dataset.jsonld",
+        ]
+        + overwrite_flag,
+    )
+
+    assert expected_stdout in overwrite_result.output

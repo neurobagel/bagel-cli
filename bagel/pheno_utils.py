@@ -52,7 +52,7 @@ def load_pheno(input_p: Path) -> pd.DataFrame | None:
         elif len(pheno_df.columns[0].split(",")) == 1:
             warnings.warn(
                 f"Your phenotypic input file {input_p} has only one column."
-                " Although this is not invalid, such a file is not valid."
+                " Such a file is not a valid Neurobagel phenotypic data file."
                 " Please check your input again!"
             )
             return pheno_df

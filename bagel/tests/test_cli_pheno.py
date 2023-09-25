@@ -269,7 +269,7 @@ def test_providing_csv_file_raises_error(
     test_data,
     tmp_path,
 ):
-    """Providing a .csv file or a file with .tsv extension but incorrect encoding should be handled with an infomrative error."""
+    """Providing a .csv file or a file with .tsv extension but incorrect encoding should be handled with an informative error."""
     with pytest.raises(ValueError) as e:
         runner.invoke(
             bagel,

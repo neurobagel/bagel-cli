@@ -48,23 +48,21 @@ def load_pheno(input_p: Path) -> pd.DataFrame | None:
 
         if pheno_df.shape[1] > 1:
             return pheno_df
-        elif len(pheno_df.columns[0].split(",")) > 1:
-            # We only extracted one column, this might mean that we have a sneaky .csv
-            raise ValueError(
-                f"Your phenotypic input file {input_p} has only one column "
-                f"and is therefore not valid as a Neurobagel phenotypic file. "
-                "Note that your phenotypic input file also looks like a .csv file "
-                "as it contains several ',' commas. It is possible that "
-                "you have accidentally renamed a .csv file as a .tsv."
-                " Please provide a valid .tsv pheno file!"
-            )
-        else:
-            warnings.warn(
-                f"Your phenotypic input file {input_p} has only one column."
-                " Such a file is not a valid Neurobagel phenotypic data file."
-                " Please check your input again!"
-            )
-            return pheno_df
+
+        # If we have only one column, but splitting by ',' gives us several elements
+        # then there is a good chance the user accidentally renamed a .csv into .tsv
+        # and we should give them some extra info with our error message to fix this.
+        note_misnamed_csv = (
+            "Note that your phenotypic input file also looks like a .csv file "
+            "as it contains several ',' commas. It is possible that "
+            "you have accidentally renamed a .csv file as a .tsv."
+        )
+        raise ValueError(
+            f"Your phenotypic input file {input_p} has only one column "
+            f"and is therefore not valid as a Neurobagel phenotypic file. "
+            " Please provide a valid .tsv pheno file!"
+            f"\n\n{note_misnamed_csv if len(pheno_df.columns[0].split(',')) > 1 else ''}"
+        )
 
     raise ValueError(
         f"Your ({input_p}) is not a .tsv file."

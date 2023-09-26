@@ -52,10 +52,10 @@ def load_pheno(input_p: Path) -> pd.DataFrame | None:
             # We only extracted one column, this might mean that we have a sneaky .csv
             raise ValueError(
                 f"Your phenotypic input file {input_p} has only one column "
-                f"and is therefore not valid as a neurobagel phenotypic file. "
-                f"Note that your phenotypic input file also looks like a .csv file "
-                f"as it contains several ',' commas. It is possible that "
-                f"you have accidentally renamed a .csv file as a .tsv"
+                f"and is therefore not valid as a Neurobagel phenotypic file. "
+                "Note that your phenotypic input file also looks like a .csv file "
+                "as it contains several ',' commas. It is possible that "
+                "you have accidentally renamed a .csv file as a .tsv."
                 " Please provide a valid .tsv pheno file!"
             )
         else:

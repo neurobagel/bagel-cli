@@ -389,7 +389,7 @@ def validate_data_dict(data_dict: dict) -> None:
         > 1
     ):
         raise ValueError(
-            "The provided data dictionary has more than one column about participant ID or session ID."
+            "The provided data dictionary has more than one column about participant ID or session ID. "
             "Please make sure that only one column is annotated for participant and session IDs."
         )
 
@@ -446,6 +446,6 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     if row_indices := get_rows_with_empty_strings(pheno_df, columns_about_ids):
         raise LookupError(
             "We have detected missing values in participant or session id columns. "
-            "Please make sure that every row has a non-empty participant id (and session id where applicable)."
+            "Please make sure that every row has a non-empty participant id (and session id where applicable). "
             f"We found missing values in the following rows (first row is zero): {row_indices}."
         )

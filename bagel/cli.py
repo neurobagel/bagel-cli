@@ -10,7 +10,13 @@ import bagel.pheno_utils as putil
 from bagel import mappings, models
 from bagel.utility import check_overwrite, load_json
 
-bagel = typer.Typer()
+bagel = typer.Typer(
+    help="""
+    A command-line tool for creating valid, subject-level instances of the Neurobagel graph data model.
+
+    To view the arguments for a specific command, run: bagel [COMMAND] --help
+    """
+)
 
 
 @bagel.command()
@@ -34,8 +40,8 @@ def pheno(
     name: str = typer.Option(
         ...,
         help="A descriptive name for the dataset the input belongs to. "
-        "This name is expected to match the name field in the BIDS "
-        "dataset_description.json file.",
+        "This name is expected to match the name field in the BIDS dataset_description.json file. "
+        'Should be enclosed in quotes, e.g.: --name "my dataset name"',
     ),
     portal: str = typer.Option(
         default=None,
@@ -60,8 +66,8 @@ def pheno(
     with the Neurobagel annotation tool. The annotations are expected to be stored
     in a data dictionary (.json).
 
-    This tool will create a valid, subject-level instance of the Neurobagel
-    graph datamodel for the provided phenotypic file in the .jsonld format.
+    This command will create a valid, subject-level instance of the Neurobagel
+    graph data model for the provided phenotypic file in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
     # Check if output file already exists
@@ -188,8 +194,8 @@ def bids(
     with phenotypic metadata (.jsonld) created in a previous step using the
     bagel pheno command.
 
-    This tool will create a valid, subject-level instance of the Neurobagel
-    graph datamodel for the combined metadata in the .jsonld format.
+    This command will create a valid, subject-level instance of the Neurobagel
+    graph data model for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
     # Check if output file already exists

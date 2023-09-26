@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-import pandas as pd
 import typer
 from bids import BIDSLayout
 from pydantic import ValidationError
@@ -69,7 +68,7 @@ def pheno(
     check_overwrite(output, overwrite)
 
     data_dictionary = load_json(dictionary)
-    pheno_df = pd.read_csv(pheno, sep="\t", keep_default_na=False, dtype=str)
+    pheno_df = putil.load_pheno(pheno)
     putil.validate_inputs(data_dictionary, pheno_df)
 
     # Display validated input paths to user

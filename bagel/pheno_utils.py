@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 import warnings
 from collections import defaultdict
+from pathlib import Path
 from typing import Optional, Union
 
 import isodate
 import jsonschema
 import pandas as pd
 import pydantic
+from pandas import DataFrame
 from typer import BadParameter
 
 from bagel import dictionary_models, mappings, models
@@ -33,6 +37,37 @@ def validate_portal_uri(portal: str) -> Optional[str]:
         ) from err
 
     return portal
+
+
+def load_pheno(input_p: Path) -> pd.DataFrame | None:
+    """Load a .tsv pheno file and do some basic validation."""
+    if input_p.suffix == ".tsv":
+        pheno_df: DataFrame = pd.read_csv(
+            input_p, sep="\t", keep_default_na=False, dtype=str
+        )
+
+        if pheno_df.shape[1] > 1:
+            return pheno_df
+
+        # If we have only one column, but splitting by ',' gives us several elements
+        # then there is a good chance the user accidentally renamed a .csv into .tsv
+        # and we should give them some extra info with our error message to fix this.
+        note_misnamed_csv = (
+            "Note that your phenotypic input file also looks like a .csv file "
+            "as it contains several ',' commas. It is possible that "
+            "you have accidentally renamed a .csv file as a .tsv."
+        )
+        raise ValueError(
+            f"Your phenotypic input file {input_p} has only one column "
+            f"and is therefore not valid as a Neurobagel phenotypic file. "
+            " Please provide a valid .tsv pheno file!"
+            f"\n\n{note_misnamed_csv if len(pheno_df.columns[0].split(',')) > 1 else ''}"
+        )
+
+    raise ValueError(
+        f"Your ({input_p}) is not a .tsv file."
+        " Please provide a valid .tsv pheno file!"
+    )
 
 
 def generate_context():

@@ -9,7 +9,7 @@ from pydantic import ValidationError
 import bagel.bids_utils as butil
 import bagel.pheno_utils as putil
 from bagel import mappings, models
-from bagel.utility import load_json
+from bagel.utility import check_overwrite, load_json
 
 bagel = typer.Typer()
 
@@ -32,14 +32,6 @@ def pheno(
         dir_okay=False,
         resolve_path=True,
     ),
-    output: Path = typer.Option(
-        ...,
-        help="The directory where outputs should be created.",
-        exists=True,
-        file_okay=False,
-        dir_okay=True,
-        resolve_path=True,
-    ),
     name: str = typer.Option(
         ...,
         help="A descriptive name for the dataset the input belongs to. "
@@ -51,6 +43,18 @@ def pheno(
         callback=putil.validate_portal_uri,
         help="URL (HTTP/HTTPS) to a website or page that describes the dataset and access instructions (if available).",
     ),
+    output: Path = typer.Option(
+        default="pheno.jsonld",
+        help="The path for the output .jsonld file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    overwrite: bool = typer.Option(
+        False,
+        "--overwrite",
+        help="Overwrite output file if it already exists.",
+    ),
 ):
     """
     Process a tabular phenotypic file (.tsv) that has been successfully annotated
@@ -61,6 +65,9 @@ def pheno(
     graph datamodel for the provided phenotypic file in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
+    # Check if output file already exists
+    check_overwrite(output, overwrite)
+
     data_dictionary = load_json(dictionary)
     pheno_df = pd.read_csv(pheno, sep="\t", keep_default_na=False, dtype=str)
     putil.validate_inputs(data_dictionary, pheno_df)
@@ -140,11 +147,10 @@ def pheno(
     # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
     context.update(**dataset.dict(exclude_none=True))
 
-    output_filename = output / "pheno.jsonld"
-    with open(output_filename, "w") as f:
+    with open(output, "w") as f:
         f.write(json.dumps(context, indent=2))
 
-    print(f"Saved output to:  {output_filename}")
+    print(f"Saved output to:  {output}")
 
 
 @bagel.command()
@@ -166,12 +172,16 @@ def bids(
         resolve_path=True,
     ),
     output: Path = typer.Option(
-        ...,
-        help="The directory where outputs should be created",
-        exists=True,
-        file_okay=False,
-        dir_okay=True,
+        help="The path for the output .jsonld file.",
+        default="pheno_bids.jsonld",
+        file_okay=True,
+        dir_okay=False,
         resolve_path=True,
+    ),
+    overwrite: bool = typer.Option(
+        False,
+        "--overwrite",
+        help="Overwrite output file if it already exists.",
     ),
 ):
     """
@@ -183,6 +193,9 @@ def bids(
     graph datamodel for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
+    # Check if output file already exists
+    check_overwrite(output, overwrite)
+
     jsonld = load_json(jsonld_path)
     layout = BIDSLayout(bids_dir, validate=True)
 
@@ -264,8 +277,7 @@ def bids(
 
     merged_dataset = {**context, **pheno_dataset.dict(exclude_none=True)}
 
-    output_filename = output / "pheno_bids.jsonld"
-    with open(output_filename, "w") as f:
+    with open(output, "w") as f:
         f.write(json.dumps(merged_dataset, indent=2))
 
-    print(f"Saved output to:  {output_filename}")
+    print(f"Saved output to:  {output}")

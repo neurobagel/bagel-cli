@@ -286,6 +286,7 @@ def test_providing_csv_file_raises_error(
     runner,
     test_data,
     tmp_path,
+    default_pheno_output_path,
 ):
     """Providing a .csv file or a file with .tsv extension but incorrect encoding should be handled with an
     informative error."""
@@ -299,7 +300,7 @@ def test_providing_csv_file_raises_error(
                 "--dictionary",
                 test_data / dictionary_file,
                 "--output",
-                tmp_path,
+                default_pheno_output_path,
                 "--name",
                 "testing dataset",
             ],

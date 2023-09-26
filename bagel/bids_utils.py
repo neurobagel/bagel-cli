@@ -16,8 +16,8 @@ def check_unique_bids_subjects(pheno_subjects: list, bids_subjects: list):
     unique_bids_subjects = set(bids_subjects).difference(pheno_subjects)
     if len(unique_bids_subjects) > 0:
         raise LookupError(
-            "The specified BIDS directory contains subject IDs not found in"
-            f"the provided phenotypic json-ld file: {unique_bids_subjects}"
+            "The specified BIDS directory contains subject IDs not found in "
+            f"the provided phenotypic json-ld file: {unique_bids_subjects}. "
             "Please check that the specified BIDS and phenotypic datasets match."
         )
 

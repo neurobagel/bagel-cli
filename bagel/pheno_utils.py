@@ -18,11 +18,11 @@ from bagel.mappings import COGATLAS, NB, NCIT, NIDM, SNOMED
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
 
 AGE_HEURISTICS = {
-    "float": NB.pf + ":float",
-    "int": NB.pf + ":int",
-    "euro": NB.pf + ":euro",
-    "bounded": NB.pf + ":bounded",
-    "iso8601": NB.pf + ":iso8601",
+    "FromFloat": NB.pf + ":FromFloat",
+    "FromInt": NB.pf + ":FromInt",
+    "FromEuro": NB.pf + ":FromEuro",
+    "FromBounded": NB.pf + ":FromBounded",
+    "FromISO8601": NB.pf + ":FromISO8601",
 }
 
 
@@ -182,13 +182,16 @@ def get_age_heuristic(column: str, data_dict: dict) -> str:
 def transform_age(value: str, heuristic: str) -> float:
     is_recognized_heuristic = True
     try:
-        if heuristic in [AGE_HEURISTICS["float"], AGE_HEURISTICS["int"]]:
+        if heuristic in [
+            AGE_HEURISTICS["FromFloat"],
+            AGE_HEURISTICS["FromInt"],
+        ]:
             return float(value)
-        if heuristic == AGE_HEURISTICS["euro"]:
+        if heuristic == AGE_HEURISTICS["FromEuro"]:
             return float(value.replace(",", "."))
-        if heuristic == AGE_HEURISTICS["bounded"]:
+        if heuristic == AGE_HEURISTICS["FromBounded"]:
             return float(value.strip("+"))
-        if heuristic == AGE_HEURISTICS["iso8601"]:
+        if heuristic == AGE_HEURISTICS["FromISO8601"]:
             if not value.startswith("P"):
                 value = "P" + value
             duration = isodate.parse_duration(value)

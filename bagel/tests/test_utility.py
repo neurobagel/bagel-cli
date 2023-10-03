@@ -251,13 +251,13 @@ def test_missing_ids_in_columns(test_data, columns, expected_indices):
 @pytest.mark.parametrize(
     "raw_age,expected_age,heuristic",
     [
-        ("11.0", 11.0, "nb:float"),
-        ("11", 11.0, "nb:int"),
-        ("11,0", 11.0, "nb:euro"),
-        ("90+", 90.0, "nb:bounded"),
-        ("20Y6M", 20.5, "nb:iso8601"),
-        ("P20Y6M", 20.5, "nb:iso8601"),
-        ("20Y9M", 20.75, "nb:iso8601"),
+        ("11.0", 11.0, "nb:FromFloat"),
+        ("11", 11.0, "nb:FromInt"),
+        ("11,0", 11.0, "nb:FromEuro"),
+        ("90+", 90.0, "nb:FromBounded"),
+        ("20Y6M", 20.5, "nb:FromISO8601"),
+        ("P20Y6M", 20.5, "nb:FromISO8601"),
+        ("20Y9M", 20.75, "nb:FromISO8601"),
     ],
 )
 def test_age_gets_converted(raw_age, expected_age, heuristic):
@@ -267,9 +267,9 @@ def test_age_gets_converted(raw_age, expected_age, heuristic):
 @pytest.mark.parametrize(
     "raw_age, incorrect_heuristic",
     [
-        ("11,0", "nb:float"),
-        ("11.0", "nb:iso8601"),
-        ("20-30", "nb:bounded"),
+        ("11,0", "nb:FromFloat"),
+        ("11.0", "nb:FromISO8601"),
+        ("20-30", "nb:FromBounded"),
     ],
 )
 def test_incorrect_age_heuristic(raw_age, incorrect_heuristic):

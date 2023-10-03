@@ -18,11 +18,11 @@ from bagel.mappings import COGATLAS, NB, NCIT, NIDM, SNOMED
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
 
 AGE_HEURISTICS = {
-    "float": NB.pf + ":float",
-    "int": NB.pf + ":int",
-    "euro": NB.pf + ":euro",
-    "bounded": NB.pf + ":bounded",
-    "iso8601": NB.pf + ":iso8601",
+    "float": NB.pf + ":FromFloat",
+    "int": NB.pf + ":FromInt",
+    "euro": NB.pf + ":FromEuro",
+    "bounded": NB.pf + ":FromBounded",
+    "iso8601": NB.pf + ":FromISO8601",
 }
 
 
@@ -182,7 +182,10 @@ def get_age_heuristic(column: str, data_dict: dict) -> str:
 def transform_age(value: str, heuristic: str) -> float:
     is_recognized_heuristic = True
     try:
-        if heuristic in [AGE_HEURISTICS["float"], AGE_HEURISTICS["int"]]:
+        if heuristic in [
+            AGE_HEURISTICS["float"],
+            AGE_HEURISTICS["int"],
+        ]:
             return float(value)
         if heuristic == AGE_HEURISTICS["euro"]:
             return float(value.replace(",", "."))

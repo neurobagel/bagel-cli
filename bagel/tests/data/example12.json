@@ -69,7 +69,7 @@
         "Label": "Chronological age"
       },
       "Transformation": {
-        "TermURL": "nb:iso8601",
+        "TermURL": "nb:FromISO8601",
         "Label": "A period of time defined according to the ISO8601 standard"
       }
     }

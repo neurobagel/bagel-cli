@@ -27,7 +27,7 @@
         "Label": "Chronological age"
       },
       "Transformation": {
-        "TermURL": "nb:euro",
+        "TermURL": "nb:FromEuro",
         "Label": "writing the time with a comma - why not"
       },
       "MissingValues": ["NA"]

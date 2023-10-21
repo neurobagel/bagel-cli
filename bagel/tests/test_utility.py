@@ -337,6 +337,22 @@ def test_generate_context(get_test_context, model, attributes):
 
 
 @pytest.mark.parametrize(
+    "bids_dir",
+    ["synthetic", "ds000248"],
+)
+def test_get_bids_subjects_simple(bids_path, bids_dir):
+    """Test that get_bids_subjects_simple() correctly extracts subject IDs from a BIDS directory."""
+    bids_subject_list = butil.get_bids_subjects_simple(bids_path / bids_dir)
+    expected_subjects = [
+        f"sub-{sub_id}"
+        for sub_id in BIDSLayout(
+            bids_path / bids_dir, validate=True
+        ).get_subjects()
+    ]
+    assert sorted(bids_subject_list) == sorted(expected_subjects)
+
+
+@pytest.mark.parametrize(
     "bids_list, expectation",
     [
         (["sub-01", "sub-02", "sub-03"], does_not_raise()),

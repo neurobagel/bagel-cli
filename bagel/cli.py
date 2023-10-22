@@ -201,17 +201,17 @@ def bids(
     # Check if output file already exists
     check_overwrite(output, overwrite)
 
-    jsonld = load_json(jsonld_path)
-    # Strip and store context to be added back later, since it's not part of
-    # (and can't be easily added) to the existing data model
-    context = {"@context": jsonld.pop("@context")}
-
     space = 32
     print(
         "Running initial checks of inputs...\n"
         f"   {'Phenotypic .jsonld to augment:' : <{space}} {jsonld_path}\n"
         f"   {'BIDS dataset directory:' : <{space}} {bids_dir}"
     )
+
+    jsonld = load_json(jsonld_path)
+    # Strip and store context to be added back later, since it's not part of
+    # (and can't be easily added) to the existing data model
+    context = {"@context": jsonld.pop("@context")}
     try:
         pheno_dataset = models.Dataset.parse_obj(jsonld)
     except ValidationError as err:
@@ -227,7 +227,7 @@ def bids(
         pheno_subjects=pheno_subject_dict.keys(),
         bids_subjects=butil.get_bids_subjects_simple(bids_dir),
     )
-    print("Initial checks of inputs passed:\n")
+    print("Initial checks of inputs passed.\n")
 
     print("Parsing and validating BIDS dataset. This may take a while...")
     layout = BIDSLayout(bids_dir, validate=True)

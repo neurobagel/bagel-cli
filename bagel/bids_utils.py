@@ -11,6 +11,19 @@ def map_term_to_namespace(term: str, namespace: dict) -> str:
     return namespace.get(term, False)
 
 
+def get_bids_subjects_simple(bids_dir: Path) -> list:
+    """Returns list of subject IDs (in format of sub-<SUBJECT>) for a BIDS directory inferred from the names of non-empty subdirectories."""
+    bids_subject_list = []
+    for path in bids_dir.iterdir():
+        if (
+            path.name.startswith("sub-")
+            and path.is_dir()
+            and any(path.iterdir())
+        ):
+            bids_subject_list.append(path.name)
+    return bids_subject_list
+
+
 def check_unique_bids_subjects(pheno_subjects: list, bids_subjects: list):
     """Raises informative error if subject IDs exist that are found only in the BIDS directory."""
     unique_bids_subjects = set(bids_subjects).difference(pheno_subjects)

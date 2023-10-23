@@ -201,13 +201,17 @@ def bids(
     # Check if output file already exists
     check_overwrite(output, overwrite)
 
-    jsonld = load_json(jsonld_path)
-    layout = BIDSLayout(bids_dir, validate=True)
+    space = 32
+    print(
+        "Running initial checks of inputs...\n"
+        f"   {'Phenotypic .jsonld to augment:' : <{space}} {jsonld_path}\n"
+        f"   {'BIDS dataset directory:' : <{space}} {bids_dir}"
+    )
 
+    jsonld = load_json(jsonld_path)
     # Strip and store context to be added back later, since it's not part of
     # (and can't be easily added) to the existing data model
     context = {"@context": jsonld.pop("@context")}
-
     try:
         pheno_dataset = models.Dataset.parse_obj(jsonld)
     except ValidationError as err:
@@ -217,21 +221,21 @@ def bids(
         pheno_subject.hasLabel: pheno_subject
         for pheno_subject in getattr(pheno_dataset, "hasSamples")
     }
-    bids_subject_list = ["sub-" + sub_id for sub_id in layout.get_subjects()]
 
+    # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
     butil.check_unique_bids_subjects(
         pheno_subjects=pheno_subject_dict.keys(),
-        bids_subjects=bids_subject_list,
+        bids_subjects=butil.get_bids_subjects_simple(bids_dir),
     )
+    print("Initial checks of inputs passed.\n")
 
-    # Display validated input paths to user
-    space = 32
+    print("Parsing and validating BIDS dataset. This may take a while...")
+    layout = BIDSLayout(bids_dir, validate=True)
+    print("BIDS parsing completed.\n")
+
     print(
-        "Parsing BIDS metadata to be merged with phenotypic annotations:\n"
-        f"   {'Phenotypic .jsonld to augment:' : <{space}} {jsonld_path}\n"
-        f"   {'BIDS dataset directory:' : <{space}} {bids_dir}\n"
+        "Merging subject-level BIDS metadata with the phenotypic annotations...\n"
     )
-
     for bids_sub_id in layout.get_subjects():
         pheno_subject = pheno_subject_dict.get(f"sub-{bids_sub_id}")
         session_list = []

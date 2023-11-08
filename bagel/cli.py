@@ -132,10 +132,12 @@ def pheno(
             _assessments = [
                 models.Assessment(identifier=tool)
                 for tool, columns in tool_mapping.items()
-                if putil.are_not_missing(columns, _sub_pheno, data_dictionary)
+                if putil.are_any_nonmissing(
+                    columns, _sub_pheno, data_dictionary
+                )
             ]
             if _assessments:
-                # Only set assignments for the subject if at least one is not missing
+                # Only set assignments for the subject if at least one has a non-missing item
                 subject.hasAssessment = _assessments
 
         subject_list.append(subject)

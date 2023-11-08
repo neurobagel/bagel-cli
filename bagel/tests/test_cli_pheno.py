@@ -438,9 +438,12 @@ def test_controlled_term_classes_have_uri_type(
 
 
 @pytest.mark.parametrize(
-    "assessment, subject",
+    "assessment, subject_idx",
     [
-        (None, 0),
+        (
+            [{"identifier": "cogatlas:1234", "schemaKey": "Assessment"}],
+            0,
+        ),
         (None, 1),
         (
             [
@@ -457,7 +460,7 @@ def test_assessment_data_are_parsed_correctly(
     default_pheno_output_path,
     load_test_json,
     assessment,
-    subject,
+    subject_idx,
 ):
     runner.invoke(
         bagel,
@@ -476,7 +479,7 @@ def test_assessment_data_are_parsed_correctly(
 
     pheno = load_test_json(default_pheno_output_path)
 
-    assert assessment == pheno["hasSamples"][subject].get("hasAssessment")
+    assert assessment == pheno["hasSamples"][subject_idx].get("hasAssessment")
 
 
 @pytest.mark.parametrize(

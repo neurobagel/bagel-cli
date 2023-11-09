@@ -226,7 +226,7 @@ def test_get_assessment_tool_availability(
     test_columns = ["tool_item1", "tool_item2"]
 
     assert (
-        putil.are_any_nonmissing(
+        putil.are_any_available(
             test_columns, pheno.iloc[subject_idx], data_dict
         )
         is is_avail

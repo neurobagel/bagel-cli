@@ -132,7 +132,7 @@ def pheno(
             _assessments = [
                 models.Assessment(identifier=tool)
                 for tool, columns in tool_mapping.items()
-                if putil.are_any_nonmissing(
+                if putil.are_any_available(
                     columns, _sub_pheno, data_dictionary
                 )
             ]

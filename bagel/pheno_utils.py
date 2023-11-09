@@ -268,7 +268,7 @@ def get_mismatched_categorical_levels(data_dict: dict) -> list:
     return mismatched_cols
 
 
-def are_any_nonmissing(columns: list, row: pd.Series, data_dict: dict) -> bool:
+def are_any_available(columns: list, row: pd.Series, data_dict: dict) -> bool:
     """
     Checks that at least one of the values in the specified columns is not a missing value.
     This is mainly useful to determine the availability of an assessment tool

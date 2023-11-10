@@ -10,7 +10,7 @@ The Bagel CLI is a simple Python command line tool to automatically read and ann
 [BIDS dataset](https://bids-specification.readthedocs.io/en/stable/) 
 so that it can be integrated into the Neurobagel graph.
 
-Please refer to our [**official documentation**](https://neurobagel.org/cli/) for more information on how to use the CLI.
+Please refer to our [**official neurobagel documentation**](https://neurobagel.org/cli/) for more information on how to use the CLI.
 
 ## Installation
 ### Docker

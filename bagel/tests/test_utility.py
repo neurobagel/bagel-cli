@@ -212,7 +212,7 @@ def test_missing_values(value, column, expected):
 
 @pytest.mark.parametrize(
     "subject_idx, is_avail",
-    [(0, False), (2, False), (4, True)],
+    [(0, True), (2, False), (4, True)],
 )
 def test_get_assessment_tool_availability(
     test_data, load_test_json, subject_idx, is_avail
@@ -226,7 +226,9 @@ def test_get_assessment_tool_availability(
     test_columns = ["tool_item1", "tool_item2"]
 
     assert (
-        putil.are_not_missing(test_columns, pheno.iloc[subject_idx], data_dict)
+        putil.are_any_available(
+            test_columns, pheno.iloc[subject_idx], data_dict
+        )
         is is_avail
     )
 

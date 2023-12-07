@@ -1,10 +1,8 @@
-name: Build and push to DockerHub
+name: build Docker image on release
 
 on:
-  push:
-    branches:
-      - "main"
-  workflow_dispatch:
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -29,4 +27,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/bagelcli:nightly
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/bagelcli:stable, ${{ secrets.DOCKERHUB_USERNAME }}/bagelcli:${{ github.event.release.tag_name }}

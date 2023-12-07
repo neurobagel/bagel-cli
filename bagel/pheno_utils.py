@@ -98,7 +98,7 @@ def generate_context():
 
 def get_columns_about(data_dict: dict, concept: str) -> list:
     """
-    Returns column names that have been annotated as "IsAbout" the desired concept.
+    Returns all column names that have been annotated as "IsAbout" the desired concept.
     Parameters
     ----------
     data_dict: dict
@@ -120,7 +120,12 @@ def get_columns_about(data_dict: dict, concept: str) -> list:
     ]
 
 
-def get_annotated_columns(data_dict: dict) -> list:
+def get_annotated_columns(data_dict: dict) -> list(tuple[str, dict]):
+    """
+    Return a list of all columns that have Neurobagel 'Annotations' in a data dictionary,
+    where each column is represented as a tuple of the column name (dictionary key from the data dictionary) and
+    properties (all dictionary contents from the data dictionary).
+    """
     return [
         (col, content)
         for col, content in data_dict.items()
@@ -130,8 +135,10 @@ def get_annotated_columns(data_dict: dict) -> list:
 
 def map_categories_to_columns(data_dict: dict) -> dict:
     """
-    Maps all pre-defined Neurobagel categories (e.g. "Sex") to a list of column names (if any) that
+    Maps all pre-defined Neurobagel categories (e.g. "Sex") to a list containing all column names (if any) that
     have been linked to this category.
+
+    Returns a dictionary where the keys are the Neurobagel categories and the values are lists of column names.
     """
     return {
         cat_name: get_columns_about(data_dict, cat_iri)
@@ -144,6 +151,8 @@ def map_tools_to_columns(data_dict: dict) -> dict:
     """
     Return a mapping of all assessment tools described in the data dictionary to the columns that
     are mapped to it.
+
+    Returns a dictionary where the keys are the assessment tool IRIs and the values are lists of column names.
     """
     out_dict = defaultdict(list)
     for col, content in get_annotated_columns(data_dict):
@@ -213,7 +222,7 @@ def transform_age(value: str, heuristic: str) -> float:
 def get_transformed_values(
     columns: list, row: pd.Series, data_dict: dict
 ) -> Union[str, None]:
-    """Convert a raw phenotypic value to the corresponding controlled term"""
+    """Convert a list of raw phenotypic values to the corresponding controlled terms, from columns that have not been annotated as being about an assessment tool."""
     transf_val = []
     # TODO: Currently, this function accepts a list of columns + populates a list of transformed values because multiple columns should in theory
     # be able to be annotated as being about a single Neurobagel concept/variable. However, we don't yet have a proper way to support multiple transformed values

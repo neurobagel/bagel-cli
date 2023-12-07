@@ -1,0 +1,105 @@
+{
+  "participant_id": {
+    "Description": "A participant ID",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:ParticipantID",
+        "Label": "Unique participant identifier"
+      },
+      "Identifies": "participant"
+    }
+  },
+  "session_id": {
+    "Description": "A session ID",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:SessionID",
+        "Label": "Unique session identifier"
+      },
+      "Identifies": "session"
+    }
+  },
+  "group": {
+    "Description": "Group variable",
+    "Levels": {
+      "PAT": "Patient",
+      "CTRL": "Control subject"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Diagnosis",
+        "Label": "Diagnosis"
+      },
+      "Levels": {
+        "PAT": {
+          "TermURL": "snomed:49049000",
+          "Label": "Parkinson's disease"
+        },
+        "CTRL": {
+          "TermURL": "ncit:C94342",
+          "Label": "Healthy Control"
+        }
+      }
+    }
+  },
+  "diagnosis": {
+    "Description": "Diagnosis at baseline visit",
+    "Levels": {
+      "PD": "Parkinson's disease",
+      "SPD": "Sporadic Parkinson disease"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Diagnosis",
+        "Label": "Diagnosis"
+      },
+      "Levels": {
+        "PD": {
+          "TermURL": "snomed:49049000",
+          "Label": "Parkinson's disease"
+        },
+        "SPD": {
+          "TermURL": "snomed:724761004",
+          "Label": "Sporadic Parkinson disease"
+        }
+      },
+      "MissingValues": [""]
+    }
+  },
+  "sex": {
+    "Description": "Sex variable",
+    "Levels": {
+      "M": "Male",
+      "F": "Female"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Sex",
+        "Label": "Sex"
+      },
+      "Levels": {
+        "M": {
+          "TermURL": "snomed:248153007",
+          "Label": "Male"
+        },
+        "F": {
+          "TermURL": "snomed:248152002",
+          "Label": "Female"
+        }
+      }
+    }
+  },
+  "participant_age": {
+    "Description": "Age of the participant",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Age",
+        "Label": "Chronological age"
+      },
+      "Transformation": {
+        "TermURL": "nb:FromISO8601",
+        "Label": "A period of time defined according to the ISO8601 standard"
+      }
+    }
+  }
+}

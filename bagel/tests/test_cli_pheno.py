@@ -20,6 +20,7 @@ def default_pheno_output_path(tmp_path):
         "example12",
         "example13",
         "example14",
+        "example17",
         "example_synthetic",
     ],
 )

@@ -1,0 +1,71 @@
+{
+  "participant_id": {
+    "Description": "A participant ID",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:ParticipantID",
+        "Label": "Unique participant identifier"
+      },
+      "Identifies": "participant"
+    }
+  },
+  "group": {
+    "Description": "Group variable",
+    "Levels": {
+      "PAT": "Patient",
+      "CTRL": "Control subject"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Diagnosis",
+        "Label": "Diagnosis"
+      },
+      "Levels": {
+        "PAT": {
+          "TermURL": "snomed:49049000",
+          "Label": "Parkinson's disease"
+        },
+        "CTRL": {
+          "TermURL": "ncit:C94342",
+          "Label": "Healthy Control"
+        }
+      }
+    }
+  },
+  "sex": {
+    "Description": "Sex variable",
+    "Levels": {
+      "M": "Male",
+      "F": "Female"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Sex",
+        "Label": "Sex"
+      },
+      "Levels": {
+        "M": {
+          "TermURL": "snomed:248153007",
+          "Label": "Male"
+        },
+        "F": {
+          "TermURL": "snomed:248152002",
+          "Label": "Female"
+        }
+      }
+    }
+  },
+  "participant_age": {
+    "Description": "Age of the participant",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Age",
+        "Label": "Chronological age"
+      },
+      "Transformation": {
+        "TermURL": "nb:FromISO8601",
+        "Label": "A period of time defined according to the ISO8601 standard"
+      }
+    }
+  }
+}

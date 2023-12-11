@@ -92,6 +92,9 @@ def pheno(
 
     # TODO: needs refactoring once we handle multiple participant IDs
     participants = column_mapping.get("participant")[0]
+    # TODO: handle if no session_ID column exists
+    session_column = column_mapping.get("session")[0]
+    import pdb
 
     for participant in pheno_df[participants].unique():
         # TODO: needs refactoring once we handle phenotypic information at the session level
@@ -100,46 +103,62 @@ def pheno(
         # as reflecting the subject level phenotypic information
         _sub_pheno = pheno_df.query(
             f"{participants} == '{str(participant)}'"
-        ).iloc[0]
+        )
+        
+        # TODO ensure we don't have duplicates in the session ID
+        session_names = _sub_pheno[session_column].unique()
+        pdb.set_trace()
+        # TODO make sure we have at least one session
+        # We think this will be ['ses-01', 'ses-02']
 
-        subject = models.Subject(hasLabel=str(participant))
-        if "sex" in column_mapping.keys():
-            _sex_val = putil.get_transformed_values(
-                column_mapping["sex"], _sub_pheno, data_dictionary
+        sessions = []
+        for session_name in session_names:
+            session = models.PhenotypicSession(hasLabel=str(session_name))
+            _ses_pheno = _sub_pheno.query(
+                f"{session_column} == '{str(session_name)}'"
             )
-            if _sex_val:
-                subject.hasSex = models.Sex(identifier=_sex_val)
-
-        if "diagnosis" in column_mapping.keys():
-            _dx_val = putil.get_transformed_values(
-                column_mapping["diagnosis"], _sub_pheno, data_dictionary
-            )
-            if _dx_val is None:
-                pass
-            elif _dx_val == mappings.NEUROBAGEL["healthy_control"]:
-                subject.isSubjectGroup = models.SubjectGroup(
-                    identifier=mappings.NEUROBAGEL["healthy_control"],
+            
+            if "sex" in column_mapping.keys():
+                _sex_val = putil.get_transformed_values(
+                    column_mapping["sex"], _ses_pheno, data_dictionary
                 )
-            else:
-                subject.hasDiagnosis = [models.Diagnosis(identifier=_dx_val)]
+                if _sex_val:
+                    session.hasSex = models.Sex(identifier=_sex_val)
 
-        if "age" in column_mapping.keys():
-            subject.hasAge = putil.get_transformed_values(
-                column_mapping["age"], _sub_pheno, data_dictionary
-            )
-
-        if tool_mapping:
-            _assessments = [
-                models.Assessment(identifier=tool)
-                for tool, columns in tool_mapping.items()
-                if putil.are_any_available(
-                    columns, _sub_pheno, data_dictionary
+            if "diagnosis" in column_mapping.keys():
+                pdb.set_trace()
+                _dx_val = putil.get_transformed_values(
+                    column_mapping["diagnosis"], _ses_pheno, data_dictionary
                 )
-            ]
-            if _assessments:
-                # Only set assignments for the subject if at least one has a non-missing item
-                subject.hasAssessment = _assessments
+                if _dx_val is None:
+                    pass
+                elif _dx_val == mappings.NEUROBAGEL["healthy_control"]:
+                    session.isSubjectGroup = models.SubjectGroup(
+                        identifier=mappings.NEUROBAGEL["healthy_control"],
+                    )
+                else:
+                    session.hasDiagnosis = [models.Diagnosis(identifier=_dx_val)]
 
+            if "age" in column_mapping.keys():
+                session.hasAge = putil.get_transformed_values(
+                    column_mapping["age"], _ses_pheno, data_dictionary
+                )
+
+            if tool_mapping:
+                _assessments = [
+                    models.Assessment(identifier=tool)
+                    for tool, columns in tool_mapping.items()
+                    if putil.are_any_available(
+                        columns, _ses_pheno, data_dictionary
+                    )
+                ]
+                if _assessments:
+                    # Only set assignments for the subject if at least one has a non-missing item
+                    session.hasAssessment = _assessments
+            sessions.append(session)
+
+        pdb.set_trace()
+        subject = models.Subject(hasLabel=str(participant), hasSession=sessions)
         subject_list.append(subject)
 
     dataset = models.Dataset(
@@ -277,14 +296,14 @@ def bids(
             # TODO: needs refactoring once we also handle phenotypic information at the session level
             session_list.append(
                 # Add back "ses" prefix because pybids stripped it
-                models.Session(
+                models.ImagingSession(
                     hasLabel="ses-" + session_label,
                     hasFilePath=session_path,
                     hasAcquisition=image_list,
                 )
             )
 
-        pheno_subject.hasSession = session_list
+        pheno_subject.hasSession += session_list
 
     merged_dataset = {**context, **pheno_dataset.dict(exclude_none=True)}
 

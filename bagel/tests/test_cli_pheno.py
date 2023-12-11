@@ -358,13 +358,13 @@ def test_diagnosis_and_control_status_handled(
     pheno = load_test_json(default_pheno_output_path)
 
     assert (
-        pheno["hasSamples"][0]["hasDiagnosis"][0]["identifier"]
+        pheno["hasSamples"][0]["hasSession"][0]["hasDiagnosis"][0]["identifier"]
         == "snomed:49049000"
     )
-    assert "hasDiagnosis" not in pheno["hasSamples"][1].keys()
-    assert "hasDiagnosis" not in pheno["hasSamples"][2].keys()
+    assert "hasDiagnosis" not in pheno["hasSamples"][1]["hasSession"][0].keys()
+    assert "hasDiagnosis" not in pheno["hasSamples"][2]["hasSession"][0].keys()
     assert (
-        pheno["hasSamples"][2]["isSubjectGroup"]["identifier"] == "ncit:C94342"
+        pheno["hasSamples"][2]["hasSession"][0]["isSubjectGroup"]["identifier"] == "ncit:C94342"
     )
 
 

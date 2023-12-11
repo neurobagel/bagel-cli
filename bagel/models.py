@@ -51,19 +51,26 @@ class Acquisition(Bagel):
 
 class Session(Bagel):
     hasLabel: str
-    hasFilePath: Optional[str] = None
-    hasAcquisition: List[Acquisition]
-    schemaKey: Literal["Session"] = "Session"
-
-
-class Subject(Bagel):
-    hasLabel: str
-    hasSession: Optional[List[Session]] = None
+    
+    
+class PhenotypicSession(Session):
     hasAge: Optional[float] = None
     hasSex: Optional[Sex] = None
     isSubjectGroup: Optional[SubjectGroup] = None
     hasDiagnosis: Optional[List[Diagnosis]] = None
     hasAssessment: Optional[List[Assessment]] = None
+    schemaKey = "PhenotypicSession"
+    
+
+class ImagingSession(Session):
+    hasFilePath: Optional[str] = None
+    hasAcquisition: List[Acquisition]
+    schemaKey = "ImagingSession"
+
+
+class Subject(Bagel):
+    hasLabel: str
+    hasSession: List[Union[PhenotypicSession, ImagingSession]]
     schemaKey: Literal["Subject"] = "Subject"
 
 

@@ -1,3 +1,15 @@
+# v0.1.5 (Mon Dec 11 2023)
+
+#### 🐛 Bug Fix
+
+- Bump neurobagel_examples from `f1b00e5` to `94282f1` [#249](https://github.com/neurobagel/bagel-cli/pull/249) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+
+#### Authors: 1
+
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+
+---
+
 # v0.1.3 (Mon Dec 11 2023)
 
 #### 🐛 Bug Fix

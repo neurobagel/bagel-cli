@@ -1,3 +1,28 @@
+# v0.1.5 (Mon Dec 11 2023)
+
+#### 🐛 Bug Fix
+
+- Bump neurobagel_examples from `f1b00e5` to `94282f1` [#249](https://github.com/neurobagel/bagel-cli/pull/249) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+
+#### Authors: 1
+
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+
+---
+
+# v0.1.3 (Mon Dec 11 2023)
+
+#### 🐛 Bug Fix
+
+- [MNT] Update the neurobagel examples [#247](https://github.com/neurobagel/bagel-cli/pull/247) ([@surchs](https://github.com/surchs))
+- Delete .github/workflows/add_pr2project.yml [#244](https://github.com/neurobagel/bagel-cli/pull/244) ([@surchs](https://github.com/surchs))
+
+#### Authors: 1
+
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
 # v0.1.3 (Sun Dec 10 2023)
 
 #### 🐛 Bug Fix

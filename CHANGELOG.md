@@ -1,3 +1,16 @@
+# v0.1.3 (Mon Dec 11 2023)
+
+#### 🐛 Bug Fix
+
+- [MNT] Update the neurobagel examples [#247](https://github.com/neurobagel/bagel-cli/pull/247) ([@surchs](https://github.com/surchs))
+- Delete .github/workflows/add_pr2project.yml [#244](https://github.com/neurobagel/bagel-cli/pull/244) ([@surchs](https://github.com/surchs))
+
+#### Authors: 1
+
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
 # v0.1.3 (Sun Dec 10 2023)
 
 #### 🐛 Bug Fix

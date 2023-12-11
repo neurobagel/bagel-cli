@@ -234,7 +234,6 @@ def get_transformed_values(
 
     # TODO: once we can handle multiple columns, this section should be removed
     # and we should just return an empty list if no transform can be generated
-    pdb.set_trace()
     if not transf_val:
         return None
     return transf_val[0]

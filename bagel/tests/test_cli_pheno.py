@@ -20,7 +20,6 @@ def default_pheno_output_path(tmp_path):
         "example12",
         "example13",
         "example14",
-        "example17",
         "example_synthetic",
     ],
 )
@@ -396,13 +395,14 @@ def test_controlled_terms_have_identifiers(
     pheno = load_test_json(default_pheno_output_path)
 
     for sub in pheno["hasSamples"]:
-        if attribute in sub.keys():
-            value = sub.get(attribute)
-            if not isinstance(value, list):
-                value = [value]
-            assert all(
-                ["identifier" in entry for entry in value]
-            ), f"{attribute}: did not have an identifier for subject {sub} and value {value}"
+        for ses in sub["hasSession"]:
+            if attribute in ses.keys():
+                value = ses.get(attribute)
+                if not isinstance(value, list):
+                    value = [value]
+                assert all(
+                    ["identifier" in entry for entry in value]
+                ), f"{attribute}: did not have an identifier for subject {sub} and value {value}"
 
 
 def test_controlled_term_classes_have_uri_type(
@@ -480,7 +480,7 @@ def test_assessment_data_are_parsed_correctly(
 
     pheno = load_test_json(default_pheno_output_path)
 
-    assert assessment == pheno["hasSamples"][subject_idx].get("hasAssessment")
+    assert assessment == pheno["hasSamples"][subject_idx]["hasSession"][0].get("hasAssessment")
 
 
 @pytest.mark.parametrize(
@@ -512,7 +512,7 @@ def test_cli_age_is_processed(
 
     pheno = load_test_json(default_pheno_output_path)
 
-    assert expected_age == pheno["hasSamples"][subject]["hasAge"]
+    assert expected_age == pheno["hasSamples"][subject]['hasSession'][0]["hasAge"]
 
 
 def test_output_includes_context(

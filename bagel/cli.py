@@ -94,7 +94,7 @@ def pheno(
     participants = column_mapping.get("participant")[0]
     # TODO: handle if no session_ID column exists
     session_column = column_mapping.get("session")[0]
-    import pdb
+
 
     for participant in pheno_df[participants].unique():
         # TODO: needs refactoring once we handle phenotypic information at the session level
@@ -107,7 +107,6 @@ def pheno(
         
         # TODO ensure we don't have duplicates in the session ID
         session_names = _sub_pheno[session_column].unique()
-        pdb.set_trace()
         # TODO make sure we have at least one session
         # We think this will be ['ses-01', 'ses-02']
 
@@ -116,7 +115,7 @@ def pheno(
             session = models.PhenotypicSession(hasLabel=str(session_name))
             _ses_pheno = _sub_pheno.query(
                 f"{session_column} == '{str(session_name)}'"
-            )
+            ).iloc[0]
             
             if "sex" in column_mapping.keys():
                 _sex_val = putil.get_transformed_values(
@@ -126,7 +125,6 @@ def pheno(
                     session.hasSex = models.Sex(identifier=_sex_val)
 
             if "diagnosis" in column_mapping.keys():
-                pdb.set_trace()
                 _dx_val = putil.get_transformed_values(
                     column_mapping["diagnosis"], _ses_pheno, data_dictionary
                 )
@@ -157,7 +155,6 @@ def pheno(
                     session.hasAssessment = _assessments
             sessions.append(session)
 
-        pdb.set_trace()
         subject = models.Subject(hasLabel=str(participant), hasSession=sessions)
         subject_list.append(subject)
 

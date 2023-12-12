@@ -656,3 +656,44 @@ def test_overwrite_flag_behaviour(
     )
 
     assert expected_stdout in overwrite_result.output
+
+
+def test_pheno_sessions_have_correct_labels(
+    runner,
+    test_data_upload_path,
+    tmp_path,
+    load_test_json,
+):
+    """Check that sessions added to pheno_bids.jsonld have the expected labels."""
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data_upload_path / "example_synthetic.tsv",
+            "--dictionary",
+            test_data_upload_path / "example_synthetic.json",
+            "--name",
+            "don't matter",
+            "--portal",
+            "https://www.google.com",
+            "--output",
+            tmp_path / "example_synthetic.jsonld",
+        ],
+    )
+
+    pheno = load_test_json(tmp_path / "example_synthetic.jsonld")
+    for sub in pheno["hasSamples"]:
+        assert 2 == len(sub["hasSession"])
+
+        phenotypic_session = [
+            ses
+            for ses in sub["hasSession"]
+            if ses["schemaKey"] == "PhenotypicSession"
+        ]
+        assert 2 == len(phenotypic_session)
+
+        # We also need to make sure that we do not have duplicate phenotypic session labels
+        assert set(["ses-01", "ses-02"]) == set(
+            [ses["hasLabel"] for ses in phenotypic_session]
+        )

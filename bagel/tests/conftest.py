@@ -28,7 +28,9 @@ def test_data():
 
 @pytest.fixture(scope="session")
 def neurobagel_examples_path(tmp_path_factory):
-    return Path(__file__).absolute().parent.parent.parent / "neurobagel_examples"
+    return (
+        Path(__file__).absolute().parent.parent.parent / "neurobagel_examples"
+    )
 
 
 @pytest.fixture(scope="session")

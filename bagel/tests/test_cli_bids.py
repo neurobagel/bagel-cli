@@ -59,9 +59,19 @@ def test_bids_sessions_have_correct_labels(
 
     pheno_bids = load_test_json(default_pheno_bids_output_path)
     for sub in pheno_bids["hasSamples"]:
-        assert ["ses-01", "ses-02"] == [
-            ses["hasLabel"] for ses in sub["hasSession"]
+        assert 4 == len(sub["hasSession"])
+
+        imaging_session = [
+            ses
+            for ses in sub["hasSession"]
+            if ses["schemaKey"] == "ImagingSession"
         ]
+        assert 2 == len(imaging_session)
+
+        # We also need to make sure that we do not have duplicate imaging session labels
+        assert set(["ses-01", "ses-02"]) == set(
+            [ses["hasLabel"] for ses in imaging_session]
+        )
 
 
 def test_bids_data_with_sessions_have_correct_paths(
@@ -89,8 +99,15 @@ def test_bids_data_with_sessions_have_correct_paths(
 
     pheno_bids = load_test_json(default_pheno_bids_output_path)
     for sub in pheno_bids["hasSamples"]:
-        for ses in sub["hasSession"]:
-            assert sub["hasLabel"] in ses["hasFilePath"]
-            assert ses["hasLabel"] in ses["hasFilePath"]
-            assert Path(ses["hasFilePath"]).is_absolute()
-            assert Path(ses["hasFilePath"]).is_dir()
+        for imaging_session in [
+            ses
+            for ses in sub["hasSession"]
+            if ses["schemaKey"] == "imaging_session"
+        ]:
+
+            assert sub["hasLabel"] in imaging_session["hasFilePath"]
+            assert (
+                imaging_session["hasLabel"] in imaging_session["hasFilePath"]
+            )
+            assert Path(imaging_session["hasFilePath"]).is_absolute()
+            assert Path(imaging_session["hasFilePath"]).is_dir()

@@ -104,8 +104,6 @@ def pheno(
 
         # TODO ensure we don't have duplicates in the session ID
         session_names = _sub_pheno[session_column].unique()
-        # TODO make sure we have at least one session
-        # We think this will be ['ses-01', 'ses-02']
 
         sessions = []
         for session_name in session_names:
@@ -150,7 +148,7 @@ def pheno(
                     )
                 ]
                 if _assessments:
-                    # Only set assignments for the subject if at least one has a non-missing item
+                    # Only set assessments for the subject if at least one has a non-missing item
                     session.hasAssessment = _assessments
             sessions.append(session)
 

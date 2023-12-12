@@ -95,16 +95,13 @@ def pheno(
     # TODO: handle if no session_ID column exists
     session_column = column_mapping.get("session")[0]
 
-
     for participant in pheno_df[participants].unique():
         # TODO: needs refactoring once we handle phenotypic information at the session level
         # for the moment we are not creating any session instances in the phenotypic graph
         # we treat the phenotypic information in the first row of the _sub_pheno dataframe
         # as reflecting the subject level phenotypic information
-        _sub_pheno = pheno_df.query(
-            f"{participants} == '{str(participant)}'"
-        )
-        
+        _sub_pheno = pheno_df.query(f"{participants} == '{str(participant)}'")
+
         # TODO ensure we don't have duplicates in the session ID
         session_names = _sub_pheno[session_column].unique()
         # TODO make sure we have at least one session
@@ -116,7 +113,7 @@ def pheno(
             _ses_pheno = _sub_pheno.query(
                 f"{session_column} == '{str(session_name)}'"
             ).iloc[0]
-            
+
             if "sex" in column_mapping.keys():
                 _sex_val = putil.get_transformed_values(
                     column_mapping["sex"], _ses_pheno, data_dictionary
@@ -135,7 +132,9 @@ def pheno(
                         identifier=mappings.NEUROBAGEL["healthy_control"],
                     )
                 else:
-                    session.hasDiagnosis = [models.Diagnosis(identifier=_dx_val)]
+                    session.hasDiagnosis = [
+                        models.Diagnosis(identifier=_dx_val)
+                    ]
 
             if "age" in column_mapping.keys():
                 session.hasAge = putil.get_transformed_values(
@@ -155,7 +154,9 @@ def pheno(
                     session.hasAssessment = _assessments
             sessions.append(session)
 
-        subject = models.Subject(hasLabel=str(participant), hasSession=sessions)
+        subject = models.Subject(
+            hasLabel=str(participant), hasSession=sessions
+        )
         subject_list.append(subject)
 
     dataset = models.Dataset(

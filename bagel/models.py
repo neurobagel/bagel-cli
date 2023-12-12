@@ -51,8 +51,8 @@ class Acquisition(Bagel):
 
 class Session(Bagel):
     hasLabel: str
-    
-    
+
+
 class PhenotypicSession(Session):
     hasAge: Optional[float] = None
     hasSex: Optional[Sex] = None
@@ -60,7 +60,7 @@ class PhenotypicSession(Session):
     hasDiagnosis: Optional[List[Diagnosis]] = None
     hasAssessment: Optional[List[Assessment]] = None
     schemaKey = "PhenotypicSession"
-    
+
 
 class ImagingSession(Session):
     hasFilePath: Optional[str] = None

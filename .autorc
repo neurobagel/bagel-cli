@@ -1,5 +1,5 @@
 {
-    "onlyPublishWithReleaseLabel": false,
+    "onlyPublishWithReleaseLabel": true,
     "baseBranch": "main",
     "author": "Chef Bot <chef@neurobagel.org>",
     "noVersionPrefix": false,

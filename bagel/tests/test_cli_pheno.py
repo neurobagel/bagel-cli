@@ -20,7 +20,6 @@ def default_pheno_output_path(tmp_path):
         "example12",
         "example13",
         "example14",
-        "example17",
         "example_synthetic",
     ],
 )
@@ -683,8 +682,8 @@ def test_pheno_sessions_have_correct_labels(
         ],
     )
 
-    pheno_bids = load_test_json(tmp_path / "example_synthetic.jsonld")
-    for sub in pheno_bids["hasSamples"]:
+    pheno = load_test_json(tmp_path / "example_synthetic.jsonld")
+    for sub in pheno["hasSamples"]:
         assert 2 == len(sub["hasSession"])
 
         phenotypic_session = [

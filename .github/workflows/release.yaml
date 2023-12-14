@@ -24,4 +24,4 @@ jobs:
       - name: Release
         run: ~/auto shipit -vv
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.NB_PAT_RELEASE }}

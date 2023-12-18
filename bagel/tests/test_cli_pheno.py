@@ -103,6 +103,16 @@ def test_pheno_valid_inputs_run_successfully(
                 "must contain at least one column annotated as being about participant ID"
             ],
         ),
+        (
+            "example1",
+            LookupError,
+            ["do not have unique combinations of participant and session IDs"],
+        ),
+        (
+            "example18",
+            LookupError,
+            ["do not have unique combinations of participant and session IDs"],
+        ),
     ],
 )
 def test_invalid_inputs_are_handled_gracefully(

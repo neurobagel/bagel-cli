@@ -698,3 +698,35 @@ def test_pheno_sessions_have_correct_labels(
         assert set(["ses-01", "ses-02"]) == set(
             [ses["hasLabel"] for ses in phenotypic_session]
         )
+
+
+def test_pheno_session_created_for_missing_session_column(
+    runner,
+    test_data,
+    tmp_path,
+    load_test_json,
+):
+    """
+    Check that a new phenotypic session is created with an appropriate label when there are subject data
+    in the phenotypic TSV but no column about sessions.
+    """
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example17.tsv",
+            "--dictionary",
+            test_data / "example17.json",
+            "--name",
+            "Missing session column dataset",
+            "--output",
+            tmp_path / "example_synthetic.jsonld",
+        ],
+    )
+
+    pheno = load_test_json(tmp_path / "example_synthetic.jsonld")
+    for sub in pheno["hasSamples"]:
+        assert 1 == len(sub["hasSession"])
+        assert sub["hasSession"][0]["schemaKey"] == "PhenotypicSession"
+        assert sub["hasSession"][0]["hasLabel"] == "ses-nb01"

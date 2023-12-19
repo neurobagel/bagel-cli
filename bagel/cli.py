@@ -92,25 +92,24 @@ def pheno(
 
     # TODO: needs refactoring once we handle multiple participant IDs
     participants = column_mapping.get("participant")[0]
-    # TODO: handle if no session_ID column exists
-    session_column = column_mapping.get("session")[0]
+
+    # Note that `session_column will be None if there is no session column in the pheno.tsv
+    session_column = column_mapping.get("session")
 
     for participant in pheno_df[participants].unique():
-        # TODO: needs refactoring once we handle phenotypic information at the session level
-        # for the moment we are not creating any session instances in the phenotypic graph
-        # we treat the phenotypic information in the first row of the _sub_pheno dataframe
-        # as reflecting the subject level phenotypic information
         _sub_pheno = pheno_df.query(f"{participants} == '{str(participant)}'")
 
-        # TODO ensure we don't have duplicates in the session ID
-        session_names = _sub_pheno[session_column].unique()
-
         sessions = []
-        for session_name in session_names:
+        for session_row_idx, session_row in _sub_pheno.iterrows():
+            # If there is no session column, we create a session with a custom label "ses-nb01" to assign each subject's phenotypic data to
+            if session_column is None:
+                session_name = "ses-nb01"  # TODO: Should we make this more obscure to avoid potential overlap with actual session names?
+            else:
+                # NOTE: We take the name from the first session column - we don't know how to handle multiple session columns yet
+                session_name = session_row[session_column[0]]
+
             session = models.PhenotypicSession(hasLabel=str(session_name))
-            _ses_pheno = _sub_pheno.query(
-                f"{session_column} == '{str(session_name)}'"
-            ).iloc[0]
+            _ses_pheno = session_row
 
             if "sex" in column_mapping.keys():
                 _sex_val = putil.get_transformed_values(

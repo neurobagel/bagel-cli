@@ -21,7 +21,8 @@ Example inputs to the CLI
 | 14           | Valid, same as example 2                                                        | Valid, based on example 2, but with an extra column annotation without Neurobagel    | Pass               |
 | 15           | Valid, same as example 2                                                        | Invalid, based on example 2, but participant ID column lacks Neurobagel annotations  | Fail               |
 | 16           | Invalid, same as example2.csv, but with a sneaky .tsv file ending               | Valid, same as example2                                                              | fail               |
-| 17 | Same as example 2 TSV, but without session_id column | Same as example 2 JSON, without session_id column | pass
+| 17 | Valid, contains data for three subjects, but no session column | Same as example 2 JSON, without `session_id` column | pass |
+| 18 | Invalid, example2.tsv without `session_id` column, so there are non-unique participant rows | Same as example 2 JSON, without session_id column | fail |
 
 `* this is expected to fail until we enable multiple participant_ID handling`.
 

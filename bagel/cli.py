@@ -93,7 +93,7 @@ def pheno(
     # TODO: needs refactoring once we handle multiple participant IDs
     participants = column_mapping.get("participant")[0]
 
-    # This is None if there is no session column
+    # Note that `session_column will be None if there is no session column in the pheno.tsv
     session_column = column_mapping.get("session")
 
     for participant in pheno_df[participants].unique():

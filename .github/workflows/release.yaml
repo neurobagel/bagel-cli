@@ -25,3 +25,4 @@ jobs:
         run: ~/auto shipit -vv
         env:
           GH_TOKEN: ${{ secrets.NB_PAT_RELEASE }}
+          PROTECTED_BRANCH_REVIEWER_TOKEN: ${{ secrets.NB_PAT_RELEASE }}

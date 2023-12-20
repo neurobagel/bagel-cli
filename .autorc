@@ -5,6 +5,8 @@
     "noVersionPrefix": false,
     "plugins": [
         "git-tag",
-        "released"
+        "released",
+        "protected-branch",
+        "first-time-contributor"
     ]
 }

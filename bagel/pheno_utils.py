@@ -414,6 +414,18 @@ def validate_data_dict(data_dict: dict) -> None:
         )
 
 
+def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
+    """Raise an error if there are duplicate participant IDs or duplicate combinations of participant and session IDs, if both are present."""
+    id_columns = get_columns_about(
+        data_dict, concept=mappings.NEUROBAGEL["participant"]
+    ) + get_columns_about(data_dict, concept=mappings.NEUROBAGEL["session"])
+    if pheno_df.duplicated(subset=id_columns).any():
+        raise LookupError(
+            "The rows of the provided phenotypic file do not have unique combinations of participant and session IDs. "
+            "Please ensure that each row uniquely identifies one participant or one participant-session (if a column describing session is present)."
+        )
+
+
 def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     """Determines whether input data are valid"""
     validate_data_dict(data_dict)
@@ -426,6 +438,8 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
             "dictionary has to have a corresponding column with the same name in the "
             "phenotypic file"
         )
+
+    check_for_duplicate_ids(data_dict, pheno_df)
 
     undefined_cat_col_values = find_undefined_cat_col_values(
         data_dict, pheno_df

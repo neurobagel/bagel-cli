@@ -3,4 +3,7 @@ sub-01	ses-01	PD	PD	M	P60Y6M
 sub-01	ses-02	PD	SPD	M	P60Y8M
 sub-02	ses-01	CTRL		F	P55Y8M
 sub-02	ses-02	CTRL		F	P56Y4M
-sub-03	ses-01	PD		M	P63Y8M
+sub-03	ses-01	PD		M	P63Y8Mparticipant_id	group	sex	participant_age
+sub-01	PAT	M	P20Y6M
+sub-02	CTRL	F	P25Y8M
+sub-03	CTRL	F	P26Y4M

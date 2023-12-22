@@ -221,31 +221,27 @@ def transform_age(value: str, heuristic: str) -> float:
 
 def get_transformed_values(
     columns: list, row: pd.Series, data_dict: dict
-) -> Union[str, None]:
+) -> list:
     """Convert a list of raw phenotypic values to the corresponding controlled terms, from columns that have not been annotated as being about an assessment tool."""
-    transf_val = []
+    transf_vals = []
     # TODO: Currently, this function accepts a list of columns + populates a list of transformed values because multiple columns should in theory
     # be able to be annotated as being about a single Neurobagel concept/variable. However, we don't yet have a proper way to support multiple transformed values
     # so this function returns just a single value or None.
     # In future, we need to implement a way to handle cases where more than one column contains information.
-    for col in columns[:1]:
+    for col in columns:
         value = row[col]
         if is_missing_value(value, col, data_dict):
             continue
         if is_column_categorical(col, data_dict):
-            transf_val.append(map_cat_val_to_term(value, col, data_dict))
+            transf_vals.append(map_cat_val_to_term(value, col, data_dict))
         else:
             # TODO: replace with more flexible solution when we have more
             # continuous variables than just age
-            transf_val.append(
+            transf_vals.append(
                 transform_age(str(value), get_age_heuristic(col, data_dict))
             )
 
-    # TODO: once we can handle multiple columns, this section should be removed
-    # and we should just return an empty list if no transform can be generated
-    if not transf_val:
-        return None
-    return transf_val[0]
+    return transf_vals
 
 
 # TODO: Check all columns and then return list of offending columns' names

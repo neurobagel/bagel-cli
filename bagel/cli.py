@@ -112,31 +112,38 @@ def pheno(
             _ses_pheno = session_row
 
             if "sex" in column_mapping.keys():
-                _sex_val = putil.get_transformed_values(
+                _sex_vals = putil.get_transformed_values(
                     column_mapping["sex"], _ses_pheno, data_dictionary
                 )
-                if _sex_val:
-                    session.hasSex = models.Sex(identifier=_sex_val)
+                if _sex_vals:
+                    # NOTE: Our data model only allows a single sex value, so we only take the first instance if multiple columns are about sex
+                    session.hasSex = models.Sex(identifier=_sex_vals[0])
 
             if "diagnosis" in column_mapping.keys():
-                _dx_val = putil.get_transformed_values(
+                _dx_vals = putil.get_transformed_values(
                     column_mapping["diagnosis"], _ses_pheno, data_dictionary
                 )
-                if _dx_val is None:
+                if not _dx_vals:
                     pass
-                elif _dx_val == mappings.NEUROBAGEL["healthy_control"]:
+                # NOTE: If the subject has both a diagnosis value and a value of healthy control, we assume the healthy control designation is more important
+                # and do not assign diagnoses to the subject
+                elif mappings.NEUROBAGEL["healthy_control"] in _dx_vals:
                     session.isSubjectGroup = models.SubjectGroup(
                         identifier=mappings.NEUROBAGEL["healthy_control"],
                     )
                 else:
                     session.hasDiagnosis = [
                         models.Diagnosis(identifier=_dx_val)
+                        for _dx_val in _dx_vals
                     ]
 
             if "age" in column_mapping.keys():
-                session.hasAge = putil.get_transformed_values(
+                _age_vals = putil.get_transformed_values(
                     column_mapping["age"], _ses_pheno, data_dictionary
                 )
+                if _age_vals:
+                    # NOTE: Our data model only allows a single age value, so we only take the first instance if multiple columns are about age
+                    session.hasAge = _age_vals[0]
 
             if tool_mapping:
                 _assessments = [

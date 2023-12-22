@@ -22,6 +22,8 @@ def default_pheno_output_path(tmp_path):
         "example14",
         "example_synthetic",
         "example17",
+        "example19",
+        "example20",
     ],
 )
 def test_pheno_valid_inputs_run_successfully(

@@ -1,4 +1,4 @@
 participant_id	session_id	group	diagnosis	sex	participant_age
-sub-01	ses-01	PD	PD	M	P60Y6M
-sub-02	ses-01	PD	SPD	F	P55Y8M
+sub-01	ses-01	PD	SPD	M	P60Y6M
+sub-02	ses-01	PD	PD	F	P55Y8M
 sub-03	ses-01	CTRL		F	P56Y4M

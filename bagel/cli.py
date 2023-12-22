@@ -295,7 +295,6 @@ def bids(
                 session=session,
             )
 
-            # TODO: needs refactoring once we also handle phenotypic information at the session level
             session_list.append(
                 # Add back "ses" prefix because pybids stripped it
                 models.ImagingSession(

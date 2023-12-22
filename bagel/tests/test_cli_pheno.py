@@ -765,6 +765,7 @@ def test_multicolumn_diagnosis_annot_is_handled(
     )
 
     pheno = load_test_json(tmp_path / "example_synthetic.jsonld")
+    # Check the subject with only disease diagnoses
     sub_01_diagnoses = [
         diagnosis["identifier"]
         for diagnosis in pheno["hasSamples"][0]["hasSession"][0][

@@ -23,6 +23,7 @@ Example inputs to the CLI
 | 16           | Invalid, same as example2.csv, but with a sneaky .tsv file ending               | Valid, same as example2                                                              | fail               |
 | 17 | Valid, contains data for three subjects, but no session column | Same as example 2 JSON, without `session_id` column | pass |
 | 18 | Invalid, example2.tsv without `session_id` column, so there are non-unique participant rows | Same as example 2 JSON, without session_id column | fail |
+| 19 | Example with two columns about diagnosis | Valid | pass
 
 `* this is expected to fail until we enable multiple participant_ID handling`.
 

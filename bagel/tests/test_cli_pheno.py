@@ -740,3 +740,70 @@ def test_pheno_session_created_for_missing_session_column(
         assert 1 == len(sub["hasSession"])
         assert sub["hasSession"][0]["schemaKey"] == "PhenotypicSession"
         assert sub["hasSession"][0]["hasLabel"] == "ses-nb01"
+
+
+def test_multicolumn_diagnosis_annot_is_handled(
+    runner,
+    test_data,
+    tmp_path,
+    load_test_json,
+):
+    """Test that when a subject has a non-healthy control diagnosis across multiple columns, they are all correctly parsed and stored as part of the subject's data."""
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example19.tsv",
+            "--dictionary",
+            test_data / "example19.json",
+            "--name",
+            "Multi-column annotation dataset",
+            "--output",
+            tmp_path / "example_synthetic.jsonld",
+        ],
+    )
+
+    pheno = load_test_json(tmp_path / "example_synthetic.jsonld")
+    sub_01_diagnoses = [
+        diagnosis["identifier"]
+        for diagnosis in pheno["hasSamples"][0]["hasSession"][0][
+            "hasDiagnosis"
+        ]
+    ]
+    assert sub_01_diagnoses == ["snomed:49049000", "snomed:724761004"]
+
+
+@pytest.mark.parametrize("sub_idx", [1, 2])
+def test_multicolumn_diagnosis_annot_with_healthy_control_is_handled(
+    runner, test_data, tmp_path, load_test_json, sub_idx
+):
+    """
+    Test that when there are multiple columns about diagnosis and a subject has a healthy control status in one column,
+    the healthy control status is used and any other diagnoses are ignored.
+    """
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example19.tsv",
+            "--dictionary",
+            test_data / "example19.json",
+            "--name",
+            "Multi-column annotation dataset",
+            "--output",
+            tmp_path / "example_synthetic.jsonld",
+        ],
+    )
+
+    pheno = load_test_json(tmp_path / "example_synthetic.jsonld")
+    sub_with_healthy_control_annotation = pheno["hasSamples"][sub_idx][
+        "hasSession"
+    ][0]
+
+    assert "hasDiagnosis" not in sub_with_healthy_control_annotation.keys()
+    assert (
+        sub_with_healthy_control_annotation["isSubjectGroup"]["identifier"]
+        == "ncit:C94342"
+    )

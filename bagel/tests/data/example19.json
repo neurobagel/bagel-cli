@@ -61,6 +61,10 @@
         "SPD": {
           "TermURL": "snomed:724761004",
           "Label": "Sporadic Parkinson disease"
+        },
+        "AD": {
+          "TermURL": "snomed:26929004",
+          "Label": "Alzheimer's disease"
         }
       },
       "MissingValues": [""]

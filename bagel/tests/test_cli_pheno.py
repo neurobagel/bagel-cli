@@ -189,6 +189,38 @@ def test_invalid_portal_uris_produces_error(
     )
 
 
+def test_multiple_age_or_sex_columns_raises_warning(
+    runner,
+    test_data,
+    default_pheno_output_path,
+):
+    """Test that an informative warning is raised when multiple columns in the phenotypic file have been annotated as being about age or sex."""
+    with pytest.warns(UserWarning) as w:
+        runner.invoke(
+            bagel,
+            [
+                "pheno",
+                "--pheno",
+                test_data / "example20.tsv",
+                "--dictionary",
+                test_data / "example20.json",
+                "--output",
+                default_pheno_output_path,
+                "--name",
+                "Multiple age/sex columns dataset",
+            ],
+            catch_exceptions=False,
+        )
+
+    assert len(w) == 2
+    warnings = [warning.message.args[0] for warning in w]
+    for warn_substring in [
+        "more than one column about age",
+        "more than one column about sex",
+    ]:
+        assert [any(warn_substring in warning_str for warning_str in warnings)]
+
+
 def test_missing_bids_levels_raises_warning(
     runner,
     test_data,
@@ -715,7 +747,7 @@ def test_pheno_sessions_have_correct_labels(
 def test_pheno_session_created_for_missing_session_column(
     runner,
     test_data,
-    tmp_path,
+    default_pheno_output_path,
     load_test_json,
 ):
     """
@@ -733,11 +765,11 @@ def test_pheno_session_created_for_missing_session_column(
             "--name",
             "Missing session column dataset",
             "--output",
-            tmp_path / "example_synthetic.jsonld",
+            default_pheno_output_path,
         ],
     )
 
-    pheno = load_test_json(tmp_path / "example_synthetic.jsonld")
+    pheno = load_test_json(default_pheno_output_path)
     for sub in pheno["hasSamples"]:
         assert 1 == len(sub["hasSession"])
         assert sub["hasSession"][0]["schemaKey"] == "PhenotypicSession"
@@ -747,7 +779,7 @@ def test_pheno_session_created_for_missing_session_column(
 def test_multicolumn_diagnosis_annot_is_handled(
     runner,
     test_data,
-    tmp_path,
+    default_pheno_output_path,
     load_test_json,
 ):
     """Test that when a subject has a non-healthy control diagnosis across multiple columns, they are all correctly parsed and stored as part of the subject's data."""
@@ -762,11 +794,11 @@ def test_multicolumn_diagnosis_annot_is_handled(
             "--name",
             "Multi-column annotation dataset",
             "--output",
-            tmp_path / "example_synthetic.jsonld",
+            default_pheno_output_path,
         ],
     )
 
-    pheno = load_test_json(tmp_path / "example_synthetic.jsonld")
+    pheno = load_test_json(default_pheno_output_path)
     # Check the subject with only disease diagnoses
     sub_01_diagnoses = [
         diagnosis["identifier"]
@@ -779,7 +811,7 @@ def test_multicolumn_diagnosis_annot_is_handled(
 
 @pytest.mark.parametrize("sub_idx", [1, 2])
 def test_multicolumn_diagnosis_annot_with_healthy_control_is_handled(
-    runner, test_data, tmp_path, load_test_json, sub_idx
+    runner, test_data, default_pheno_output_path, load_test_json, sub_idx
 ):
     """
     Test that when there are multiple columns about diagnosis and a subject has a healthy control status in one column,
@@ -796,11 +828,11 @@ def test_multicolumn_diagnosis_annot_with_healthy_control_is_handled(
             "--name",
             "Multi-column annotation dataset",
             "--output",
-            tmp_path / "example_synthetic.jsonld",
+            default_pheno_output_path,
         ],
     )
 
-    pheno = load_test_json(tmp_path / "example_synthetic.jsonld")
+    pheno = load_test_json(default_pheno_output_path)
     sub_with_healthy_control_annotation = pheno["hasSamples"][sub_idx][
         "hasSession"
     ][0]

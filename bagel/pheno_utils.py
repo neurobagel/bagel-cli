@@ -395,6 +395,24 @@ def validate_data_dict(data_dict: dict) -> None:
             "Please make sure that only one column is annotated for participant and session IDs."
         )
 
+    if (
+        len(get_columns_about(data_dict, concept=mappings.NEUROBAGEL["sex"]))
+        > 1
+    ):
+        warnings.warn(
+            "The provided data dictionary indicates more than one column about sex. "
+            "Neurobagel cannot resolve multiple sex values per subject-session, and so will only consider the first of these columns for sex data."
+        )
+
+    if (
+        len(get_columns_about(data_dict, concept=mappings.NEUROBAGEL["age"]))
+        > 1
+    ):
+        warnings.warn(
+            "The provided data dictionary indicates more than one column about age. "
+            "Neurobagel cannot resolve multiple sex values per subject-session, so will only consider the first of these columns for age data."
+        )
+
     if not categorical_cols_have_bids_levels(data_dict):
         warnings.warn(
             "The data dictionary contains at least one column that looks categorical but lacks a BIDS 'Levels' attribute."

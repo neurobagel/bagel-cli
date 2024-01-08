@@ -98,7 +98,7 @@ def generate_context():
 
 def get_columns_about(data_dict: dict, concept: str) -> list:
     """
-    Returns column names that have been annotated as "IsAbout" the desired concept.
+    Returns all column names that have been annotated as "IsAbout" the desired concept.
     Parameters
     ----------
     data_dict: dict
@@ -120,7 +120,12 @@ def get_columns_about(data_dict: dict, concept: str) -> list:
     ]
 
 
-def get_annotated_columns(data_dict: dict) -> list:
+def get_annotated_columns(data_dict: dict) -> list(tuple[str, dict]):
+    """
+    Return a list of all columns that have Neurobagel 'Annotations' in a data dictionary,
+    where each column is represented as a tuple of the column name (dictionary key from the data dictionary) and
+    properties (all dictionary contents from the data dictionary).
+    """
     return [
         (col, content)
         for col, content in data_dict.items()
@@ -130,8 +135,10 @@ def get_annotated_columns(data_dict: dict) -> list:
 
 def map_categories_to_columns(data_dict: dict) -> dict:
     """
-    Maps all pre-defined Neurobagel categories (e.g. "Sex") to a list of column names (if any) that
+    Maps all pre-defined Neurobagel categories (e.g. "Sex") to a list containing all column names (if any) that
     have been linked to this category.
+
+    Returns a dictionary where the keys are the Neurobagel categories and the values are lists of column names.
     """
     return {
         cat_name: get_columns_about(data_dict, cat_iri)
@@ -144,6 +151,8 @@ def map_tools_to_columns(data_dict: dict) -> dict:
     """
     Return a mapping of all assessment tools described in the data dictionary to the columns that
     are mapped to it.
+
+    Returns a dictionary where the keys are the assessment tool IRIs and the values are lists of column names.
     """
     out_dict = defaultdict(list)
     for col, content in get_annotated_columns(data_dict):
@@ -212,31 +221,23 @@ def transform_age(value: str, heuristic: str) -> float:
 
 def get_transformed_values(
     columns: list, row: pd.Series, data_dict: dict
-) -> Union[str, None]:
-    """Convert a raw phenotypic value to the corresponding controlled term"""
-    transf_val = []
-    # TODO: Currently, this function accepts a list of columns + populates a list of transformed values because multiple columns should in theory
-    # be able to be annotated as being about a single Neurobagel concept/variable. However, we don't yet have a proper way to support multiple transformed values
-    # so this function returns just a single value or None.
-    # In future, we need to implement a way to handle cases where more than one column contains information.
-    for col in columns[:1]:
+) -> list:
+    """Convert a list of raw phenotypic values to the corresponding controlled terms, from columns that have not been annotated as being about an assessment tool."""
+    transf_vals = []
+    for col in columns:
         value = row[col]
         if is_missing_value(value, col, data_dict):
             continue
         if is_column_categorical(col, data_dict):
-            transf_val.append(map_cat_val_to_term(value, col, data_dict))
+            transf_vals.append(map_cat_val_to_term(value, col, data_dict))
         else:
             # TODO: replace with more flexible solution when we have more
             # continuous variables than just age
-            transf_val.append(
+            transf_vals.append(
                 transform_age(str(value), get_age_heuristic(col, data_dict))
             )
 
-    # TODO: once we can handle multiple columns, this section should be removed
-    # and we should just return an empty list if no transform can be generated
-    if not transf_val:
-        return None
-    return transf_val[0]
+    return transf_vals
 
 
 # TODO: Check all columns and then return list of offending columns' names
@@ -392,6 +393,24 @@ def validate_data_dict(data_dict: dict) -> None:
         raise ValueError(
             "The provided data dictionary has more than one column about participant ID or session ID. "
             "Please make sure that only one column is annotated for participant and session IDs."
+        )
+
+    if (
+        len(get_columns_about(data_dict, concept=mappings.NEUROBAGEL["sex"]))
+        > 1
+    ):
+        warnings.warn(
+            "The provided data dictionary indicates more than one column about sex. "
+            "Neurobagel cannot resolve multiple sex values per subject-session, and so will only consider the first of these columns for sex data."
+        )
+
+    if (
+        len(get_columns_about(data_dict, concept=mappings.NEUROBAGEL["age"]))
+        > 1
+    ):
+        warnings.warn(
+            "The provided data dictionary indicates more than one column about age. "
+            "Neurobagel cannot resolve multiple sex values per subject-session, so will only consider the first of these columns for age data."
         )
 
     if not categorical_cols_have_bids_levels(data_dict):

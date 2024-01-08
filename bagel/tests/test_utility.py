@@ -145,13 +145,26 @@ def test_map_tools_to_columns(test_data, load_test_json, tool, columns):
     assert result[tool] == columns
 
 
-def test_get_transformed_categorical_value(test_data, load_test_json):
-    """Test that the correct transformed value is returned for a categorical variable"""
-    data_dict = load_test_json(test_data / "example2.json")
-    pheno = pd.read_csv(test_data / "example2.tsv", sep="\t")
+@pytest.mark.parametrize(
+    "example, column_list, expected_values",
+    [
+        ("example2", ["sex"], ["snomed:248153007"]),
+        (
+            "example19",
+            ["group", "diagnosis"],
+            ["snomed:49049000", "snomed:724761004"],
+        ),
+    ],
+)
+def test_get_transformed_categorical_values(
+    test_data, load_test_json, example, column_list, expected_values
+):
+    """Test that the correct transformed values are returned for a categorical variable"""
+    data_dict = load_test_json(test_data / f"{example}.json")
+    pheno = pd.read_csv(test_data / f"{example}.tsv", sep="\t")
 
-    assert "snomed:248153007" == putil.get_transformed_values(
-        columns=["sex"],
+    assert expected_values == putil.get_transformed_values(
+        columns=column_list,
         row=pheno.iloc[0],
         data_dict=data_dict,
     )

@@ -1,3 +1,24 @@
+# v0.2.1 (Mon Jan 08 2024)
+
+#### 🐛 Bug Fix
+
+- [FIX] Use different reviewer token in release.yaml [#268](https://github.com/neurobagel/bagel-cli/pull/268) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Handle multi-column attribute annotations [#264](https://github.com/neurobagel/bagel-cli/pull/264) ([@alyssadai](https://github.com/alyssadai))
+- Bump bids-examples from `1a000d6` to `eff47f1` [#265](https://github.com/neurobagel/bagel-cli/pull/265) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- [CI] Allow auto to push on protected branch [#261](https://github.com/neurobagel/bagel-cli/pull/261) ([@alyssadai](https://github.com/alyssadai))
+- Bump bids-examples from `b6e5234` to `1a000d6` [#256](https://github.com/neurobagel/bagel-cli/pull/256) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- [CI] Switch to parallel build config for coveralls [#263](https://github.com/neurobagel/bagel-cli/pull/263) ([@alyssadai](https://github.com/alyssadai))
+- [MODEL] Handle phenotypic inputs with no session column in the TSV [#260](https://github.com/neurobagel/bagel-cli/pull/260) ([@alyssadai](https://github.com/alyssadai))
+- [MNT] Stop pre-commit from pushing to PR branches [#253](https://github.com/neurobagel/bagel-cli/pull/253) ([@surchs](https://github.com/surchs))
+
+#### Authors: 3
+
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
 # v0.2.0 (Thu Dec 14 2023)
 
 #### 🚀 Enhancement

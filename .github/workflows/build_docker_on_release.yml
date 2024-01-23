@@ -27,4 +27,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/bagelcli:stable, ${{ secrets.DOCKERHUB_USERNAME }}/bagelcli:${{ github.event.release.tag_name }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/bagelcli:latest, ${{ secrets.DOCKERHUB_USERNAME }}/bagelcli:${{ github.event.release.tag_name }}

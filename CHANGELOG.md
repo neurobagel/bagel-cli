@@ -1,3 +1,24 @@
+# v0.2.2 (Thu Apr 11 2024)
+
+### Release Notes
+
+#### [MNT] Release the CLI ([#291](https://github.com/neurobagel/bagel-cli/pull/291))
+
+We have updated the Neurobagel data model to allow users to specify phenotypic information at the session level (https://github.com/neurobagel/planning/issues/83). This release updates the CLI so you can create `.jsonld` files according to the new data model.
+
+---
+
+#### 🚀 Enhancements
+
+- [MNT] Release the CLI [#291](https://github.com/neurobagel/bagel-cli/pull/291) ([@alyssadai](https://github.com/alyssadai) [@surchs](https://github.com/surchs))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
 # v0.2.1 (Mon Jan 08 2024)
 
 #### 🐛 Bug Fix

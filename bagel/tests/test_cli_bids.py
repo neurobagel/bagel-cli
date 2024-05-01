@@ -104,7 +104,6 @@ def test_bids_data_with_sessions_have_correct_paths(
             for ses in sub["hasSession"]
             if ses["schemaKey"] == "imaging_session"
         ]:
-
             assert sub["hasLabel"] in imaging_session["hasFilePath"]
             assert (
                 imaging_session["hasLabel"] in imaging_session["hasFilePath"]

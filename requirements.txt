@@ -53,7 +53,7 @@ pandas==2.0.3
     #   pybids
 pybids==0.16.3
     # via bagel (setup.py)
-pydantic==1.10.12
+pydantic==1.10.13
     # via bagel (setup.py)
 pygments==2.16.1
     # via rich

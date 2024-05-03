@@ -101,7 +101,7 @@ pybids==0.16.3
     # via bagel (setup.py)
 pycodestyle==2.11.0
     # via flake8
-pydantic==1.10.12
+pydantic==1.10.13
     # via bagel (setup.py)
 pyflakes==3.1.0
     # via flake8

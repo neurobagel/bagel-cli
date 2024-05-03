@@ -16,7 +16,7 @@ repos:
       - id: flake8
         language_version: python3
         args:
-          - --extend-ignore=E501
+          - --extend-ignore=E501,E203
           - --extend-select=B950
           - --per-file-ignores=./bagelbids/cli.py:F841
 

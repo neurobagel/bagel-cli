@@ -97,7 +97,9 @@ def pheno(
     session_column = column_mapping.get("session")
 
     for participant in pheno_df[participants].unique():
-        _sub_pheno = pheno_df.query(f"{participants} == '{str(participant)}'")
+        _sub_pheno = pheno_df.query(
+            f"`{participants}` == '{str(participant)}'"
+        )
 
         sessions = []
         for session_row_idx, session_row in _sub_pheno.iterrows():

@@ -379,6 +379,10 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
             ["sub-cbm001", "sub-cbm002", "sub-cbm003"],
             pytest.raises(LookupError),
         ),
+        (
+            ["sub-pd123", "sub-pd234"],
+            pytest.raises(LookupError),
+        ),
     ],
 )
 def test_check_unique_bids_subjects_err(bids_list, expectation):

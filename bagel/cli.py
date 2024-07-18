@@ -16,7 +16,9 @@ bagel = typer.Typer(
     The 'pheno' command must always be run first to generate the input .jsonld file required for the 'bids' command.
 
     To view the arguments for a specific command, run: bagel [COMMAND] --help
-    """
+    """,
+    # From https://github.com/tiangolo/typer/issues/201#issuecomment-744151303
+    context_settings={"help_option_names": ["--help", "-h"]},
 )
 
 

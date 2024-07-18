@@ -12,10 +12,13 @@ from bagel.utility import check_overwrite, load_json
 
 bagel = typer.Typer(
     help="""
-    A command-line tool for creating valid, subject-level instances of the Neurobagel graph data model.
+    A command-line tool for creating valid, subject-level instances of the Neurobagel graph data model.\n
+    The 'pheno' command must always be run first to generate the input .jsonld file required for the 'bids' command.
 
     To view the arguments for a specific command, run: bagel [COMMAND] --help
-    """
+    """,
+    # From https://github.com/tiangolo/typer/issues/201#issuecomment-744151303
+    context_settings={"help_option_names": ["--help", "-h"]},
 )
 
 
@@ -23,6 +26,8 @@ bagel = typer.Typer(
 def pheno(
     pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
         ...,
+        "--pheno",
+        "-t",  # for tabular
         help="The path to a phenotypic .tsv file",
         exists=True,
         file_okay=True,
@@ -31,6 +36,8 @@ def pheno(
     ),
     dictionary: Path = typer.Option(
         ...,
+        "--dictionary",
+        "-d",
         help="The path to the .json data dictionary corresponding to the phenotypic .tsv file.",
         exists=True,
         file_okay=True,
@@ -39,17 +46,23 @@ def pheno(
     ),
     name: str = typer.Option(
         ...,
+        "--name",
+        "-n",
         help="A descriptive name for the dataset the input belongs to. "
         "This name is expected to match the name field in the BIDS dataset_description.json file. "
         'Should be enclosed in quotes, e.g.: --name "my dataset name"',
     ),
     portal: str = typer.Option(
-        default=None,
+        None,
+        "--portal",
+        "-u",  # for URL
         callback=putil.validate_portal_uri,
         help="URL (HTTP/HTTPS) to a website or page that describes the dataset and access instructions (if available).",
     ),
     output: Path = typer.Option(
-        default="pheno.jsonld",
+        "pheno.jsonld",
+        "--output",
+        "-o",
         help="The path for the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
@@ -58,6 +71,7 @@ def pheno(
     overwrite: bool = typer.Option(
         False,
         "--overwrite",
+        "-f",
         help="Overwrite output file if it already exists.",
     ),
 ):
@@ -185,7 +199,9 @@ def pheno(
 def bids(
     jsonld_path: Path = typer.Option(
         ...,
-        help="The path to a pheno.jsonld file.",
+        "--jsonld-path",
+        "-p",  # for pheno
+        help="The path to the .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command.",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -193,6 +209,8 @@ def bids(
     ),
     bids_dir: Path = typer.Option(
         ...,
+        "--bids-dir",
+        "-b",
         help="The path to the corresponding BIDS dataset directory.",
         exists=True,
         file_okay=False,
@@ -200,8 +218,10 @@ def bids(
         resolve_path=True,
     ),
     output: Path = typer.Option(
+        "pheno_bids.jsonld",
+        "--output",
+        "-o",
         help="The path for the output .jsonld file.",
-        default="pheno_bids.jsonld",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
@@ -209,13 +229,14 @@ def bids(
     overwrite: bool = typer.Option(
         False,
         "--overwrite",
+        "-f",
         help="Overwrite output file if it already exists.",
     ),
 ):
     """
     Extract imaging metadata from a valid BIDS dataset and combine them
-    with phenotypic metadata (.jsonld) created in a previous step using the
-    bagel pheno command.
+    with phenotypic metadata (.jsonld) created by the bagel pheno command.
+    NOTE: Must be run AFTER the pheno command.
 
     This command will create a valid, subject-level instance of the Neurobagel
     graph data model for the combined metadata in the .jsonld format.

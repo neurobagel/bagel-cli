@@ -24,6 +24,8 @@ bagel = typer.Typer(
 def pheno(
     pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
         ...,
+        "--pheno",
+        "-t",  # for tabular
         help="The path to a phenotypic .tsv file",
         exists=True,
         file_okay=True,
@@ -32,6 +34,8 @@ def pheno(
     ),
     dictionary: Path = typer.Option(
         ...,
+        "--dictionary",
+        "-d",
         help="The path to the .json data dictionary corresponding to the phenotypic .tsv file.",
         exists=True,
         file_okay=True,
@@ -40,17 +44,23 @@ def pheno(
     ),
     name: str = typer.Option(
         ...,
+        "--name",
+        "-n",
         help="A descriptive name for the dataset the input belongs to. "
         "This name is expected to match the name field in the BIDS dataset_description.json file. "
         'Should be enclosed in quotes, e.g.: --name "my dataset name"',
     ),
     portal: str = typer.Option(
-        default=None,
+        None,
+        "--portal",
+        "-u",  # for URL
         callback=putil.validate_portal_uri,
         help="URL (HTTP/HTTPS) to a website or page that describes the dataset and access instructions (if available).",
     ),
     output: Path = typer.Option(
-        default="pheno.jsonld",
+        "pheno.jsonld",
+        "--output",
+        "-o",
         help="The path for the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
@@ -59,6 +69,7 @@ def pheno(
     overwrite: bool = typer.Option(
         False,
         "--overwrite",
+        "-f",
         help="Overwrite output file if it already exists.",
     ),
 ):
@@ -186,6 +197,8 @@ def pheno(
 def bids(
     jsonld_path: Path = typer.Option(
         ...,
+        "--jsonld-path",
+        "-p",  # for pheno
         help="The path to the .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command.",
         exists=True,
         file_okay=True,
@@ -194,6 +207,8 @@ def bids(
     ),
     bids_dir: Path = typer.Option(
         ...,
+        "--bids-dir",
+        "-b",
         help="The path to the corresponding BIDS dataset directory.",
         exists=True,
         file_okay=False,
@@ -201,8 +216,10 @@ def bids(
         resolve_path=True,
     ),
     output: Path = typer.Option(
+        "pheno_bids.jsonld",
+        "--output",
+        "-o",
         help="The path for the output .jsonld file.",
-        default="pheno_bids.jsonld",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
@@ -210,6 +227,7 @@ def bids(
     overwrite: bool = typer.Option(
         False,
         "--overwrite",
+        "-f",
         help="Overwrite output file if it already exists.",
     ),
 ):

@@ -12,7 +12,8 @@ from bagel.utility import check_overwrite, load_json
 
 bagel = typer.Typer(
     help="""
-    A command-line tool for creating valid, subject-level instances of the Neurobagel graph data model.
+    A command-line tool for creating valid, subject-level instances of the Neurobagel graph data model.\n
+    The 'pheno' command must always be run first to generate the input .jsonld file required for the 'bids' command.
 
     To view the arguments for a specific command, run: bagel [COMMAND] --help
     """
@@ -185,7 +186,7 @@ def pheno(
 def bids(
     jsonld_path: Path = typer.Option(
         ...,
-        help="The path to a pheno.jsonld file.",
+        help="The path to the .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command.",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -214,8 +215,8 @@ def bids(
 ):
     """
     Extract imaging metadata from a valid BIDS dataset and combine them
-    with phenotypic metadata (.jsonld) created in a previous step using the
-    bagel pheno command.
+    with phenotypic metadata (.jsonld) created by the bagel pheno command.
+    NOTE: Must be run AFTER the pheno command.
 
     This command will create a valid, subject-level instance of the Neurobagel
     graph data model for the combined metadata in the .jsonld format.

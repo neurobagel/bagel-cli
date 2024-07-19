@@ -33,4 +33,4 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           # GH_TOKEN: ${{ secrets.NB_PAT_RELEASE }}
-          PROTECTED_BRANCH_REVIEWER_TOKEN: ${{ secrets.NB_PAT_RELEASE_PROTECTED }}
+          # PROTECTED_BRANCH_REVIEWER_TOKEN: ${{ secrets.NB_PAT_RELEASE_PROTECTED }}

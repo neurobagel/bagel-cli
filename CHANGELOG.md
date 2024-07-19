@@ -1,3 +1,33 @@
+# v0.2.2 (Fri Jul 19 2024)
+
+### Release Notes
+
+#### [MNT] Release the CLI ([#291](https://github.com/neurobagel/bagel-cli/pull/291))
+
+We have updated the Neurobagel data model to allow users to specify phenotypic information at the session level (https://github.com/neurobagel/planning/issues/83). This release updates the CLI so you can create `.jsonld` files according to the new data model.
+
+---
+
+#### 🚀 Enhancements
+
+- [ENH] Update help text and add short CLI options [#316](https://github.com/neurobagel/bagel-cli/pull/316) ([@alyssadai](https://github.com/alyssadai))
+- [MNT] Release the CLI [#291](https://github.com/neurobagel/bagel-cli/pull/291) ([@alyssadai](https://github.com/alyssadai) [@surchs](https://github.com/surchs))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Handle dashes (/any chars that are not python variable valid) in column names [#313](https://github.com/neurobagel/bagel-cli/pull/313) ([@alyssadai](https://github.com/alyssadai))
+
+#### 📝 Documentation
+
+- [DOC] Note case sensitivity of subject IDs in `bids` IDs check error [#317](https://github.com/neurobagel/bagel-cli/pull/317) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
 # v0.2.2 (Thu Apr 11 2024)
 
 ### Release Notes

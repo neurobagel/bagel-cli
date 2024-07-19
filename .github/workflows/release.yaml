@@ -21,8 +21,25 @@ jobs:
           wget -O- "$auto_download_url" | gunzip > ~/auto
           chmod a+x ~/auto
 
+      # Workaround to avoid PRs for CHANGELOG updates
+      # Adapted from https://github.com/intuit/auto/issues/1491#issuecomment-1610120918
+      - name: Temporarily allow force pushes
+        uses: benjefferies/branch-protection-bot@master
+        if: always()
+        with:
+          access_token: ${{ secrets.NB_PAT_RELEASE_PROTECTED }}
+          branch: ${{ github.event.repository.default_branch }}
+
       - name: Release
         run: ~/auto shipit -vv
         env:
-          GH_TOKEN: ${{ secrets.NB_PAT_RELEASE }}
-          PROTECTED_BRANCH_REVIEWER_TOKEN: ${{ secrets.NB_PAT_RELEASE_PROTECTED }}
+          GH_TOKEN: ${{ secrets.NB_PAT_RELEASE_PROTECTED }}
+          # GH_TOKEN: ${{ secrets.NB_PAT_RELEASE }}
+          # PROTECTED_BRANCH_REVIEWER_TOKEN: ${{ secrets.NB_PAT_RELEASE_PROTECTED }}
+
+      - name: Disable allow force pushes
+        uses: benjefferies/branch-protection-bot@master
+        if: always()
+        with:
+          access_token: ${{ secrets.NB_PAT_RELEASE_PROTECTED }}
+          branch: ${{ github.event.repository.default_branch }}

@@ -21,9 +21,16 @@ jobs:
           wget -O- "$auto_download_url" | gunzip > ~/auto
           chmod a+x ~/auto
 
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.NB_CHEF_BOT_ID }}
+          private-key: ${{ secrets.NB_CHEF_BOT_KEY }}
+
       - name: Release
         run: ~/auto shipit -vv
         env:
-          GH_TOKEN: ${{ secrets.NB_RELEASE_CLASSIC_PAT }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           # GH_TOKEN: ${{ secrets.NB_PAT_RELEASE }}
           PROTECTED_BRANCH_REVIEWER_TOKEN: ${{ secrets.NB_PAT_RELEASE_PROTECTED }}

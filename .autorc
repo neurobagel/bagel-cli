@@ -2,7 +2,7 @@
     "onlyPublishWithReleaseLabel": true,
     "noDefaultLabels": true,
     "baseBranch": "main",
-    "author": "Chef Bot <chef@neurobagel.org>",
+    "author": "Alyssa Dai <alyssa.ydai@gmail.com>",
     "noVersionPrefix": false,
     "changelog": {
         "message": "Update CHANGELOG.md [skip ci]"

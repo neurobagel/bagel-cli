@@ -10,12 +10,7 @@
     "plugins": [
         "git-tag",
         "released",
-        [
-            "protected-branch",
-            {
-                "requiredStatusChecks": ["pre-commit.ci - pr"]
-            }
-        ],
+        "protected-branch",
         "first-time-contributor",
         [
             "omit-commits",

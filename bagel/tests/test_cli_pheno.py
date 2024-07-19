@@ -843,3 +843,30 @@ def test_multicolumn_diagnosis_annot_with_healthy_control_is_handled(
         sub_with_healthy_control_annotation["isSubjectGroup"]["identifier"]
         == "ncit:C94342"
     )
+
+
+def test_pheno_command_succeeds_with_short_option_names(
+    runner,
+    test_data,
+    default_pheno_output_path,
+):
+    """Test that the pheno command does not error when invoked with short option names."""
+    example = "example2"
+    result = runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "-t",
+            test_data / f"{example}.tsv",
+            "-d",
+            test_data / f"{example}.json",
+            "-o",
+            default_pheno_output_path,
+            "-n",
+            "Test dataset",
+        ],
+    )
+    assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
+    assert (
+        default_pheno_output_path
+    ).exists(), "The pheno.jsonld output was not created."

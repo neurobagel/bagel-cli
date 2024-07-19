@@ -2,6 +2,35 @@
 
 ### Release Notes
 
+#### [CI] Release the CLI ([#330](https://github.com/neurobagel/bagel-cli/pull/330))
+
+This release introduces short option names for CLI commands and fixes a bug that prevented hyphens in column names from being parsed.
+
+---
+
+#### 🚀 Enhancements
+
+- [CI] Release the CLI [#330](https://github.com/neurobagel/bagel-cli/pull/330) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Update help text and add short CLI options [#316](https://github.com/neurobagel/bagel-cli/pull/316) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Handle dashes (/any chars that are not python variable valid) in column names [#313](https://github.com/neurobagel/bagel-cli/pull/313) ([@alyssadai](https://github.com/alyssadai))
+
+#### 📝 Documentation
+
+- [DOC] Note case sensitivity of subject IDs in `bids` IDs check error [#317](https://github.com/neurobagel/bagel-cli/pull/317) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.2.2 (Fri Jul 19 2024)
+
+### Release Notes
+
 #### [MNT] Release the CLI ([#291](https://github.com/neurobagel/bagel-cli/pull/291))
 
 We have updated the Neurobagel data model to allow users to specify phenotypic information at the session level (https://github.com/neurobagel/planning/issues/83). This release updates the CLI so you can create `.jsonld` files according to the new data model.

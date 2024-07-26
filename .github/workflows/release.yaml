@@ -14,9 +14,9 @@ jobs:
         id: generate-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ vars.NB_CHEF_BOT_ID }}
-          private-key: ${{ secrets.NB_CHEF_BOT_KEY }}
-  
+          app-id: ${{ vars.NB_BOT_ID }}
+          private-key: ${{ secrets.NB_BOT_KEY }}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -33,5 +33,3 @@ jobs:
         run: ~/auto shipit -vv
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
-          # GH_TOKEN: ${{ secrets.NB_PAT_RELEASE }}
-          # PROTECTED_BRANCH_REVIEWER_TOKEN: ${{ secrets.NB_PAT_RELEASE_PROTECTED }}

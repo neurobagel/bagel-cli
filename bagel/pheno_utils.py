@@ -9,10 +9,12 @@ import isodate
 import jsonschema
 import pandas as pd
 import pydantic
+import typer
 from pandas import DataFrame
 from typer import BadParameter
 
 from bagel import dictionary_models, mappings, models
+from bagel import utility as utils
 from bagel.mappings import COGATLAS, NB, NCIT, NIDM, SNOMED
 
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
@@ -42,9 +44,21 @@ def validate_portal_uri(portal: str) -> Optional[str]:
 def load_pheno(input_p: Path) -> pd.DataFrame | None:
     """Load a .tsv pheno file and do some basic validation."""
     if input_p.suffix == ".tsv":
-        pheno_df: DataFrame = pd.read_csv(
-            input_p, sep="\t", keep_default_na=False, dtype=str
-        )
+        try:
+            pheno_df: DataFrame = pd.read_csv(
+                input_p,
+                sep="\t",
+                keep_default_na=False,
+                dtype=str,
+                encoding="utf-8",
+            )
+        except UnicodeDecodeError as e:
+            # TODO: Refactor once https://github.com/neurobagel/bagel-cli/issues/218 is addressed
+            typer.echo(
+                utils.file_encoding_error_message(input_p),
+                err=True,
+            )
+            raise typer.Exit(code=1) from e
 
         if pheno_df.shape[1] > 1:
             return pheno_df

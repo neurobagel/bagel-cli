@@ -1,0 +1,35 @@
+{
+  "participant_id": {
+    "Description": "A participant ID",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:ParticipantID",
+        "Label": "Unique participant identifier"
+      },
+      "Identifies": "participant"
+    }
+  },
+  "session_id": {
+    "Description": "A session ID",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:SessionID",
+        "Label": "Unique session identifier"
+      },
+      "Identifies": "session"
+    }
+  },
+  "âge_des_participants": {
+    "Description": "âge du participant",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Age",
+        "Label": "Chronological age"
+      },
+      "Transformation": {
+        "TermURL": "nb:FromISO8601",
+        "Label": "A period of time defined according to the ISO8601 standard"
+      }
+    }
+  }
+}

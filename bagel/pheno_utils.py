@@ -14,8 +14,8 @@ from pandas import DataFrame
 from typer import BadParameter
 
 from bagel import dictionary_models, mappings, models
-from bagel import utility as utils
 from bagel.mappings import COGATLAS, NB, NCIT, NIDM, SNOMED
+from bagel.utility import file_encoding_error_message
 
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
 
@@ -55,7 +55,7 @@ def load_pheno(input_p: Path) -> pd.DataFrame | None:
         except UnicodeDecodeError as e:
             # TODO: Refactor once https://github.com/neurobagel/bagel-cli/issues/218 is addressed
             typer.echo(
-                utils.file_encoding_error_message(input_p),
+                file_encoding_error_message(input_p),
                 err=True,
             )
             raise typer.Exit(code=1) from e

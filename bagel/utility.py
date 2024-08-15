@@ -26,6 +26,16 @@ def load_json(input_p: Path) -> dict:
             err=True,
         )
         raise typer.Exit(code=1) from e
+    except json.JSONDecodeError as e:
+        typer.echo(
+            typer.style(
+                f"The provided data dictionary {input_p} is not valid JSON. "
+                "Please provide a valid JSON file.",
+                fg=typer.colors.RED,
+            ),
+            err=True,
+        )
+        raise typer.Exit(code=1) from e
 
 
 def check_overwrite(output: Path, overwrite: bool):

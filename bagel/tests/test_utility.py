@@ -62,29 +62,68 @@ def test_all_used_namespaces_have_urls(
         ), f"The namespace '{prefix}' was used in the data dictionary, but was not defined in the @context."
 
 
-def test_schema_invalid_column_raises_error():
-    partial_data_dict = (
-        {
-            "participant_id": {
-                "Description": "A participant ID",
-                "Annotations": {
-                    "IsAbout": {
-                        "TermURL": "nb:ParticipantID",
-                        "Label": "Unique participant identifier",
-                    }
+@pytest.mark.parametrize(
+    "partial_data_dict, invalid_item",
+    [
+        # sex column missing Levels
+        (
+            {
+                "participant_id": {
+                    "Description": "A participant ID",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:ParticipantID",
+                            "Label": "Unique participant identifier",
+                        },
+                        "Identifies": "participant",
+                    },
+                },
+                "sex": {
+                    "Description": "Participant sex",
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "nb:Sex", "Label": ""}
+                    },
                 },
             },
-            "sex": {
-                "Description": "Participant sex",
-                "Annotations": {"IsAbout": {"TermURL": "nb:Sex", "Label": ""}},
+            "sex",
+        ),
+        # age column missing Transformation
+        (
+            {
+                "participant_id": {
+                    "Description": "A participant ID",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:ParticipantID",
+                            "Label": "Unique participant identifier",
+                        },
+                        "Identifies": "participant",
+                    },
+                },
+                "age": {
+                    "Description": "Participant age",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:Age",
+                            "Label": "Chronological age",
+                        }
+                    },
+                },
             },
-        },
-    )
-
+            "age",
+        ),
+    ],
+)
+def test_schema_invalid_column_raises_error(partial_data_dict, invalid_item):
+    """
+    Test that when an input data dictionary contains a schema invalid column annotation,
+    an informative error is raised which includes the name of the offending column.
+    """
     with pytest.raises(ValueError) as e:
         putil.validate_data_dict(partial_data_dict)
 
-    assert "not a valid Neurobagel data dictionary" in str(e.value)
+    for substring in ["not a valid Neurobagel data dictionary", invalid_item]:
+        assert substring in str(e.value)
 
 
 def test_get_columns_that_are_about_concept(test_data, load_test_json):

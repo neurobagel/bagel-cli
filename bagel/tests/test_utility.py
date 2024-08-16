@@ -63,7 +63,7 @@ def test_all_used_namespaces_have_urls(
 
 
 @pytest.mark.parametrize(
-    "partial_data_dict, invalid_item",
+    "partial_data_dict, invalid_column_name",
     [
         # sex column missing Levels
         (
@@ -114,7 +114,9 @@ def test_all_used_namespaces_have_urls(
         ),
     ],
 )
-def test_schema_invalid_column_raises_error(partial_data_dict, invalid_item):
+def test_schema_invalid_column_raises_error(
+    partial_data_dict, invalid_column_name
+):
     """
     Test that when an input data dictionary contains a schema invalid column annotation,
     an informative error is raised which includes the name of the offending column.
@@ -122,7 +124,10 @@ def test_schema_invalid_column_raises_error(partial_data_dict, invalid_item):
     with pytest.raises(ValueError) as e:
         putil.validate_data_dict(partial_data_dict)
 
-    for substring in ["not a valid Neurobagel data dictionary", invalid_item]:
+    for substring in [
+        "not a valid Neurobagel data dictionary",
+        invalid_column_name,
+    ]:
         assert substring in str(e.value)
 
 

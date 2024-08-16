@@ -4,11 +4,13 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+import typer
 from bids import BIDSLayout
 
 import bagel.bids_utils as butil
 import bagel.pheno_utils as putil
 from bagel import mappings
+from bagel.utility import load_json
 
 
 @pytest.fixture
@@ -60,29 +62,73 @@ def test_all_used_namespaces_have_urls(
         ), f"The namespace '{prefix}' was used in the data dictionary, but was not defined in the @context."
 
 
-def test_schema_invalid_column_raises_error():
-    partial_data_dict = (
-        {
-            "participant_id": {
-                "Description": "A participant ID",
-                "Annotations": {
-                    "IsAbout": {
-                        "TermURL": "nb:ParticipantID",
-                        "Label": "Unique participant identifier",
-                    }
+@pytest.mark.parametrize(
+    "partial_data_dict, invalid_column_name",
+    [
+        # sex column missing Levels
+        (
+            {
+                "participant_id": {
+                    "Description": "A participant ID",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:ParticipantID",
+                            "Label": "Unique participant identifier",
+                        },
+                        "Identifies": "participant",
+                    },
+                },
+                "sex": {
+                    "Description": "Participant sex",
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "nb:Sex", "Label": ""}
+                    },
                 },
             },
-            "sex": {
-                "Description": "Participant sex",
-                "Annotations": {"IsAbout": {"TermURL": "nb:Sex", "Label": ""}},
+            "sex",
+        ),
+        # age column missing Transformation
+        (
+            {
+                "participant_id": {
+                    "Description": "A participant ID",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:ParticipantID",
+                            "Label": "Unique participant identifier",
+                        },
+                        "Identifies": "participant",
+                    },
+                },
+                "age": {
+                    "Description": "Participant age",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:Age",
+                            "Label": "Chronological age",
+                        }
+                    },
+                },
             },
-        },
-    )
-
+            "age",
+        ),
+    ],
+)
+def test_schema_invalid_column_raises_error(
+    partial_data_dict, invalid_column_name
+):
+    """
+    Test that when an input data dictionary contains a schema invalid column annotation,
+    an informative error is raised which includes the name of the offending column.
+    """
     with pytest.raises(ValueError) as e:
         putil.validate_data_dict(partial_data_dict)
 
-    assert "not a valid Neurobagel data dictionary" in str(e.value)
+    for substring in [
+        "not a valid Neurobagel data dictionary",
+        invalid_column_name,
+    ]:
+        assert substring in str(e.value)
 
 
 def test_get_columns_that_are_about_concept(test_data, load_test_json):
@@ -474,3 +520,30 @@ def test_get_session_path_when_session_missing(bids_sub_id):
     assert session_path.endswith(f"sub-{bids_sub_id}")
     assert Path(session_path).is_absolute()
     assert Path(session_path).is_dir()
+
+
+@pytest.mark.parametrize(
+    "unreadable_json,expected_message",
+    [
+        ("example_iso88591.json", "Failed to decode the input file"),
+        ("example_invalid_json.json", "not valid JSON"),
+    ],
+)
+def test_failed_json_reading_raises_informative_error(
+    test_data, unreadable_json, expected_message, capsys
+):
+    """Test that when there is an issue reading an input JSON file, the CLI exits with an informative error message."""
+    with pytest.raises(typer.Exit):
+        load_json(test_data / unreadable_json)
+    captured = capsys.readouterr()
+
+    assert expected_message in captured.err
+
+
+def test_unsupported_tsv_encoding_raises_informative_error(test_data, capsys):
+    """Test that given an input phenotypic TSV with an unsupported encoding, the CLI exits with an informative error message."""
+    with pytest.raises(typer.Exit):
+        putil.load_pheno(test_data / "example_iso88591.tsv")
+    captured = capsys.readouterr()
+
+    assert "Failed to decode the input file" in captured.err

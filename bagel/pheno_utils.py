@@ -9,11 +9,13 @@ import isodate
 import jsonschema
 import pandas as pd
 import pydantic
+import typer
 from pandas import DataFrame
 from typer import BadParameter
 
 from bagel import dictionary_models, mappings, models
 from bagel.mappings import COGATLAS, NB, NCIT, NIDM, SNOMED
+from bagel.utility import file_encoding_error_message
 
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
 
@@ -42,9 +44,21 @@ def validate_portal_uri(portal: str) -> Optional[str]:
 def load_pheno(input_p: Path) -> pd.DataFrame | None:
     """Load a .tsv pheno file and do some basic validation."""
     if input_p.suffix == ".tsv":
-        pheno_df: DataFrame = pd.read_csv(
-            input_p, sep="\t", keep_default_na=False, dtype=str
-        )
+        try:
+            pheno_df: DataFrame = pd.read_csv(
+                input_p,
+                sep="\t",
+                keep_default_na=False,
+                dtype=str,
+                encoding="utf-8",
+            )
+        except UnicodeDecodeError as e:
+            # TODO: Refactor once https://github.com/neurobagel/bagel-cli/issues/218 is addressed
+            typer.echo(
+                file_encoding_error_message(input_p),
+                err=True,
+            )
+            raise typer.Exit(code=1) from e
 
         if pheno_df.shape[1] > 1:
             return pheno_df
@@ -352,9 +366,21 @@ def validate_data_dict(data_dict: dict) -> None:
     try:
         jsonschema.validate(data_dict, DICTIONARY_SCHEMA)
     except jsonschema.ValidationError as e:
+        # TODO: When *every* item in an input JSON is not schema valid,
+        # jsonschema.validate will raise a ValidationError for only *one* item among them.
+        # Weirdly, the item that is chosen can vary, possibly due to jsonschema internally processing/validating
+        # items in an inconsistent order.
+        # You can reproduce this by running `bagel pheno` on the example_invalid input pair.
+        # This isn't necessarily a problem as the error will not be wrong, but if we care about
+        # returning ALL invalid items, we may want to use something like a Draft7Validator instance instead.
+        # NOTE: If the validation error occurs at the root level (i.e., the entire JSON object fails),
+        # e.path may be empty. We have a backup descriptor "Entire document" for the offending item in this case.
         raise ValueError(
-            "The provided data dictionary is not a valid Neurobagel data dictionary. "
-            "Make sure that each annotated column contains an 'Annotations' key."
+            "The provided data dictionary is not a valid Neurobagel data dictionary.\n"
+            "Details:\n"
+            f"Entry that failed validation: {e.path[-1] if e.path else 'Entire document'}\n"
+            f"{e.message}\n"
+            "Tip: Make sure that each annotated column contains an 'Annotations' key."
         ) from e
 
     if get_annotated_columns(data_dict) == []:

@@ -75,7 +75,7 @@ class PhenotypicSession(Session):
 class ImagingSession(Session):
     hasFilePath: Optional[str] = None
     hasAcquisition: List[Acquisition]
-    hasCompletedPipelines: List[CompletedPipeline]
+    hasCompletedPipelines: Optional[List[CompletedPipeline]] = None
     schemaKey = "ImagingSession"
 
 

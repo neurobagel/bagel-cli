@@ -49,6 +49,16 @@ class Acquisition(Bagel):
     schemaKey: Literal["Acquisition"] = "Acquisition"
 
 
+class Pipeline(ControlledTerm):
+    schemaKey = "Pipeline"
+
+
+class CompletedPipeline(Bagel):
+    hasPipelineVersion: str
+    hasPipelineName: Pipeline
+    schemaKey: Literal["CompletedPipeline"] = "CompletedPipeline"
+
+
 class Session(Bagel):
     hasLabel: str
 
@@ -65,6 +75,7 @@ class PhenotypicSession(Session):
 class ImagingSession(Session):
     hasFilePath: Optional[str] = None
     hasAcquisition: List[Acquisition]
+    hasCompletedPipelines: List[CompletedPipeline]
     schemaKey = "ImagingSession"
 
 

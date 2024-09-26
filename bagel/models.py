@@ -77,7 +77,7 @@ class ImagingSession(Session):
     hasFilePath: Optional[str] = None
     # TODO: change name to hasAcquisitions?
     hasAcquisition: Optional[List[Acquisition]] = None
-    hasCompletedPipelines: Optional[List[CompletedPipeline]] = None
+    hasCompletedPipeline: Optional[List[CompletedPipeline]] = None
     schemaKey = "ImagingSession"
 
 

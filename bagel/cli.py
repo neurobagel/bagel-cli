@@ -389,7 +389,7 @@ def derivatives(
     """
     # Check if output file already exists
     check_overwrite(output, overwrite)
-    status_df = load_tabular(tabular)
+    status_df = load_tabular(tabular, input_type="processing status")
 
     id_column = ["bids_participant"]
     if row_indices := putil.get_rows_with_empty_strings(status_df, id_column):

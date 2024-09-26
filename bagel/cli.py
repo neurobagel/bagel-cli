@@ -335,3 +335,64 @@ def bids(
         f.write(json.dumps(merged_dataset, indent=2))
 
     print(f"Saved output to:  {output}")
+
+
+@bagel.command()
+def derivatives(
+    # TODO: Update help text
+    tabular: Path = typer.Option(
+        ...,
+        "--tabular",
+        "-t",
+        help="The path to a .tsv file containing subject-level processing pipeline tracking info. Expected to comply with the Nipoppy imaging tracker file schema.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    jsonld_path: Path = typer.Option(
+        ...,
+        "--jsonld-path",
+        "-p",  # for pheno
+        help="The path to a .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command. This JSONLD may optionally also include the BIDS metadata for the dataset (created by the bagel bids command).",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    output: Path = typer.Option(
+        "pheno_derivatives.jsonld",
+        "--output",
+        "-o",
+        help="The path for the output .jsonld file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    overwrite: bool = typer.Option(
+        False,
+        "--overwrite",
+        "-f",
+        help="Overwrite output file if it already exists.",
+    ),
+):
+    """
+    Extract subject-level processing pipeline and derivative metadata from a tabular tracking file and
+    integrate them with subjects' harmonized phenotypic data (from the bagel pheno command) and optionally,
+    BIDS metadata (from the bagel bids command) in a single .jsonld.
+    NOTE: Must be run AFTER the pheno command.
+
+    # TODO: Update extended description!
+    This command will create a valid, subject-level instance of the Neurobagel
+    graph data model for the combined metadata in the .jsonld format.
+    You can upload this .jsonld file to the Neurobagel graph.
+    """
+    # Check if output file already exists
+    check_overwrite(output, overwrite)
+
+    # TODO:
+    # - load TSV & confirm it's actually a TSV
+    # - check for no missing participant IDs
+    # - check that pipelines and versions are from allowed set
+
+    pass

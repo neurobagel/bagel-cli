@@ -1,0 +1,9 @@
+participant_id	bids_participant	session_id	pipeline_name	pipeline_version	pipeline_step	status
+1	sub-01	01	pipeline1	0.1.0	step1	FAIL
+1	sub-01	01	pipeline1	0.1.0	step2	INCOMPLETE
+1	sub-01	01	pipeline1	0.2.0	default	SUCCESS
+1	sub-01	01	pipeline2	1.0.0	default	SUCCESS
+1	sub-01	02	pipeline2	1.0.0	default	UNAVAILABLE
+2	sub-02	01	pipeline1	0.2.0	default	SUCCESS
+2	sub-02	01	pipeline2	1.0.0	default	SUCCESS
+2	sub-02	02	pipeline2	1.0.0	default	SUCCESS

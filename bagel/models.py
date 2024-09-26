@@ -75,7 +75,6 @@ class PhenotypicSession(Session):
 class ImagingSession(Session):
     # NOTE: Do imaging session have to have at least one acquisition OR at least one completed pipeline to be valid?
     hasFilePath: Optional[str] = None
-    # TODO: change name to hasAcquisitions?
     hasAcquisition: Optional[List[Acquisition]] = None
     hasCompletedPipeline: Optional[List[CompletedPipeline]] = None
     schemaKey = "ImagingSession"

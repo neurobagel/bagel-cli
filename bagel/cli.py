@@ -389,10 +389,17 @@ def derivatives(
     """
     # Check if output file already exists
     check_overwrite(output, overwrite)
+    status_df = putil.load_pheno(tabular)
+
+    id_column = ["bids_participant"]
+    if row_indices := putil.get_rows_with_empty_strings(status_df, id_column):
+        raise LookupError(
+            f"Your processing status file contains missing values in the column {id_column}. "
+            "Please ensure that every row has a non-empty participant id. "
+            f"We found missing values in the following rows (first row is zero): {row_indices}."
+        )
 
     # TODO:
-    # - load TSV & confirm it's actually a TSV
-    # - check for no missing participant IDs
+    # - load TSV & confirm it's actually a TSV X
+    # - check for no missing participant IDs X
     # - check that pipelines and versions are from allowed set
-
-    pass

@@ -8,7 +8,7 @@ from pydantic import ValidationError
 import bagel.bids_utils as butil
 import bagel.pheno_utils as putil
 from bagel import mappings, models
-from bagel.utility import check_overwrite, load_json
+from bagel.utility import check_overwrite, load_json, load_tabular
 
 bagel = typer.Typer(
     help="""
@@ -88,7 +88,7 @@ def pheno(
     check_overwrite(output, overwrite)
 
     data_dictionary = load_json(dictionary)
-    pheno_df = putil.load_pheno(pheno)
+    pheno_df = load_tabular(pheno)
     putil.validate_inputs(data_dictionary, pheno_df)
 
     # Display validated input paths to user
@@ -389,7 +389,7 @@ def derivatives(
     """
     # Check if output file already exists
     check_overwrite(output, overwrite)
-    status_df = putil.load_pheno(tabular)
+    status_df = load_tabular(tabular)
 
     id_column = ["bids_participant"]
     if row_indices := putil.get_rows_with_empty_strings(status_df, id_column):

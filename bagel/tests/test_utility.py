@@ -10,7 +10,7 @@ from bids import BIDSLayout
 import bagel.bids_utils as butil
 import bagel.pheno_utils as putil
 from bagel import mappings
-from bagel.utility import load_json
+from bagel.utility import load_json, load_tabular
 
 
 @pytest.fixture
@@ -543,7 +543,7 @@ def test_failed_json_reading_raises_informative_error(
 def test_unsupported_tsv_encoding_raises_informative_error(test_data, capsys):
     """Test that given an input phenotypic TSV with an unsupported encoding, the CLI exits with an informative error message."""
     with pytest.raises(typer.Exit):
-        putil.load_pheno(test_data / "example_iso88591.tsv")
+        load_tabular(test_data / "example_iso88591.tsv")
     captured = capsys.readouterr()
 
     assert "Failed to decode the input file" in captured.err

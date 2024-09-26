@@ -49,6 +49,16 @@ class Acquisition(Bagel):
     schemaKey: Literal["Acquisition"] = "Acquisition"
 
 
+class Pipeline(ControlledTerm):
+    schemaKey = "Pipeline"
+
+
+class CompletedPipeline(Bagel):
+    hasPipelineVersion: str
+    hasPipelineName: Pipeline
+    schemaKey: Literal["CompletedPipeline"] = "CompletedPipeline"
+
+
 class Session(Bagel):
     hasLabel: str
 
@@ -63,8 +73,10 @@ class PhenotypicSession(Session):
 
 
 class ImagingSession(Session):
+    # NOTE: Do imaging session have to have at least one acquisition OR at least one completed pipeline to be valid?
     hasFilePath: Optional[str] = None
-    hasAcquisition: List[Acquisition]
+    hasAcquisition: Optional[List[Acquisition]] = None
+    hasCompletedPipeline: Optional[List[CompletedPipeline]] = None
     schemaKey = "ImagingSession"
 
 

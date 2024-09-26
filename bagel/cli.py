@@ -403,3 +403,4 @@ def derivatives(
     # - load TSV & confirm it's actually a TSV X
     # - check for no missing participant IDs X
     # - check that pipelines and versions are from allowed set
+    # - subject IDs match those in the phenotypic JSONLD

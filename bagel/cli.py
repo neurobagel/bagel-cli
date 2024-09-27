@@ -341,12 +341,11 @@ def bids(
 
 @bagel.command()
 def derivatives(
-    # TODO: Update help text
     tabular: Path = typer.Option(
         ...,
         "--tabular",
         "-t",
-        help="The path to a .tsv file containing subject-level processing pipeline tracking info. Expected to comply with the Nipoppy imaging tracker file schema.",
+        help="The path to a .tsv containing subject-level processing pipeline status info. Expected to comply with the Nipoppy processing status file schema.",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -379,9 +378,9 @@ def derivatives(
     ),
 ):
     """
-    Extract subject-level processing pipeline and derivative metadata from a tabular tracking file and
-    integrate them with subjects' harmonized phenotypic data (from the bagel pheno command) and optionally,
-    BIDS metadata (from the bagel bids command) in a single .jsonld.
+    Extract subject processing pipeline and derivative metadata from a tabular processing status file and
+    integrate them in a single .jsonld with subjects' harmonized phenotypic data (from the bagel pheno command) and optionally,
+    BIDS metadata (from the bagel bids command).
     NOTE: Must be run AFTER the pheno command.
 
     # TODO: Update extended description!

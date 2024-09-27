@@ -2,7 +2,7 @@ from typing import Iterable
 
 from bagel import mappings
 
-# Shorthands for expected column names in the processing status file from Nipoppy.
+# Shorthands for expected column names in a Nipoppy processing status file
 PROC_STATUS_COLS = {
     "participant": "bids_participant",
     "session": "bids_session",

@@ -42,6 +42,10 @@ PROCESSING_PIPELINE_PATH = (
 
 
 def get_pipeline_uris() -> dict:
+    """
+    Load files from the pipeline-catalog and return a dictionary of pipeline names
+    and their URIs in the Nipoppy namespace.
+    """
     output_dict = {}
     for pipe_file in PROCESSING_PIPELINE_PATH.glob("*.json"):
         pipe = load_json(pipe_file)
@@ -51,6 +55,10 @@ def get_pipeline_uris() -> dict:
 
 
 def get_pipeline_versions() -> dict:
+    """
+    Load files from the pipeline-catalog and return a dictionary of pipeline names
+    and corresponding supported versions in the Nipoppy namespace.
+    """
     output_dict = {}
     for pipe_file in PROCESSING_PIPELINE_PATH.glob("*.json"):
         pipe = load_json(pipe_file)

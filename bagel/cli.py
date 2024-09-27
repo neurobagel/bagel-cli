@@ -11,8 +11,8 @@ import bagel.pheno_utils as putil
 from bagel import mappings, models
 from bagel.derivatives_utils import PROC_STATUS_COLS
 from bagel.utility import (
+    extract_and_validate_jsonld_dataset,
     get_subjects_missing_from_pheno_data,
-    validate_jsonld_against_model,
 )
 
 bagel = typer.Typer(
@@ -260,10 +260,9 @@ def bids(
     )
 
     jsonld = futil.load_json(jsonld_path)
-    # Strip and store context to be added back later, since it's not part of
-    # (and can't be easily added) to the existing data model
-    context = {"@context": jsonld.pop("@context")}
-    pheno_dataset = validate_jsonld_against_model(jsonld, jsonld_path)
+    context, pheno_dataset = extract_and_validate_jsonld_dataset(
+        jsonld, jsonld_path
+    )
 
     pheno_subject_dict = {
         pheno_subject.hasLabel: pheno_subject
@@ -401,7 +400,6 @@ def derivatives(
     # Check if output file already exists
     futil.check_overwrite(output, overwrite)
 
-    # TODO: Refactor calculation of width for formatting
     space = 51
     print(
         "Running initial checks of inputs...\n"
@@ -435,11 +433,9 @@ def derivatives(
         dutil.check_pipeline_versions_are_recognized(pipeline, versions)
 
     jsonld = futil.load_json(jsonld_path)
-    # TODO: Uncomment once we handle the context
-    jsonld.pop("@context")
-    # context = {"@context": jsonld.pop("@context")}
-
-    jsonld_dataset = validate_jsonld_against_model(jsonld, jsonld_path)
+    context, jsonld_dataset = extract_and_validate_jsonld_dataset(
+        jsonld, jsonld_path
+    )
 
     # TODO: Refactor out
     # Extract subjects from the JSONLD
@@ -462,8 +458,5 @@ def derivatives(
             "Please check that the processing status file corresponds to the dataset in the provided .jsonld."
         )
 
-    # TODO:
-    # - load TSV & confirm it's actually a TSV X
-    # - check for no missing participant IDs X
-    # - check that pipelines and versions are from allowed set X
-    # - subject IDs match those in the phenotypic JSONLD (need a new example) X
+    # TODO: remove
+    print(context)

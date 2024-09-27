@@ -15,10 +15,17 @@ def get_subjects_missing_from_pheno_data(
 
 
 # TODO: Test error message?
-def validate_jsonld_against_model(
+def extract_and_validate_jsonld_dataset(
     jsonld: dict, file_path: Path
-) -> models.Dataset:
-    """Validate dictionary of user-provided JSONLD against the data model for a dataset."""
+) -> tuple[dict, models.Dataset]:
+    """
+    Split out the context from a user-provided JSONLD and validate the remaining contents
+    against the data model for a Neurobagel dataset.
+    """
+    # Strip and store context to be added back later, since it's not part of
+    # (and can't be easily added) to the existing data model
+    context = {"@context": jsonld.pop("@context")}
+
     try:
         jsonld_dataset = models.Dataset.parse_obj(jsonld)
     except ValidationError as err:
@@ -35,4 +42,4 @@ def validate_jsonld_against_model(
         )
         raise typer.Exit(code=1) from err
 
-    return jsonld_dataset
+    return context, jsonld_dataset

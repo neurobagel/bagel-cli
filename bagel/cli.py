@@ -431,6 +431,7 @@ def derivatives(
         versions = status_df[
             status_df[PROC_STATUS_COLS["pipeline_name"]] == pipeline
         ][PROC_STATUS_COLS["pipeline_version"]].unique()
+
         dutil.check_pipeline_versions_are_recognized(pipeline, versions)
 
     jsonld = futil.load_json(jsonld_path)

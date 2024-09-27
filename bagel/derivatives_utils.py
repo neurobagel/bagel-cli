@@ -15,7 +15,7 @@ PROC_STATUS_COLS = {
 def check_pipelines_are_recognized(pipelines: Iterable[str]):
     """Check that all pipelines in the processing status file are supported by Nipoppy."""
     unrecognized_pipelines = list(
-        set(pipelines) - set(mappings.get_pipeline_uris())
+        set(pipelines).difference(mappings.get_pipeline_uris())
     )
     if len(unrecognized_pipelines) > 0:
         raise LookupError(
@@ -34,7 +34,7 @@ def check_pipeline_versions_are_recognized(
     Assumes that the input pipeline name is recognized.
     """
     unrecognized_versions = list(
-        set(versions) - set(mappings.get_pipeline_versions()[pipeline])
+        set(versions).difference(mappings.get_pipeline_versions()[pipeline])
     )
     if len(unrecognized_versions) > 0:
         raise LookupError(

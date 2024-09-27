@@ -8,13 +8,10 @@ from bids import BIDSLayout
 
 import bagel.bids_utils as butil
 import bagel.derivatives_utils as dutils
+import bagel.file_utils as futil
 import bagel.pheno_utils as putil
 from bagel import mappings
-from bagel.utility import (
-    get_subjects_missing_from_pheno_data,
-    load_json,
-    load_tabular,
-)
+from bagel.utility import get_subjects_missing_from_pheno_data
 
 
 @pytest.fixture
@@ -543,7 +540,7 @@ def test_failed_json_reading_raises_informative_error(
 ):
     """Test that when there is an issue reading an input JSON file, the CLI exits with an informative error message."""
     with pytest.raises(typer.Exit):
-        load_json(test_data / unreadable_json)
+        futil.load_json(test_data / unreadable_json)
     captured = capsys.readouterr()
 
     assert expected_message in captured.err
@@ -552,7 +549,7 @@ def test_failed_json_reading_raises_informative_error(
 def test_unsupported_tsv_encoding_raises_informative_error(test_data, capsys):
     """Test that given an input phenotypic TSV with an unsupported encoding, the CLI exits with an informative error message."""
     with pytest.raises(typer.Exit):
-        load_tabular(test_data / "example_iso88591.tsv")
+        futil.load_tabular(test_data / "example_iso88591.tsv")
     captured = capsys.readouterr()
 
     assert "Failed to decode the input file" in captured.err

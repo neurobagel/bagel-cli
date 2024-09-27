@@ -3,18 +3,16 @@ from pathlib import Path
 
 import typer
 from bids import BIDSLayout
-from pydantic import ValidationError
 
 import bagel.bids_utils as butil
 import bagel.derivatives_utils as dutil
+import bagel.file_utils as futil
 import bagel.pheno_utils as putil
 from bagel import mappings, models
 from bagel.derivatives_utils import PROC_STATUS_COLS
 from bagel.utility import (
-    check_overwrite,
     get_subjects_missing_from_pheno_data,
-    load_json,
-    load_tabular,
+    validate_jsonld_against_model,
 )
 
 bagel = typer.Typer(
@@ -92,10 +90,10 @@ def pheno(
     You can upload this .jsonld file to the Neurobagel graph.
     """
     # Check if output file already exists
-    check_overwrite(output, overwrite)
+    futil.check_overwrite(output, overwrite)
 
-    data_dictionary = load_json(dictionary)
-    pheno_df = load_tabular(pheno)
+    data_dictionary = futil.load_json(dictionary)
+    pheno_df = futil.load_tabular(pheno)
     putil.validate_inputs(data_dictionary, pheno_df)
 
     # Display validated input paths to user
@@ -252,7 +250,7 @@ def bids(
     You can upload this .jsonld file to the Neurobagel graph.
     """
     # Check if output file already exists
-    check_overwrite(output, overwrite)
+    futil.check_overwrite(output, overwrite)
 
     space = 32
     print(
@@ -261,14 +259,11 @@ def bids(
         f"   {'BIDS dataset directory:' : <{space}} {bids_dir}"
     )
 
-    jsonld = load_json(jsonld_path)
+    jsonld = futil.load_json(jsonld_path)
     # Strip and store context to be added back later, since it's not part of
     # (and can't be easily added) to the existing data model
     context = {"@context": jsonld.pop("@context")}
-    try:
-        pheno_dataset = models.Dataset.parse_obj(jsonld)
-    except ValidationError as err:
-        print(err)
+    pheno_dataset = validate_jsonld_against_model(jsonld, jsonld_path)
 
     pheno_subject_dict = {
         pheno_subject.hasLabel: pheno_subject
@@ -404,7 +399,7 @@ def derivatives(
     You can upload this .jsonld file to the Neurobagel graph.
     """
     # Check if output file already exists
-    check_overwrite(output, overwrite)
+    futil.check_overwrite(output, overwrite)
 
     # TODO: Refactor calculation of width for formatting
     space = 51
@@ -415,7 +410,7 @@ def derivatives(
     )
 
     # Load and do basic TSV validation of the processing status file
-    status_df = load_tabular(tabular, input_type="processing status")
+    status_df = futil.load_tabular(tabular, input_type="processing status")
 
     # Check for missing participant IDs
     if row_indices := putil.get_rows_with_empty_strings(
@@ -438,16 +433,12 @@ def derivatives(
         ][PROC_STATUS_COLS["pipeline_version"]].unique()
         dutil.check_pipeline_versions_are_recognized(pipeline, versions)
 
-    jsonld = load_json(jsonld_path)
+    jsonld = futil.load_json(jsonld_path)
     # TODO: Uncomment once we handle the context
     jsonld.pop("@context")
     # context = {"@context": jsonld.pop("@context")}
 
-    # TODO: Refactor this out into a utility function
-    try:
-        jsonld_dataset = models.Dataset.parse_obj(jsonld)
-    except ValidationError as err:
-        print(err)
+    jsonld_dataset = validate_jsonld_against_model(jsonld, jsonld_path)
 
     # TODO: Refactor out
     # Extract subjects from the JSONLD

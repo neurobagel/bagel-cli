@@ -10,7 +10,12 @@ import bagel.derivatives_utils as dutil
 import bagel.pheno_utils as putil
 from bagel import mappings, models
 from bagel.derivatives_utils import PROC_STATUS_COLS
-from bagel.utility import check_overwrite, load_json, load_tabular
+from bagel.utility import (
+    check_overwrite,
+    get_subjects_missing_from_pheno_data,
+    load_json,
+    load_tabular,
+)
 
 bagel = typer.Typer(
     help="""
@@ -271,10 +276,19 @@ def bids(
     }
 
     # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
-    butil.check_unique_bids_subjects(
+    unique_bids_subjects = get_subjects_missing_from_pheno_data(
+        subjects=butil.get_bids_subjects_simple(bids_dir),
         pheno_subjects=pheno_subject_dict.keys(),
-        bids_subjects=butil.get_bids_subjects_simple(bids_dir),
     )
+    if len(unique_bids_subjects) > 0:
+        raise LookupError(
+            "The specified BIDS directory contains subject IDs not found in "
+            "the provided phenotypic json-ld file:\n"
+            f"{unique_bids_subjects}\n"
+            "Subject IDs are case sensitive. "
+            "Please check that the specified BIDS and phenotypic datasets match."
+        )
+
     print("Initial checks of inputs passed.\n")
 
     print("Parsing and validating BIDS dataset. This may take a while...")
@@ -419,4 +433,4 @@ def derivatives(
     # - load TSV & confirm it's actually a TSV X
     # - check for no missing participant IDs X
     # - check that pipelines and versions are from allowed set X
-    # - subject IDs match those in the phenotypic JSONLD
+    # - subject IDs match those in the phenotypic JSONLD (need a new example)

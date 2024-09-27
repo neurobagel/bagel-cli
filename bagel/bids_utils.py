@@ -24,19 +24,6 @@ def get_bids_subjects_simple(bids_dir: Path) -> list:
     return bids_subject_list
 
 
-def check_unique_bids_subjects(pheno_subjects: list, bids_subjects: list):
-    """Raises informative error if subject IDs exist that are found only in the BIDS directory."""
-    unique_bids_subjects = set(bids_subjects).difference(pheno_subjects)
-    if len(unique_bids_subjects) > 0:
-        raise LookupError(
-            "The specified BIDS directory contains subject IDs not found in "
-            "the provided phenotypic json-ld file:\n"
-            f"{unique_bids_subjects}\n"
-            "Subject IDs are case sensitive. "
-            "Please check that the specified BIDS and phenotypic datasets match."
-        )
-
-
 def create_acquisitions(
     layout: BIDSLayout,
     bids_sub_id: str,

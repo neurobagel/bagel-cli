@@ -93,3 +93,10 @@ def check_overwrite(output: Path, overwrite: bool):
                 fg=typer.colors.RED,
             )
         )
+
+
+def get_subjects_missing_from_pheno_data(
+    subjects: list, pheno_subjects: list
+) -> list:
+    """Raises informative error if subject IDs exist that are found only in the BIDS directory."""
+    return list(set(subjects).difference(pheno_subjects))

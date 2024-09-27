@@ -1,5 +1,4 @@
 from collections import Counter
-from contextlib import nullcontext as does_not_raise
 from pathlib import Path
 
 import pandas as pd
@@ -11,7 +10,11 @@ import bagel.bids_utils as butil
 import bagel.derivatives_utils as dutils
 import bagel.pheno_utils as putil
 from bagel import mappings
-from bagel.utility import load_json, load_tabular
+from bagel.utility import (
+    get_subjects_missing_from_pheno_data,
+    load_json,
+    load_tabular,
+)
 
 
 @pytest.fixture
@@ -415,34 +418,39 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
 
 
 @pytest.mark.parametrize(
-    "bids_list, expectation",
+    "bids_list, missing_subs",
     [
-        (["sub-01", "sub-02", "sub-03"], does_not_raise()),
+        (["sub-01", "sub-02", "sub-03"], []),
         (
             ["sub-01", "sub-02", "sub-03", "sub-04", "sub-05"],
-            pytest.raises(LookupError),
+            ["sub-04", "sub-05"],
         ),
         (
             ["sub-cbm001", "sub-cbm002", "sub-cbm003"],
-            pytest.raises(LookupError),
+            ["sub-cbm001", "sub-cbm002", "sub-cbm003"],
         ),
         (
             ["sub-pd123", "sub-pd234"],
-            pytest.raises(LookupError),
+            ["sub-pd123", "sub-pd234"],
         ),
     ],
 )
-def test_check_unique_bids_subjects_err(bids_list, expectation):
+def test_get_subjects_missing_from_pheno_data(bids_list, missing_subs):
     """
-    Given a list of BIDS subject IDs, raise an error or not depending on
-    whether all IDs are found in the phenotypic subject list.
+    Given a list of BIDS subject IDs, test that IDs not found in the phenotypic subject list are returned.
     """
     pheno_list = ["sub-01", "sub-02", "sub-03", "sub-PD123", "sub-PD234"]
 
-    with expectation:
-        butil.check_unique_bids_subjects(
-            pheno_subjects=pheno_list, bids_subjects=bids_list
+    # We sort the list for comparison since the order of the missing subjects is not guaranteed
+    # due to using set operations
+    assert (
+        sorted(
+            get_subjects_missing_from_pheno_data(
+                pheno_subjects=pheno_list, subjects=bids_list
+            )
         )
+        == missing_subs
+    )
 
 
 @pytest.mark.parametrize(

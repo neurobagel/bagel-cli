@@ -44,6 +44,11 @@ def test_derivatives_valid_inputs_run_successfully(
             ["processing status", "not a .tsv file"],
             ValueError,
         ),
+        (
+            "proc_status_unique_subs.tsv",
+            ["processing status file", "subject IDs not found"],
+            LookupError,
+        ),
     ],
 )
 def test_derivatives_invalid_inputs_fail(
@@ -53,9 +58,10 @@ def test_derivatives_invalid_inputs_fail(
     example,
     expected_message,
     expected_error,
+    tmp_path,
 ):
-    """Basic smoke test for the "pheno" subcommand"""
-    output_file = "pheno_derivatives.jsonld"
+    """Assure that we handle expected user errors in the input files for the bagel derivatives command gracefully."""
+    output_path = tmp_path / "pheno_derivatives.jsonld"
 
     with pytest.raises(expected_error) as e:
         runner.invoke(
@@ -67,10 +73,12 @@ def test_derivatives_invalid_inputs_fail(
                 "-p",
                 test_data_upload_path / "example_synthetic.jsonld",
                 "-o",
-                output_file,
+                output_path,
             ],
             catch_exceptions=False,
         )
 
     for substring in expected_message:
         assert substring in str(e.value)
+
+    assert not output_path.exists(), "The JSONLD output was still created."

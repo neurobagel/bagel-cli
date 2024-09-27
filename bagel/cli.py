@@ -365,6 +365,7 @@ def derivatives(
         dir_okay=False,
         resolve_path=True,
     ),
+    # TODO: Remove _path?
     jsonld_path: Path = typer.Option(
         ...,
         "--jsonld-path",
@@ -405,6 +406,14 @@ def derivatives(
     # Check if output file already exists
     check_overwrite(output, overwrite)
 
+    # TODO: Refactor calculation of width for formatting
+    space = 51
+    print(
+        "Running initial checks of inputs...\n"
+        f"   {'Existing subject graph data to augment (.jsonld):' : <{space}}{jsonld_path}\n"
+        f"   {'Processing status file (.tsv):' : <{space}}{tabular}"
+    )
+
     # Load and do basic TSV validation of the processing status file
     status_df = load_tabular(tabular, input_type="processing status")
 
@@ -429,8 +438,40 @@ def derivatives(
         ][PROC_STATUS_COLS["pipeline_version"]].unique()
         dutil.check_pipeline_versions_are_recognized(pipeline, versions)
 
+    jsonld = load_json(jsonld_path)
+    # TODO: Uncomment once we handle the context
+    jsonld.pop("@context")
+    # context = {"@context": jsonld.pop("@context")}
+
+    # TODO: Refactor this out into a utility function
+    try:
+        jsonld_dataset = models.Dataset.parse_obj(jsonld)
+    except ValidationError as err:
+        print(err)
+
+    # TODO: Refactor out
+    # Extract subjects from the JSONLD
+    jsonld_subject_dict = {
+        subject.hasLabel: subject
+        for subject in getattr(jsonld_dataset, "hasSamples")
+    }
+
+    # Check that all subjects in the processing status file are found in the JSONLD
+    unique_derivatives_subs = get_subjects_missing_from_pheno_data(
+        subjects=status_df[PROC_STATUS_COLS["participant"]].unique(),
+        pheno_subjects=jsonld_subject_dict.keys(),
+    )
+    if len(unique_derivatives_subs) > 0:
+        raise LookupError(
+            "The specified processing status file contains subject IDs not found in "
+            "the provided json-ld file:\n"
+            f"{unique_derivatives_subs}\n"
+            "Subject IDs are case sensitive. "
+            "Please check that the processing status file corresponds to the dataset in the provided .jsonld."
+        )
+
     # TODO:
     # - load TSV & confirm it's actually a TSV X
     # - check for no missing participant IDs X
     # - check that pipelines and versions are from allowed set X
-    # - subject IDs match those in the phenotypic JSONLD (need a new example)
+    # - subject IDs match those in the phenotypic JSONLD (need a new example) X

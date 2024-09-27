@@ -8,6 +8,7 @@ import typer
 from bids import BIDSLayout
 
 import bagel.bids_utils as butil
+import bagel.derivatives_utils as dutils
 import bagel.pheno_utils as putil
 from bagel import mappings
 from bagel.utility import load_json, load_tabular
@@ -565,4 +566,43 @@ def test_pipeline_versions_are_loaded():
     assert all(
         isinstance(pipe_versions, list) and len(pipe_versions) > 0
         for pipe_versions in pipeline_dict.values()
+    )
+
+
+@pytest.mark.parametrize(
+    "pipelines, unrecog_pipelines",
+    [
+        (["fmriprep", "pipeline1"], ["pipeline1"]),
+        (["pipelineA", "pipelineB"], ["pipelineA", "pipelineB"]),
+    ],
+)
+def test_unrecognized_pipeline_names_raise_error(pipelines, unrecog_pipelines):
+    """Test that pipeline names not found in the pipeline catalog raise an informative error."""
+    with pytest.raises(LookupError) as e:
+        dutils.check_pipelines_are_recognized(pipelines)
+
+    assert all(
+        substr in str(e.value)
+        for substr in ["unrecognized pipelines"] + unrecog_pipelines
+    )
+
+
+@pytest.mark.parametrize(
+    "fmriprep_versions, unrecog_versions",
+    [
+        (["20.2.7", "vA.B"], ["vA.B"]),
+        (["C.D.E", "F.G.H"], ["C.D.E", "F.G.H"]),
+    ],
+)
+def test_unrecognized_pipeline_versions_raise_error(
+    fmriprep_versions, unrecog_versions
+):
+    with pytest.raises(LookupError) as e:
+        dutils.check_pipeline_versions_are_recognized(
+            "fmriprep", fmriprep_versions
+        )
+
+    assert all(
+        substr in str(e.value)
+        for substr in ["unrecognized fmriprep versions"] + unrecog_versions
     )

@@ -6,8 +6,10 @@ from bids import BIDSLayout
 from pydantic import ValidationError
 
 import bagel.bids_utils as butil
+import bagel.derivatives_utils as dutil
 import bagel.pheno_utils as putil
 from bagel import mappings, models
+from bagel.derivatives_utils import PROC_STATUS_COLS
 from bagel.utility import check_overwrite, load_json, load_tabular
 
 bagel = typer.Typer(
@@ -389,18 +391,33 @@ def derivatives(
     """
     # Check if output file already exists
     check_overwrite(output, overwrite)
+
+    # Load and do basic TSV validation of the processing status file
     status_df = load_tabular(tabular, input_type="processing status")
 
-    id_column = ["bids_participant"]
-    if row_indices := putil.get_rows_with_empty_strings(status_df, id_column):
+    # Check for missing participant IDs
+    if row_indices := putil.get_rows_with_empty_strings(
+        status_df, [PROC_STATUS_COLS["participant"]]
+    ):
         raise LookupError(
-            f"Your processing status file contains missing values in the column {id_column}. "
+            f"Your processing status file contains missing values in the column '{PROC_STATUS_COLS['participant']}'. "
             "Please ensure that every row has a non-empty participant id. "
             f"We found missing values in the following rows (first row is zero): {row_indices}."
         )
 
+    pipelines = status_df[PROC_STATUS_COLS["pipeline_name"]].unique()
+    dutil.check_pipelines_are_recognized(pipelines)
+
+    # Per pipeline, check that version(s) are from the allowed set
+    # TODO: Do we need to check all versions across all pipelines first, and report all unrecognized versions together?
+    for pipeline in pipelines:
+        versions = status_df[
+            status_df[PROC_STATUS_COLS["pipeline_name"]] == pipeline
+        ][PROC_STATUS_COLS["pipeline_version"]].unique()
+        dutil.check_pipeline_versions_are_recognized(pipeline, versions)
+
     # TODO:
     # - load TSV & confirm it's actually a TSV X
     # - check for no missing participant IDs X
-    # - check that pipelines and versions are from allowed set
+    # - check that pipelines and versions are from allowed set X
     # - subject IDs match those in the phenotypic JSONLD

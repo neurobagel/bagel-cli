@@ -458,5 +458,67 @@ def derivatives(
             "Please check that the processing status file corresponds to the dataset in the provided .jsonld."
         )
 
-    # TODO: remove
-    print(context)
+    # TODO: handle missing value ("") for session
+    # Create sub-dataframes for each subject
+    for subject, sub_proc_df in status_df.groupby(
+        PROC_STATUS_COLS["participant"]
+    ):
+        jsonld_subject = jsonld_subject_dict.get(subject)
+
+        # Get existing imaging sessions for the subject
+        # Note: This dictionary can be empty if only bagel pheno was run
+        jsonld_sub_sessions_dict = {}
+        for jsonld_sub_ses in getattr(jsonld_subject, "hasSession"):
+            if jsonld_sub_ses.schemaKey == "ImagingSession":
+                jsonld_sub_sessions_dict[jsonld_sub_ses.hasLabel] = (
+                    jsonld_sub_ses
+                )
+
+        # Create sub-dataframes for each session for the subject
+        for proc_session, sub_ses_proc_df in sub_proc_df.groupby(
+            PROC_STATUS_COLS["session"]
+        ):
+            # Create pipeline objects for the subject-session
+            completed_pipelines = []
+            for (
+                pipeline,
+                version,
+            ), sub_ses_pipe_df in sub_ses_proc_df.groupby(
+                [
+                    PROC_STATUS_COLS["pipeline_name"],
+                    PROC_STATUS_COLS["pipeline_version"],
+                ]
+            ):
+                # Check completion status of all pipeline steps
+                if (
+                    sub_ses_pipe_df[PROC_STATUS_COLS["status"]].str.lower()
+                    == "success"
+                ).all():
+                    completed_pipeline = models.CompletedPipeline(
+                        hasPipelineName=models.Pipeline(
+                            identifier=mappings.get_pipeline_uris()[pipeline]
+                        ),
+                        hasPipelineVersion=version,
+                    )
+                    completed_pipelines.append(completed_pipeline)
+
+            if not completed_pipelines:
+                continue
+            if proc_session in jsonld_sub_sessions_dict:
+                existing_img_session = jsonld_sub_sessions_dict.get(
+                    proc_session
+                )
+                existing_img_session.hasCompletedPipeline = completed_pipelines
+            else:
+                new_img_session = models.ImagingSession(
+                    hasLabel=proc_session,
+                    hasCompletedPipeline=completed_pipelines,
+                )
+                jsonld_subject.hasSession.append(new_img_session)
+
+    merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}
+
+    with open(output, "w") as f:
+        f.write(json.dumps(merged_dataset, indent=2))
+
+    print(f"Saved output to:  {output}")

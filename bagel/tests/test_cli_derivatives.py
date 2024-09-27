@@ -9,21 +9,27 @@ def default_derivatives_output_path(tmp_path):
     return tmp_path / "pheno_derivatives.jsonld"
 
 
+@pytest.mark.parametrize(
+    "valid_proc_status_file",
+    [
+        "proc_status_synthetic.tsv",
+        "proc_status_unique_sessions.tsv",
+    ],
+)
 def test_derivatives_valid_inputs_run_successfully(
     runner,
     test_data,
     test_data_upload_path,
     default_derivatives_output_path,
+    valid_proc_status_file,
 ):
     """Basic smoke test for the "pheno" subcommand"""
-    example = "proc_status_synthetic.tsv"
-
     result = runner.invoke(
         bagel,
         [
             "derivatives",
             "-t",
-            test_data / example,
+            test_data / valid_proc_status_file,
             "-p",
             test_data_upload_path / "example_synthetic.jsonld",
             "-o",

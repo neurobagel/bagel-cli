@@ -560,7 +560,8 @@ def test_pipeline_uris_are_loaded():
 
     pipeline_dict = mappings.get_pipeline_uris()
     assert all(
-        mappings.NP.pf in pipe_uri for pipe_uri in pipeline_dict.values()
+        ((mappings.NP.pf in pipe_uri) and (" " not in pipe_uri))
+        for pipe_uri in pipeline_dict.values()
     )
 
 

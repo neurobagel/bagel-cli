@@ -49,7 +49,7 @@ def get_pipeline_uris() -> dict:
     output_dict = {}
     for pipe_file in PROCESSING_PIPELINE_PATH.glob("*.json"):
         pipe = futil.load_json(pipe_file)
-        output_dict[pipe["name"]] = f"{NP.pf}: {pipe['name']}"
+        output_dict[pipe["name"]] = f"{NP.pf}:{pipe['name']}"
 
     return output_dict
 

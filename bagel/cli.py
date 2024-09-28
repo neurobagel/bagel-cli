@@ -467,14 +467,11 @@ def derivatives(
 
         # Get existing imaging sessions for the subject
         # Note: This dictionary can be empty if only bagel pheno was run
-        jsonld_sub_sessions_dict = {}
-        for jsonld_sub_ses in getattr(jsonld_subject, "hasSession"):
-            if jsonld_sub_ses.schemaKey == "ImagingSession":
-                jsonld_sub_sessions_dict[jsonld_sub_ses.hasLabel] = (
-                    jsonld_sub_ses
-                )
+        jsonld_sub_sessions_dict = dutil.get_subject_imaging_sessions(
+            jsonld_subject
+        )
 
-        # Create sub-dataframes for each session for the subject
+        # Create sub-dataframes for each session for the subject - TODO: refactor out
         for proc_session, sub_ses_proc_df in sub_proc_df.groupby(
             PROC_STATUS_COLS["session"]
         ):

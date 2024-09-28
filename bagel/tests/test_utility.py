@@ -7,10 +7,10 @@ import typer
 from bids import BIDSLayout
 
 import bagel.bids_utils as butil
-import bagel.derivatives_utils as dutils
+import bagel.derivatives_utils as dutil
 import bagel.file_utils as futil
 import bagel.pheno_utils as putil
-from bagel import mappings
+from bagel import mappings, models
 from bagel.utility import get_subjects_missing_from_pheno_data
 
 
@@ -585,7 +585,7 @@ def test_pipeline_versions_are_loaded():
 def test_unrecognized_pipeline_names_raise_error(pipelines, unrecog_pipelines):
     """Test that pipeline names not found in the pipeline catalog raise an informative error."""
     with pytest.raises(LookupError) as e:
-        dutils.check_pipelines_are_recognized(pipelines)
+        dutil.check_pipelines_are_recognized(pipelines)
 
     assert all(
         substr in str(e.value)
@@ -603,8 +603,9 @@ def test_unrecognized_pipeline_names_raise_error(pipelines, unrecog_pipelines):
 def test_unrecognized_pipeline_versions_raise_error(
     fmriprep_versions, unrecog_versions
 ):
+    """Test that versions of a pipeline not found in the pipeline catalog raise an informative error."""
     with pytest.raises(LookupError) as e:
-        dutils.check_pipeline_versions_are_recognized(
+        dutil.check_pipeline_versions_are_recognized(
             "fmriprep", fmriprep_versions
         )
 
@@ -612,3 +613,55 @@ def test_unrecognized_pipeline_versions_raise_error(
         substr in str(e.value)
         for substr in ["unrecognized fmriprep versions"] + unrecog_versions
     )
+
+
+def test_get_subject_imaging_sessions():
+    """Test that get_subject_imaging_sessions() accurately finds imaging sessions for a given subject."""
+    example_subject_jsonld = {
+        "identifier": "nb:34ec1e2d-9a81-4a50-bcd0-eb22c88d11e1",
+        "hasLabel": "sub-01",
+        "hasSession": [
+            {
+                "identifier": "nb:85c7473c-6122-4999-ad3b-5cd57a883c87",
+                "hasLabel": "ses-01",
+                "hasAge": 34.1,
+                "hasSex": {
+                    "identifier": "snomed:248152002",
+                    "schemaKey": "Sex",
+                },
+                "schemaKey": "PhenotypicSession",
+            },
+            {
+                "identifier": "nb:eb57d0c1-fb96-4c04-8c16-1f29f7f40db4",
+                "hasLabel": "ses-02",
+                "hasAge": 35.3,
+                "hasSex": {
+                    "identifier": "snomed:248152002",
+                    "schemaKey": "Sex",
+                },
+                "schemaKey": "PhenotypicSession",
+            },
+            {
+                "identifier": "nb:e67fd08b-9bf9-4ed8-b4cc-d0142cd27789",
+                "hasLabel": "ses-im01",
+                "hasFilePath": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-01/ses-01",
+                "hasAcquisition": [
+                    {
+                        "identifier": "nb:5dc2e11e-4f7a-4b0e-9488-843f0a607f4b",
+                        "hasContrastType": {
+                            "identifier": "nidm:T1Weighted",
+                            "schemaKey": "Image",
+                        },
+                        "schemaKey": "Acquisition",
+                    },
+                ],
+                "schemaKey": "ImagingSession",
+            },
+        ],
+        "schemaKey": "Subject",
+    }
+    example_subject = models.Subject(**example_subject_jsonld)
+
+    assert list(
+        dutil.get_subject_imaging_sessions(example_subject).keys()
+    ) == ["ses-im01"]

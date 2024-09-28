@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from bagel import mappings
+from bagel import mappings, models
 
 # Shorthands for expected column names in a Nipoppy processing status file
 PROC_STATUS_COLS = {
@@ -42,3 +42,18 @@ def check_pipeline_versions_are_recognized(
             f"Allowed {pipeline} versions are the following versions supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog): \n"
             f"{mappings.get_pipeline_versions()[pipeline]}"
         )
+
+
+def get_subject_imaging_sessions(
+    jsonld_subject: models.Subject,
+) -> dict:
+    """
+    Return a dictionary of imaging sessions for a given subject from JSONLD data,
+    where the keys are the session labels and values are the session objects.
+    """
+    jsonld_sub_sessions_dict = {}
+    for jsonld_sub_ses in getattr(jsonld_subject, "hasSession"):
+        if jsonld_sub_ses.schemaKey == "ImagingSession":
+            jsonld_sub_sessions_dict[jsonld_sub_ses.hasLabel] = jsonld_sub_ses
+
+    return jsonld_sub_sessions_dict

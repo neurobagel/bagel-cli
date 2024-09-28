@@ -665,3 +665,64 @@ def test_get_subject_imaging_sessions():
     assert list(
         dutil.get_subject_imaging_sessions(example_subject).keys()
     ) == ["ses-im01"]
+
+
+def test_create_completed_pipelines():
+    """
+    Test that completed pipelines for a subject-session are accurately identified
+    based on completion status of all pipeline steps.
+    """
+    sub_ses_data = [
+        [
+            "01",
+            "sub-01",
+            "01",
+            "ses-01",
+            "fmriprep",
+            "20.2.7",
+            "step1",
+            "SUCCESS",
+        ],
+        [
+            "01",
+            "sub-01",
+            "01",
+            "ses-01",
+            "fmriprep",
+            "20.2.7",
+            "step2",
+            "FAIL",
+        ],
+        [
+            "01",
+            "sub-01",
+            "01",
+            "ses-01",
+            "fmriprep",
+            "23.1.3",
+            "default",
+            "SUCCESS",
+        ],
+    ]
+    example_ses_proc_df = pd.DataFrame.from_records(
+        # TODO: Don't hardcode col names?
+        columns=[
+            "participant_id",
+            "bids_participant",
+            "session_id",
+            "bids_session",
+            "pipeline_name",
+            "pipeline_version",
+            "pipeline_step",
+            "status",
+        ],
+        data=sub_ses_data,
+    )
+    completed_pipelines = dutil.create_completed_pipelines(example_ses_proc_df)
+
+    assert len(completed_pipelines) == 1
+    assert (
+        completed_pipelines[0].hasPipelineName.identifier
+        == f"{mappings.NP.pf}:fmriprep"
+    )
+    assert completed_pipelines[0].hasPipelineVersion == "23.1.3"

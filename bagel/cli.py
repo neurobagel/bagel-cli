@@ -476,28 +476,9 @@ def derivatives(
             PROC_STATUS_COLS["session"]
         ):
             # Create pipeline objects for the subject-session
-            completed_pipelines = []
-            for (
-                pipeline,
-                version,
-            ), sub_ses_pipe_df in sub_ses_proc_df.groupby(
-                [
-                    PROC_STATUS_COLS["pipeline_name"],
-                    PROC_STATUS_COLS["pipeline_version"],
-                ]
-            ):
-                # Check completion status of all pipeline steps
-                if (
-                    sub_ses_pipe_df[PROC_STATUS_COLS["status"]].str.lower()
-                    == "success"
-                ).all():
-                    completed_pipeline = models.CompletedPipeline(
-                        hasPipelineName=models.Pipeline(
-                            identifier=mappings.get_pipeline_uris()[pipeline]
-                        ),
-                        hasPipelineVersion=version,
-                    )
-                    completed_pipelines.append(completed_pipeline)
+            completed_pipelines = dutil.create_completed_pipelines(
+                sub_ses_proc_df
+            )
 
             if not completed_pipelines:
                 continue

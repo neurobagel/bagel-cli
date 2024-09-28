@@ -1,5 +1,7 @@
 from typing import Iterable
 
+import pandas as pd
+
 from bagel import mappings, models
 
 # Shorthands for expected column names in a Nipoppy processing status file
@@ -57,3 +59,31 @@ def get_subject_imaging_sessions(
             jsonld_sub_sessions_dict[jsonld_sub_ses.hasLabel] = jsonld_sub_ses
 
     return jsonld_sub_sessions_dict
+
+
+def create_completed_pipelines(session_proc_df: pd.DataFrame) -> list:
+    """
+    Create a list of CompletedPipeline objects for a subject-session based on the completion status info
+    of pipelines for that session from the processing status dataframe.
+    """
+    completed_pipelines = []
+    for (pipeline, version), session_pipe_df in session_proc_df.groupby(
+        [
+            PROC_STATUS_COLS["pipeline_name"],
+            PROC_STATUS_COLS["pipeline_version"],
+        ]
+    ):
+        # Check that all pipeline steps have succeeded
+        if (
+            session_pipe_df[PROC_STATUS_COLS["status"]].str.lower()
+            == "success"
+        ).all():
+            completed_pipeline = models.CompletedPipeline(
+                hasPipelineName=models.Pipeline(
+                    identifier=mappings.get_pipeline_uris()[pipeline]
+                ),
+                hasPipelineVersion=version,
+            )
+            completed_pipelines.append(completed_pipeline)
+
+    return completed_pipelines

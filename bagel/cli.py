@@ -12,7 +12,8 @@ from bagel import mappings, models
 from bagel.derivatives_utils import PROC_STATUS_COLS
 from bagel.utility import (
     extract_and_validate_jsonld_dataset,
-    get_subjects_missing_from_pheno_data,
+    extract_subs_from_jsonld_dataset,
+    get_subs_missing_from_pheno_data,
 )
 
 # TODO: Coordinate with Nipoppy about what we want to name this
@@ -267,13 +268,10 @@ def bids(
         jsonld, jsonld_path
     )
 
-    pheno_subject_dict = {
-        pheno_subject.hasLabel: pheno_subject
-        for pheno_subject in getattr(pheno_dataset, "hasSamples")
-    }
+    pheno_subject_dict = extract_subs_from_jsonld_dataset(pheno_dataset)
 
     # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
-    unique_bids_subjects = get_subjects_missing_from_pheno_data(
+    unique_bids_subjects = get_subs_missing_from_pheno_data(
         subjects=butil.get_bids_subjects_simple(bids_dir),
         pheno_subjects=pheno_subject_dict.keys(),
     )
@@ -439,13 +437,10 @@ def derivatives(
     )
 
     # Extract subjects from the JSONLD
-    jsonld_subject_dict = {
-        subject.hasLabel: subject
-        for subject in getattr(jsonld_dataset, "hasSamples")
-    }
+    jsonld_subject_dict = extract_subs_from_jsonld_dataset(jsonld_dataset)
 
     # Check that all subjects in the processing status file are found in the JSONLD
-    unique_derivatives_subs = get_subjects_missing_from_pheno_data(
+    unique_derivatives_subs = get_subs_missing_from_pheno_data(
         subjects=status_df[PROC_STATUS_COLS["participant"]].unique(),
         pheno_subjects=jsonld_subject_dict.keys(),
     )

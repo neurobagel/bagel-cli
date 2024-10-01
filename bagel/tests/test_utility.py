@@ -11,7 +11,10 @@ import bagel.derivatives_utils as dutil
 import bagel.file_utils as futil
 import bagel.pheno_utils as putil
 from bagel import mappings, models
-from bagel.utility import get_subjects_missing_from_pheno_data
+from bagel.utility import (
+    extract_subs_from_jsonld_dataset,
+    get_subs_missing_from_pheno_data,
+)
 
 
 @pytest.fixture
@@ -442,7 +445,7 @@ def test_get_subjects_missing_from_pheno_data(bids_list, missing_subs):
     # due to using set operations
     assert (
         sorted(
-            get_subjects_missing_from_pheno_data(
+            get_subs_missing_from_pheno_data(
                 pheno_subjects=pheno_list, subjects=bids_list
             )
         )
@@ -553,6 +556,24 @@ def test_unsupported_tsv_encoding_raises_informative_error(test_data, capsys):
     captured = capsys.readouterr()
 
     assert "Failed to decode the input file" in captured.err
+
+
+def test_extract_subs_from_jsonld_dataset(
+    test_data_upload_path, load_test_json
+):
+    """Test that subjects are correctly extracted from a JSONLD dataset."""
+    dataset = load_test_json(
+        test_data_upload_path / "example_synthetic.jsonld"
+    )
+    dataset.pop("@context")
+    subjects = extract_subs_from_jsonld_dataset(
+        models.Dataset.parse_obj(dataset)
+    )
+
+    assert len(subjects) == 5
+    assert all(
+        isinstance(subject, models.Subject) for subject in subjects.values()
+    )
 
 
 def test_pipeline_uris_are_loaded():

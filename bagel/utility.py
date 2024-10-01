@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from bagel import models
 
 
-def get_subjects_missing_from_pheno_data(
+def get_subs_missing_from_pheno_data(
     subjects: Iterable, pheno_subjects: Iterable
 ) -> list:
     """Check a list of subject IDs and return any not found in the provided phenotypic subject list."""
@@ -42,3 +42,13 @@ def extract_and_validate_jsonld_dataset(
         raise typer.Exit(code=1) from err
 
     return context, jsonld_dataset
+
+
+def extract_subs_from_jsonld_dataset(dataset: models.Dataset) -> dict:
+    """
+    Return a dictionary of subjects for a given Neurobagel dataset from JSONLD data,
+    where keys are subject labels and values are the subject objects.
+    """
+    return {
+        subject.hasLabel: subject for subject in getattr(dataset, "hasSamples")
+    }

@@ -15,6 +15,9 @@ from bagel.utility import (
     get_subjects_missing_from_pheno_data,
 )
 
+# TODO: Coordinate with Nipoppy about what we want to name this
+CUSTOM_SESSION_ID = "nb01"
+
 bagel = typer.Typer(
     help="""
     A command-line tool for creating valid, subject-level instances of the Neurobagel graph data model.\n
@@ -124,7 +127,7 @@ def pheno(
         for session_row_idx, session_row in _sub_pheno.iterrows():
             # If there is no session column, we create a session with a custom label "ses-nb01" to assign each subject's phenotypic data to
             if session_column is None:
-                session_name = "ses-nb01"  # TODO: Should we make this more obscure to avoid potential overlap with actual session names?
+                session_name = f"ses-{CUSTOM_SESSION_ID}"
             else:
                 # NOTE: We take the name from the first session column - we don't know how to handle multiple session columns yet
                 session_name = session_row[session_column[0]]
@@ -320,7 +323,7 @@ def bids(
             # so the API can still find the session-level information.
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.
-            session_label = "nb01" if session is None else session
+            session_label = CUSTOM_SESSION_ID if session is None else session
             session_path = butil.get_session_path(
                 layout=layout,
                 bids_dir=bids_dir,
@@ -496,7 +499,9 @@ def derivatives(
                 existing_img_session.hasCompletedPipeline = completed_pipelines
             else:
                 proc_session_label = (
-                    "ses-nb01" if proc_session == "" else proc_session
+                    f"ses-{CUSTOM_SESSION_ID}"
+                    if proc_session == ""
+                    else proc_session
                 )
                 new_img_session = models.ImagingSession(
                     hasLabel=proc_session_label,

@@ -63,8 +63,8 @@ def get_subject_imaging_sessions(
 
 def create_completed_pipelines(session_proc_df: pd.DataFrame) -> list:
     """
-    Create a list of CompletedPipeline objects for a subject-session based on the completion status info
-    of pipelines for that session from the processing status dataframe.
+    Create a list of CompletedPipeline objects for a single subject-session based on the completion status
+    info of pipelines for that session from the processing status dataframe.
     """
     completed_pipelines = []
     for (pipeline, version), session_pipe_df in session_proc_df.groupby(

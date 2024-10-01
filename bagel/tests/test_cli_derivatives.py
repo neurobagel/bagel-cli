@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import pytest
 
 from bagel.cli import bagel
@@ -10,20 +12,26 @@ def default_derivatives_output_path(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "valid_proc_status_file",
+    "valid_proc_status_file,num_expected_imaging_sessions",
     [
-        "proc_status_synthetic.tsv",
-        "proc_status_unique_sessions.tsv",
+        ("proc_status_synthetic.tsv", {"sub-01": 1, "sub-02": 2}),
+        ("proc_status_unique_sessions.tsv", {"sub-01": 2, "sub-02": 2}),
     ],
 )
-def test_derivatives_valid_inputs_run_successfully(
+def test_derivatives_cmd_with_valid_TSV_and_pheno_jsonlds_is_successful(
     runner,
     test_data,
     test_data_upload_path,
     default_derivatives_output_path,
+    load_test_json,
     valid_proc_status_file,
+    num_expected_imaging_sessions,
 ):
-    """Basic smoke test for the "pheno" subcommand"""
+    """
+    Test that when a valid processing status TSV and bagel pheno-created JSONLD are supplied as inputs,
+    the bagel derivatives command successfully creates an output JSONLD where subjects have the expected number
+    of imaging sessions created based on pipeline completion data.
+    """
     result = runner.invoke(
         bagel,
         [
@@ -38,9 +46,59 @@ def test_derivatives_valid_inputs_run_successfully(
     )
 
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
-    assert (
-        default_derivatives_output_path
-    ).exists(), "The pheno.jsonld output was not created."
+
+    output = load_test_json(default_derivatives_output_path)
+    num_created_imaging_sessions = defaultdict(int)
+    for sub in output["hasSamples"]:
+        for ses in sub["hasSession"]:
+            if ses["schemaKey"] == "ImagingSession":
+                num_created_imaging_sessions[sub["hasLabel"]] += 1
+
+    assert num_created_imaging_sessions == num_expected_imaging_sessions
+
+
+def test_pipeline_info_added_to_existing_imaging_sessions(
+    runner,
+    test_data,
+    test_data_upload_path,
+    default_derivatives_output_path,
+    load_test_json,
+):
+    """
+    Test that when a valid processing status TSV and bagel pheno- and bagel bids-created JSONLD are supplied as inputs,
+    the bagel derivatives command successfully creates an output JSONLD where processing info for existing vs. new
+    sessions is handled correctly.
+    """
+    result = runner.invoke(
+        bagel,
+        [
+            "derivatives",
+            "-t",
+            test_data / "proc_status_unique_sessions.tsv",
+            "-p",
+            test_data_upload_path
+            / "pheno-bids-output"
+            / "example_synthetic_pheno-bids.jsonld",
+            "-o",
+            default_derivatives_output_path,
+        ],
+    )
+
+    assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
+    output = load_test_json(default_derivatives_output_path)
+
+    # Only consider sub-01 for simplicity
+    ses_with_raw_imaging = []
+    ses_with_derivatives = []
+    for sub01_ses in output["hasSamples"][0]["hasSession"]:
+        if sub01_ses["schemaKey"] == "ImagingSession":
+            if sub01_ses.get("hasAcquisition") is not None:
+                ses_with_raw_imaging.append(sub01_ses["hasLabel"])
+            if sub01_ses.get("hasCompletedPipeline") is not None:
+                ses_with_derivatives.append(sub01_ses["hasLabel"])
+
+    assert sorted(ses_with_raw_imaging) == ["ses-01", "ses-02"]
+    assert sorted(ses_with_derivatives) == ["ses-01", "ses-03"]
 
 
 @pytest.mark.parametrize(

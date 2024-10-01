@@ -395,12 +395,10 @@ def derivatives(
     BIDS metadata (from the bagel bids command).
     NOTE: Must be run AFTER the pheno command.
 
-    # TODO: Update extended description!
     This command will create a valid, subject-level instance of the Neurobagel
     graph data model for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
-    # Check if output file already exists
     futil.check_overwrite(output, overwrite)
 
     space = 51
@@ -440,7 +438,6 @@ def derivatives(
         jsonld, jsonld_path
     )
 
-    # TODO: Refactor out
     # Extract subjects from the JSONLD
     jsonld_subject_dict = {
         subject.hasLabel: subject
@@ -461,7 +458,6 @@ def derivatives(
             "Please check that the processing status file corresponds to the dataset in the provided .jsonld."
         )
 
-    # TODO: handle missing value ("") for session
     # Create sub-dataframes for each subject
     for subject, sub_proc_df in status_df.groupby(
         PROC_STATUS_COLS["participant"]

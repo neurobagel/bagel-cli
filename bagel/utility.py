@@ -14,7 +14,6 @@ def get_subjects_missing_from_pheno_data(
     return list(set(subjects).difference(pheno_subjects))
 
 
-# TODO: Test error message?
 def extract_and_validate_jsonld_dataset(
     jsonld: dict, file_path: Path
 ) -> tuple[dict, models.Dataset]:

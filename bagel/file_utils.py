@@ -90,7 +90,7 @@ def check_overwrite(output: Path, overwrite: bool):
     if output.exists() and not overwrite:
         raise typer.Exit(
             typer.style(
-                f"Output file {output} already exists. Use --overwrite to overwrite.",
+                f"Output file {output} already exists. Use --overwrite or -f to overwrite.",
                 fg=typer.colors.RED,
             )
         )

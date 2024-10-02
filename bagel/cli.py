@@ -102,6 +102,8 @@ def pheno(
     putil.validate_inputs(data_dictionary, pheno_df)
 
     # Display validated input paths to user
+    # NOTE: `space` determines the amount of padding (in num. characters) before the file paths in the print statement.
+    # It is currently calculated as = (length of the longer string, including the 3 leading spaces) + (2 extra spaces)
     space = 25
     print(
         "Processing phenotypic annotations:\n"
@@ -406,10 +408,9 @@ def derivatives(
         f"   {'Processing status file (.tsv):' : <{space}}{tabular}"
     )
 
-    # Load and do basic TSV validation of the processing status file
     status_df = futil.load_tabular(tabular, input_type="processing status")
 
-    # Check for missing participant IDs
+    # We don't allow empty values in the participant ID column
     if row_indices := putil.get_rows_with_empty_strings(
         status_df, [PROC_STATUS_COLS["participant"]]
     ):
@@ -434,7 +435,6 @@ def derivatives(
     jsonld = futil.load_json(jsonld_path)
     jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld, jsonld_path)
 
-    # Extract subjects from the JSONLD
     jsonld_subject_dict = extract_subs_from_jsonld_dataset(jsonld_dataset)
 
     # Check that all subjects in the processing status file are found in the JSONLD
@@ -463,14 +463,6 @@ def derivatives(
             jsonld_subject
         )
 
-        # Since at the moment, we internally only consider one of the possible session columns
-        # in the processing status file from Nipoppy (e.g., 'bids_session' but not 'session_id') to generate the graph data,
-        # there is an implicit assumption here that bids_session should have some accuracy/consistency in the context of the
-        # other session IDs in the file.
-        # E.g., if 'sub-01' has 2 TSV rows where 'session_id' is'01' and '02', but 'bids_session' has no values,
-        # is this allowed according to the Nipoppy schema? In this case, Neurobagel (which only looks at 'bids_session')
-        # will treat any pipeline completion info for these two rows as belonging to the *same* session - a custom new session we create.
-        # However, the other column 'session_id' seems to indicate that these rows actually belong to *separate* sessions = inaccurate modeling on our part?
         for proc_session, sub_ses_proc_df in sub_proc_df.groupby(
             PROC_STATUS_COLS["session"]
         ):

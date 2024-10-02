@@ -12,8 +12,8 @@ from bagel import mappings, models
 from bagel.derivatives_utils import PROC_STATUS_COLS
 from bagel.utility import (
     extract_and_validate_jsonld_dataset,
-    extract_subs_from_jsonld_dataset,
     generate_context,
+    get_subject_instances,
     get_subs_missing_from_pheno_data,
 )
 
@@ -269,7 +269,7 @@ def bids(
     jsonld = futil.load_json(jsonld_path)
     pheno_dataset = extract_and_validate_jsonld_dataset(jsonld, jsonld_path)
 
-    pheno_subject_dict = extract_subs_from_jsonld_dataset(pheno_dataset)
+    pheno_subject_dict = get_subject_instances(pheno_dataset)
 
     # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
     unique_bids_subjects = get_subs_missing_from_pheno_data(
@@ -435,12 +435,12 @@ def derivatives(
     jsonld = futil.load_json(jsonld_path)
     jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld, jsonld_path)
 
-    jsonld_subject_dict = extract_subs_from_jsonld_dataset(jsonld_dataset)
+    existing_subs_dict = get_subject_instances(jsonld_dataset)
 
     # Check that all subjects in the processing status file are found in the JSONLD
     unique_derivatives_subs = get_subs_missing_from_pheno_data(
         subjects=status_df[PROC_STATUS_COLS["participant"]].unique(),
-        pheno_subjects=jsonld_subject_dict.keys(),
+        pheno_subjects=existing_subs_dict.keys(),
     )
     if len(unique_derivatives_subs) > 0:
         raise LookupError(
@@ -455,15 +455,15 @@ def derivatives(
     for subject, sub_proc_df in status_df.groupby(
         PROC_STATUS_COLS["participant"]
     ):
-        jsonld_subject = jsonld_subject_dict.get(subject)
+        existing_subject = existing_subs_dict.get(subject)
 
         # Get existing imaging sessions for the subject
         # Note: This dictionary can be empty if only bagel pheno was run
-        jsonld_sub_sessions_dict = dutil.get_subject_imaging_sessions(
-            jsonld_subject
+        existing_sessions_dict = dutil.get_imaging_session_instances(
+            existing_subject
         )
 
-        for proc_session, sub_ses_proc_df in sub_proc_df.groupby(
+        for session_name, sub_ses_proc_df in sub_proc_df.groupby(
             PROC_STATUS_COLS["session"]
         ):
             # Create pipeline objects for the subject-session
@@ -473,22 +473,20 @@ def derivatives(
 
             if not completed_pipelines:
                 continue
-            if proc_session in jsonld_sub_sessions_dict:
-                existing_img_session = jsonld_sub_sessions_dict.get(
-                    proc_session
-                )
+            if session_name in existing_sessions_dict:
+                existing_img_session = existing_sessions_dict.get(session_name)
                 existing_img_session.hasCompletedPipeline = completed_pipelines
             else:
-                proc_session_label = (
+                new_session_label = (
                     f"ses-{CUSTOM_SESSION_ID}"
-                    if proc_session == ""
-                    else proc_session
+                    if session_name == ""
+                    else session_name
                 )
                 new_img_session = models.ImagingSession(
-                    hasLabel=proc_session_label,
+                    hasLabel=new_session_label,
                     hasCompletedPipeline=completed_pipelines,
                 )
-                jsonld_subject.hasSession.append(new_img_session)
+                existing_subject.hasSession.append(new_img_session)
 
     context = generate_context()
     merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}

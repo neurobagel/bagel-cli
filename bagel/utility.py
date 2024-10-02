@@ -68,7 +68,7 @@ def extract_and_validate_jsonld_dataset(
     return jsonld_dataset
 
 
-def extract_subs_from_jsonld_dataset(dataset: models.Dataset) -> dict:
+def get_subject_instances(dataset: models.Dataset) -> dict:
     """
     Return a dictionary of subjects for a given Neurobagel dataset from JSONLD data,
     where keys are subject labels and values are the subject objects.

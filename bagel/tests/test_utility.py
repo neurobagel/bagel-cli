@@ -12,8 +12,8 @@ import bagel.file_utils as futil
 import bagel.pheno_utils as putil
 from bagel import mappings, models
 from bagel.utility import (
-    extract_subs_from_jsonld_dataset,
     generate_context,
+    get_subject_instances,
     get_subs_missing_from_pheno_data,
 )
 
@@ -588,9 +588,7 @@ def test_extract_subs_from_jsonld_dataset(
         test_data_upload_path / "example_synthetic.jsonld"
     )
     dataset.pop("@context")
-    subjects = extract_subs_from_jsonld_dataset(
-        models.Dataset.parse_obj(dataset)
-    )
+    subjects = get_subject_instances(models.Dataset.parse_obj(dataset))
 
     assert len(subjects) == 5
     assert all(
@@ -706,7 +704,7 @@ def test_get_subject_imaging_sessions():
     example_subject = models.Subject(**example_subject_jsonld)
 
     assert list(
-        dutil.get_subject_imaging_sessions(example_subject).keys()
+        dutil.get_imaging_session_instances(example_subject).keys()
     ) == ["ses-im01"]
 
 

@@ -49,7 +49,7 @@ def check_pipeline_versions_are_recognized(
         )
 
 
-def get_subject_imaging_sessions(
+def get_imaging_session_instances(
     jsonld_subject: models.Subject,
 ) -> dict:
     """

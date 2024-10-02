@@ -213,7 +213,8 @@ def bids(
         ...,
         "--jsonld-path",
         "-p",  # for pheno
-        help="The path to the .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command.",
+        help="The path to the .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command. "
+        "This file may optionally also include the processing pipeline metadata for the dataset (created by the bagel derivatives command).",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -246,8 +247,9 @@ def bids(
     ),
 ):
     """
-    Extract imaging metadata from a valid BIDS dataset and combine them
-    with phenotypic metadata (.jsonld) created by the bagel pheno command.
+    Extract imaging metadata from a valid BIDS dataset and integrate it with
+    subjects' harmonized phenotypic data (from the bagel pheno command) and, optionally,
+    processing pipeline metadata (from the bagel derivatives command) in a single .jsonld file.
     NOTE: Must be run AFTER the pheno command.
 
     This command will create a valid, subject-level instance of the Neurobagel
@@ -257,22 +259,22 @@ def bids(
     # Check if output file already exists
     futil.check_overwrite(output, overwrite)
 
-    space = 32
+    space = 51
     print(
         "Running initial checks of inputs...\n"
-        f"   {'Phenotypic .jsonld to augment:' : <{space}} {jsonld_path}\n"
+        f"   {'Existing subject graph data to augment (.jsonld):' : <{space}} {jsonld_path}\n"
         f"   {'BIDS dataset directory:' : <{space}} {bids_dir}"
     )
 
     jsonld = futil.load_json(jsonld_path)
-    pheno_dataset = extract_and_validate_jsonld_dataset(jsonld, jsonld_path)
+    jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld, jsonld_path)
 
-    pheno_subject_dict = extract_subs_from_jsonld_dataset(pheno_dataset)
+    jsonld_subject_dict = extract_subs_from_jsonld_dataset(jsonld_dataset)
 
     # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
     unique_bids_subjects = get_subs_missing_from_pheno_data(
         subjects=butil.get_bids_subjects_simple(bids_dir),
-        pheno_subjects=pheno_subject_dict.keys(),
+        pheno_subjects=jsonld_subject_dict.keys(),
     )
     if len(unique_bids_subjects) > 0:
         raise LookupError(
@@ -280,7 +282,7 @@ def bids(
             "the provided phenotypic json-ld file:\n"
             f"{unique_bids_subjects}\n"
             "Subject IDs are case sensitive. "
-            "Please check that the specified BIDS and phenotypic datasets match."
+            "Please check that the BIDS directory corresponds to the dataset in the provided .jsonld."
         )
 
     print("Initial checks of inputs passed.\n")
@@ -289,11 +291,9 @@ def bids(
     layout = BIDSLayout(bids_dir, validate=True)
     print("BIDS parsing completed.\n")
 
-    print(
-        "Merging subject-level BIDS metadata with the phenotypic annotations...\n"
-    )
+    print("Merging BIDS metadata with existing subject annotations...\n")
     for bids_sub_id in layout.get_subjects():
-        pheno_subject = pheno_subject_dict.get(f"sub-{bids_sub_id}")
+        jsonld_subject = jsonld_subject_dict.get(f"sub-{bids_sub_id}")
         session_list = []
 
         bids_sessions = layout.get_sessions(subject=bids_sub_id)
@@ -337,10 +337,10 @@ def bids(
                 )
             )
 
-        pheno_subject.hasSession += session_list
+        jsonld_subject.hasSession += session_list
 
     context = generate_context()
-    merged_dataset = {**context, **pheno_dataset.dict(exclude_none=True)}
+    merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}
 
     with open(output, "w") as f:
         f.write(json.dumps(merged_dataset, indent=2))

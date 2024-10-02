@@ -1,10 +1,37 @@
 from pathlib import Path
 from typing import Iterable
 
+import pydantic
 import typer
 from pydantic import ValidationError
 
 from bagel import models
+from bagel.mappings import ALL_NAMESPACES, NB
+
+
+def generate_context():
+    # Direct copy of the dandi-schema context generation function
+    # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
+    field_preamble = {
+        namespace.pf: namespace.url for namespace in ALL_NAMESPACES
+    }
+    fields = {}
+    for val in dir(models):
+        klass = getattr(models, val)
+        if not isinstance(klass, pydantic.main.ModelMetaclass):
+            continue
+        fields[klass.__name__] = f"{NB.pf}:{klass.__name__}"
+        for name, field in klass.__fields__.items():
+            if name == "schemaKey":
+                fields[name] = "@type"
+            elif name == "identifier":
+                fields[name] = "@id"
+            elif name not in fields:
+                fields[name] = {"@id": f"{NB.pf}:{name}"}
+
+    field_preamble.update(**fields)
+
+    return {"@context": field_preamble}
 
 
 def get_subs_missing_from_pheno_data(
@@ -16,15 +43,12 @@ def get_subs_missing_from_pheno_data(
 
 def extract_and_validate_jsonld_dataset(
     jsonld: dict, file_path: Path
-) -> tuple[dict, models.Dataset]:
+) -> models.Dataset:
     """
-    Split out the context from a user-provided JSONLD and validate the remaining contents
+    Strip the context from a user-provided JSONLD and validate the remaining contents
     against the data model for a Neurobagel dataset.
     """
-    # Strip and store context to be added back later, since it's not part of
-    # (and can't be easily added) to the existing data model
-    context = {"@context": jsonld.pop("@context")}
-
+    jsonld.pop("@context")
     try:
         jsonld_dataset = models.Dataset.parse_obj(jsonld)
     except ValidationError as err:
@@ -41,7 +65,7 @@ def extract_and_validate_jsonld_dataset(
         )
         raise typer.Exit(code=1) from err
 
-    return context, jsonld_dataset
+    return jsonld_dataset
 
 
 def extract_subs_from_jsonld_dataset(dataset: models.Dataset) -> dict:

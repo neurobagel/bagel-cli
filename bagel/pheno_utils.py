@@ -10,8 +10,8 @@ import pandas as pd
 import pydantic
 from typer import BadParameter
 
-from bagel import dictionary_models, mappings, models
-from bagel.mappings import ALL_NAMESPACES, NB
+from bagel import dictionary_models, mappings
+from bagel.mappings import NB
 
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
 
@@ -35,31 +35,6 @@ def validate_portal_uri(portal: str) -> Optional[str]:
         ) from err
 
     return portal
-
-
-def generate_context():
-    # Direct copy of the dandi-schema context generation function
-    # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
-    field_preamble = {
-        namespace.pf: namespace.url for namespace in ALL_NAMESPACES
-    }
-    fields = {}
-    for val in dir(models):
-        klass = getattr(models, val)
-        if not isinstance(klass, pydantic.main.ModelMetaclass):
-            continue
-        fields[klass.__name__] = f"{NB.pf}:{klass.__name__}"
-        for name, field in klass.__fields__.items():
-            if name == "schemaKey":
-                fields[name] = "@type"
-            elif name == "identifier":
-                fields[name] = "@id"
-            elif name not in fields:
-                fields[name] = {"@id": f"{NB.pf}:{name}"}
-
-    field_preamble.update(**fields)
-
-    return {"@context": field_preamble}
 
 
 def get_columns_about(data_dict: dict, concept: str) -> list:

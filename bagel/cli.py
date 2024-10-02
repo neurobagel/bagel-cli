@@ -13,6 +13,7 @@ from bagel.derivatives_utils import PROC_STATUS_COLS
 from bagel.utility import (
     extract_and_validate_jsonld_dataset,
     extract_subs_from_jsonld_dataset,
+    generate_context,
     get_subs_missing_from_pheno_data,
 )
 
@@ -194,7 +195,7 @@ def pheno(
         hasSamples=subject_list,
     )
 
-    context = putil.generate_context()
+    context = generate_context()
     # We can't just exclude_unset here because the identifier and schemaKey
     # for each instance are created as default values and so technically are never set
     # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
@@ -264,9 +265,7 @@ def bids(
     )
 
     jsonld = futil.load_json(jsonld_path)
-    context, pheno_dataset = extract_and_validate_jsonld_dataset(
-        jsonld, jsonld_path
-    )
+    pheno_dataset = extract_and_validate_jsonld_dataset(jsonld, jsonld_path)
 
     pheno_subject_dict = extract_subs_from_jsonld_dataset(pheno_dataset)
 
@@ -340,6 +339,7 @@ def bids(
 
         pheno_subject.hasSession += session_list
 
+    context = generate_context()
     merged_dataset = {**context, **pheno_dataset.dict(exclude_none=True)}
 
     with open(output, "w") as f:
@@ -432,9 +432,7 @@ def derivatives(
         dutil.check_pipeline_versions_are_recognized(pipeline, versions)
 
     jsonld = futil.load_json(jsonld_path)
-    context, jsonld_dataset = extract_and_validate_jsonld_dataset(
-        jsonld, jsonld_path
-    )
+    jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld, jsonld_path)
 
     # Extract subjects from the JSONLD
     jsonld_subject_dict = extract_subs_from_jsonld_dataset(jsonld_dataset)
@@ -500,6 +498,7 @@ def derivatives(
                 )
                 jsonld_subject.hasSession.append(new_img_session)
 
+    context = generate_context()
     merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}
 
     with open(output, "w") as f:

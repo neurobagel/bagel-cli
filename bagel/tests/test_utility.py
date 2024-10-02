@@ -13,6 +13,7 @@ import bagel.pheno_utils as putil
 from bagel import mappings, models
 from bagel.utility import (
     extract_subs_from_jsonld_dataset,
+    generate_context,
     get_subs_missing_from_pheno_data,
 )
 
@@ -20,7 +21,7 @@ from bagel.utility import (
 @pytest.fixture
 def get_test_context():
     """Generate an @context dictionary to test against."""
-    return putil.generate_context()
+    return generate_context()
 
 
 @pytest.fixture

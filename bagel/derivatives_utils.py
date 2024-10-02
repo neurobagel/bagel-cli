@@ -19,15 +19,14 @@ PROC_STATUS_COLS = {
 
 def check_pipelines_are_recognized(pipelines: Iterable[str]):
     """Check that all pipelines in the processing status file are supported by Nipoppy."""
-    unrecognized_pipelines = list(
-        set(pipelines).difference(mappings.get_pipeline_uris())
-    )
+    known_pipelines = mappings.get_pipeline_uris()
+    unrecognized_pipelines = list(set(pipelines).difference(known_pipelines))
     if len(unrecognized_pipelines) > 0:
         raise LookupError(
             f"The processing status file contains unrecognized pipelines in the column '{PROC_STATUS_COLS['pipeline_name']}': "
             f"{unrecognized_pipelines}. "
             f"Allowed pipeline names are the following pipelines supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog): \n"
-            f"{mappings.get_pipeline_uris()}"
+            f"{known_pipelines}"
         )
 
 
@@ -38,14 +37,15 @@ def check_pipeline_versions_are_recognized(
     Check that all pipeline versions in the processing status file are supported by Nipoppy.
     Assumes that the input pipeline name is recognized.
     """
+    known_versions = mappings.get_pipeline_versions()
     unrecognized_versions = list(
-        set(versions).difference(mappings.get_pipeline_versions()[pipeline])
+        set(versions).difference(known_versions[pipeline])
     )
     if len(unrecognized_versions) > 0:
         raise LookupError(
             f"The processing status file contains unrecognized {pipeline} versions in the column '{PROC_STATUS_COLS['pipeline_version']}': {unrecognized_versions}. "
             f"Allowed {pipeline} versions are the following versions supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog): \n"
-            f"{mappings.get_pipeline_versions()[pipeline]}"
+            f"{known_versions[pipeline]}"
         )
 
 

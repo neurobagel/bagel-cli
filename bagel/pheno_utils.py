@@ -11,7 +11,7 @@ import pydantic
 from typer import BadParameter
 
 from bagel import dictionary_models, mappings, models
-from bagel.mappings import COGATLAS, NB, NCIT, NIDM, SNOMED
+from bagel.mappings import ALL_NAMESPACES, NB
 
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
 
@@ -41,8 +41,7 @@ def generate_context():
     # Direct copy of the dandi-schema context generation function
     # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
     field_preamble = {
-        namespace.pf: namespace.url
-        for namespace in [NB, SNOMED, NIDM, COGATLAS, NCIT]
+        namespace.pf: namespace.url for namespace in ALL_NAMESPACES
     }
     fields = {}
     for val in dir(models):

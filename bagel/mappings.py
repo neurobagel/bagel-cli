@@ -12,6 +12,8 @@ SNOMED = Namespace("snomed", "http://purl.bioontology.org/ontology/SNOMEDCT/")
 NP = Namespace(
     "np", "https://github.com/nipoppy/pipeline-catalog/tree/main/processing"
 )
+# Store all supported amespaces in a list for easy iteration & testing
+ALL_NAMESPACES = [COGATLAS, NB, NCIT, NIDM, SNOMED, NP]
 
 BIDS = {
     "anat": NIDM.pf + ":Anatomical",

@@ -356,30 +356,51 @@ def test_invalid_age_heuristic():
     assert "unrecognized age transformation: nb:birthyear" in str(e.value)
 
 
+# TODO: See if we can remove this test: it's a little hard to maintain and
+# essentially replicates the logic of the function being tested
+# Instead, see test_all_used_namespaces_have_urls and test_used_namespaces_in_context
 @pytest.mark.parametrize(
     "model, attributes",
     [
         ("Bagel", ["identifier"]),
-        ("Sex", ["identifier", "schemaKey"]),
-        ("Diagnosis", ["identifier", "schemaKey"]),
-        ("SubjectGroup", ["identifier", "schemaKey"]),
-        ("Assessment", ["identifier", "schemaKey"]),
-        ("Image", ["identifier", "schemaKey"]),
+        ("ControlledTerm", ["identifier", "schemaKey"]),
+        ("Sex", ["schemaKey"]),
+        ("Diagnosis", ["schemaKey"]),
+        ("SubjectGroup", ["schemaKey"]),
+        ("Assessment", ["schemaKey"]),
+        ("Image", ["schemaKey"]),
         ("Acquisition", ["hasContrastType", "schemaKey"]),
+        ("Pipeline", ["schemaKey"]),
         (
-            "Session",
-            ["hasLabel", "hasFilePath", "hasAcquisition", "schemaKey"],
+            "CompletedPipeline",
+            ["hasPipelineVersion", "hasPipelineName", "schemaKey"],
+        ),
+        ("Session", ["hasLabel"]),
+        (
+            "PhenotypicSession",
+            [
+                "hasAge",
+                "hasSex",
+                "isSubjectGroup",
+                "hasDiagnosis",
+                "hasAssessment",
+                "schemaKey",
+            ],
+        ),
+        (
+            "ImagingSession",
+            [
+                "hasFilePath",
+                "hasAcquisition",
+                "hasCompletedPipeline",
+                "schemaKey",
+            ],
         ),
         (
             "Subject",
             [
                 "hasLabel",
                 "hasSession",
-                "hasAge",
-                "hasSex",
-                "isSubjectGroup",
-                "hasDiagnosis",
-                "hasAssessment",
                 "schemaKey",
             ],
         ),
@@ -747,3 +768,21 @@ def test_create_completed_pipelines():
         == f"{mappings.NP.pf}:fmriprep"
     )
     assert completed_pipelines[0].hasPipelineVersion == "23.1.3"
+
+
+def test_used_namespaces_in_context(test_data_upload_path, load_test_json):
+    """
+    Test that all namespaces used internally by the CLI for JSONLD dataset creation are defined
+    in the @context of reference example .jsonld files.
+    """
+    # Fetch all .jsonld files to avoid having to add a test parameter whenever we add a new JSONLD
+    example_jsonld_files = list(test_data_upload_path.rglob("*.jsonld"))
+    for jsonld in example_jsonld_files:
+        jsonld_context = load_test_json(test_data_upload_path / jsonld)[
+            "@context"
+        ]
+
+        for ns in mappings.ALL_NAMESPACES:
+            assert (
+                ns.pf in jsonld_context.keys()
+            ), f"The namespace '{ns.pf}' was not found in the @context of {jsonld}."

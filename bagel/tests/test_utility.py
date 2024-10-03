@@ -578,18 +578,34 @@ def test_unsupported_tsv_encoding_raises_informative_error(test_data, capsys):
     assert "Failed to decode the input file" in captured.err
 
 
-def test_get_subject_instances(test_data_upload_path, load_test_json):
-    """Test that subjects are correctly extracted from a JSONLD dataset."""
-    dataset = load_test_json(
-        test_data_upload_path / "example_synthetic.jsonld"
+def test_get_subject_instances():
+    """Test that subjects are correctly extracted from a Neurobagel dataset instance."""
+    dataset = models.Dataset(
+        hasLabel="test_dataset",
+        hasSamples=[
+            models.Subject(
+                hasLabel="sub-01",
+                hasSession=[
+                    models.PhenotypicSession(
+                        hasLabel="ses-01",
+                        hasAge=26,
+                    ),
+                ],
+            ),
+            models.Subject(
+                hasLabel="sub-02",
+                hasSession=[
+                    models.PhenotypicSession(
+                        hasLabel="ses-01",
+                        hasAge=30,
+                    ),
+                ],
+            ),
+        ],
     )
-    dataset.pop("@context")
-    subjects = get_subject_instances(models.Dataset.parse_obj(dataset))
 
-    assert len(subjects) == 5
-    assert all(
-        isinstance(subject, models.Subject) for subject in subjects.values()
-    )
+    subjects = get_subject_instances(dataset)
+    assert list(subjects.keys()) == ["sub-01", "sub-02"]
 
 
 def test_pipeline_uris_are_loaded():

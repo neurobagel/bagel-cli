@@ -721,8 +721,9 @@ def test_get_imaging_session_instances():
 
 def test_create_completed_pipelines():
     """
-    Test that completed pipelines for a subject-session are accurately identified
-    based on completion status of all pipeline steps.
+    Test that completed pipelines for a subject-session are accurately identified,
+    where a completed pipeline is one meeting the condition that *all* steps of that pipeline
+    that were run for the session are marked with a status of "SUCCESS".
     """
     sub_ses_data = [
         [

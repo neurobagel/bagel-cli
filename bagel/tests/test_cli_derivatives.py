@@ -65,9 +65,9 @@ def test_pipeline_info_added_to_existing_imaging_sessions(
     load_test_json,
 ):
     """
-    Test that when a valid processing status TSV and bagel pheno- and bagel bids-created JSONLD are supplied as inputs,
-    the bagel derivatives command successfully creates an output JSONLD where processing info for existing vs. new
-    sessions is handled correctly.
+    Test that when a valid processing status TSV and bagel pheno- and bagel bids-created JSONLD
+    are supplied as inputs, the bagel derivatives command successfully creates an output JSONLD
+    where pipeline completion info is correctly added to existing or newly created imaging sessions.
     """
     result = runner.invoke(
         bagel,
@@ -151,7 +151,7 @@ def test_derivatives_invalid_inputs_fail(
 
     assert (
         not default_derivatives_output_path.exists()
-    ), "The JSONLD output was still created."
+    ), "The JSONLD output was created despite inputs being invalid."
 
 
 @pytest.mark.parametrize(

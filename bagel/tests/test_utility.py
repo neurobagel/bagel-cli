@@ -580,9 +580,7 @@ def test_unsupported_tsv_encoding_raises_informative_error(test_data, capsys):
     assert "Failed to decode the input file" in captured.err
 
 
-def test_extract_subs_from_jsonld_dataset(
-    test_data_upload_path, load_test_json
-):
+def test_get_subject_instances(test_data_upload_path, load_test_json):
     """Test that subjects are correctly extracted from a JSONLD dataset."""
     dataset = load_test_json(
         test_data_upload_path / "example_synthetic.jsonld"
@@ -656,8 +654,8 @@ def test_unrecognized_pipeline_versions_raise_error(
     )
 
 
-def test_get_subject_imaging_sessions():
-    """Test that get_subject_imaging_sessions() accurately finds imaging sessions for a given subject."""
+def test_get_imaging_session_instances():
+    """Test that get_imaging_session_instances() correctly returns existing imaging sessions for a given subject."""
     example_subject_jsonld = {
         "identifier": "nb:34ec1e2d-9a81-4a50-bcd0-eb22c88d11e1",
         "hasLabel": "sub-01",
@@ -746,7 +744,6 @@ def test_create_completed_pipelines():
         ],
     ]
     example_ses_proc_df = pd.DataFrame.from_records(
-        # TODO: Don't hardcode col names?
         columns=[
             "participant_id",
             "bids_participant",

@@ -5,6 +5,7 @@ import pydantic
 import typer
 from pydantic import ValidationError
 
+import bagel.file_utils as futil
 from bagel import models
 from bagel.mappings import ALL_NAMESPACES, NB
 
@@ -41,13 +42,12 @@ def get_subs_missing_from_pheno_data(
     return list(set(subjects).difference(pheno_subjects))
 
 
-def extract_and_validate_jsonld_dataset(
-    jsonld: dict, file_path: Path
-) -> models.Dataset:
+def extract_and_validate_jsonld_dataset(file_path: Path) -> models.Dataset:
     """
     Strip the context from a user-provided JSONLD and validate the remaining contents
     against the data model for a Neurobagel dataset.
     """
+    jsonld = futil.load_json(file_path)
     jsonld.pop("@context")
     try:
         jsonld_dataset = models.Dataset.parse_obj(jsonld)

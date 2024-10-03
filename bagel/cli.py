@@ -266,8 +266,7 @@ def bids(
         f"   {'BIDS dataset directory:' : <{space}} {bids_dir}"
     )
 
-    jsonld = futil.load_json(jsonld_path)
-    pheno_dataset = extract_and_validate_jsonld_dataset(jsonld, jsonld_path)
+    pheno_dataset = extract_and_validate_jsonld_dataset(jsonld_path)
 
     pheno_subject_dict = get_subject_instances(pheno_dataset)
 
@@ -432,8 +431,7 @@ def derivatives(
 
         dutil.check_pipeline_versions_are_recognized(pipeline, versions)
 
-    jsonld = futil.load_json(jsonld_path)
-    jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld, jsonld_path)
+    jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld_path)
 
     existing_subs_dict = get_subject_instances(jsonld_dataset)
 

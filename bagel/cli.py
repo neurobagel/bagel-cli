@@ -395,7 +395,7 @@ def derivatives(
 
     space = 51
     print(
-        "Running initial checks of inputs...\n"
+        "Processing subject-level derivative metadata...\n"
         f"   {'Existing subject graph data to augment (.jsonld):' : <{space}}{jsonld_path}\n"
         f"   {'Processing status file (.tsv):' : <{space}}{tabular}"
     )

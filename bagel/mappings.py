@@ -67,3 +67,7 @@ def get_pipeline_versions() -> dict:
         output_dict[pipe["name"]] = pipe["versions"]
 
     return output_dict
+
+
+KNOWN_PIPELINE_URIS = get_pipeline_uris()
+KNOWN_PIPELINE_VERSIONS = get_pipeline_versions()

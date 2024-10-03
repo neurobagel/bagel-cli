@@ -19,14 +19,15 @@ PROC_STATUS_COLS = {
 
 def check_pipelines_are_recognized(pipelines: Iterable[str]):
     """Check that all pipelines in the processing status file are supported by Nipoppy."""
-    known_pipelines = mappings.get_pipeline_uris()
-    unrecognized_pipelines = list(set(pipelines).difference(known_pipelines))
+    unrecognized_pipelines = list(
+        set(pipelines).difference(mappings.KNOWN_PIPELINE_URIS)
+    )
     if len(unrecognized_pipelines) > 0:
         raise LookupError(
             f"The processing status file contains unrecognized pipelines in the column '{PROC_STATUS_COLS['pipeline_name']}': "
             f"{unrecognized_pipelines}. "
             f"Allowed pipeline names are the following pipelines supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog): \n"
-            f"{known_pipelines}"
+            f"{mappings.KNOWN_PIPELINE_URIS}"
         )
 
 
@@ -37,15 +38,14 @@ def check_pipeline_versions_are_recognized(
     Check that all pipeline versions in the processing status file are supported by Nipoppy.
     Assumes that the input pipeline name is recognized.
     """
-    known_versions = mappings.get_pipeline_versions()
     unrecognized_versions = list(
-        set(versions).difference(known_versions[pipeline])
+        set(versions).difference(mappings.KNOWN_PIPELINE_VERSIONS[pipeline])
     )
     if len(unrecognized_versions) > 0:
         raise LookupError(
             f"The processing status file contains unrecognized {pipeline} versions in the column '{PROC_STATUS_COLS['pipeline_version']}': {unrecognized_versions}. "
             f"Allowed {pipeline} versions are the following versions supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog): \n"
-            f"{known_versions[pipeline]}"
+            f"{mappings.KNOWN_PIPELINE_VERSIONS[pipeline]}"
         )
 
 
@@ -83,7 +83,7 @@ def create_completed_pipelines(session_proc_df: pd.DataFrame) -> list:
         ).all():
             completed_pipeline = models.CompletedPipeline(
                 hasPipelineName=models.Pipeline(
-                    identifier=mappings.get_pipeline_uris()[pipeline]
+                    identifier=mappings.KNOWN_PIPELINE_URIS[pipeline]
                 ),
                 hasPipelineVersion=version,
             )

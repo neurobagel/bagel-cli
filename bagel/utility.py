@@ -42,6 +42,27 @@ def get_subs_missing_from_pheno_data(
     return list(set(subjects).difference(pheno_subjects))
 
 
+def confirm_subs_match_pheno_data(
+    subjects: Iterable, subject_source_for_err: str, pheno_subjects: Iterable
+):
+    """
+    Return an error if not all subjects in the subject list are found in the provided phenotypic subject list.
+    """
+    missing_subs = get_subs_missing_from_pheno_data(
+        subjects=subjects,
+        pheno_subjects=pheno_subjects,
+    )
+
+    if len(missing_subs) > 0:
+        raise LookupError(
+            f"The specified {subject_source_for_err} contains subject IDs not found in "
+            "the provided json-ld file:\n"
+            f"{missing_subs}\n"
+            "Subject IDs are case sensitive. "
+            f"Please check that the {subject_source_for_err} corresponds to the dataset in the provided .jsonld."
+        )
+
+
 def extract_and_validate_jsonld_dataset(file_path: Path) -> models.Dataset:
     """
     Strip the context from a user-provided JSONLD and validate the remaining contents

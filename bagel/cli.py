@@ -11,10 +11,10 @@ import bagel.pheno_utils as putil
 from bagel import mappings, models
 from bagel.derivatives_utils import PROC_STATUS_COLS
 from bagel.utility import (
+    confirm_subs_match_pheno_data,
     extract_and_validate_jsonld_dataset,
     generate_context,
     get_subject_instances,
-    get_subs_missing_from_pheno_data,
 )
 
 # TODO: Coordinate with Nipoppy about what we want to name this
@@ -271,18 +271,11 @@ def bids(
     pheno_subject_dict = get_subject_instances(pheno_dataset)
 
     # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
-    unique_bids_subjects = get_subs_missing_from_pheno_data(
+    confirm_subs_match_pheno_data(
         subjects=butil.get_bids_subjects_simple(bids_dir),
+        subject_source_for_err="BIDS directory",
         pheno_subjects=pheno_subject_dict.keys(),
     )
-    if len(unique_bids_subjects) > 0:
-        raise LookupError(
-            "The specified BIDS directory contains subject IDs not found in "
-            "the provided phenotypic json-ld file:\n"
-            f"{unique_bids_subjects}\n"
-            "Subject IDs are case sensitive. "
-            "Please check that the specified BIDS and phenotypic datasets match."
-        )
 
     print("Initial checks of inputs passed.\n")
 
@@ -435,19 +428,11 @@ def derivatives(
 
     existing_subs_dict = get_subject_instances(jsonld_dataset)
 
-    # Check that all subjects in the processing status file are found in the JSONLD
-    unique_derivatives_subs = get_subs_missing_from_pheno_data(
+    confirm_subs_match_pheno_data(
         subjects=status_df[PROC_STATUS_COLS["participant"]].unique(),
+        subject_source_for_err="processing status file",
         pheno_subjects=existing_subs_dict.keys(),
     )
-    if len(unique_derivatives_subs) > 0:
-        raise LookupError(
-            "The specified processing status file contains subject IDs not found in "
-            "the provided json-ld file:\n"
-            f"{unique_derivatives_subs}\n"
-            "Subject IDs are case sensitive. "
-            "Please check that the processing status file corresponds to the dataset in the provided .jsonld."
-        )
 
     # Create sub-dataframes for each subject
     for subject, sub_proc_df in status_df.groupby(

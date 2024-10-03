@@ -10,7 +10,7 @@ NCIT = Namespace("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#")
 NIDM = Namespace("nidm", "http://purl.org/nidash/nidm#")
 SNOMED = Namespace("snomed", "http://purl.bioontology.org/ontology/SNOMEDCT/")
 NP = Namespace(
-    "np", "https://github.com/nipoppy/pipeline-catalog/tree/main/processing"
+    "np", "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/"
 )
 # Store all supported amespaces in a list for easy iteration & testing
 ALL_NAMESPACES = [COGATLAS, NB, NCIT, NIDM, SNOMED, NP]

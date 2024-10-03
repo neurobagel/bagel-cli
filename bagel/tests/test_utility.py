@@ -440,7 +440,7 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
 
 
 @pytest.mark.parametrize(
-    "bids_list, missing_subs",
+    "bids_list, expected_bids_exclusive_subs",
     [
         (["sub-01", "sub-02", "sub-03"], []),
         (
@@ -457,22 +457,20 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
         ),
     ],
 )
-def test_get_subjects_missing_from_pheno_data(bids_list, missing_subs):
+def test_get_subjects_missing_from_pheno_data(
+    bids_list, expected_bids_exclusive_subs
+):
     """
     Given a list of BIDS subject IDs, test that IDs not found in the phenotypic subject list are returned.
     """
     pheno_list = ["sub-01", "sub-02", "sub-03", "sub-PD123", "sub-PD234"]
+    bids_exclusive_subs = get_subs_missing_from_pheno_data(
+        pheno_subjects=pheno_list, subjects=bids_list
+    )
 
     # We sort the list for comparison since the order of the missing subjects is not guaranteed
     # due to using set operations
-    assert (
-        sorted(
-            get_subs_missing_from_pheno_data(
-                pheno_subjects=pheno_list, subjects=bids_list
-            )
-        )
-        == missing_subs
-    )
+    assert sorted(bids_exclusive_subs) == expected_bids_exclusive_subs
 
 
 @pytest.mark.parametrize(
@@ -700,10 +698,9 @@ def test_get_imaging_session_instances():
         "schemaKey": "Subject",
     }
     example_subject = models.Subject(**example_subject_jsonld)
+    imaging_sessions = dutil.get_imaging_session_instances(example_subject)
 
-    assert list(
-        dutil.get_imaging_session_instances(example_subject).keys()
-    ) == ["ses-im01"]
+    assert list(imaging_sessions.keys()) == ["ses-im01"]
 
 
 def test_create_completed_pipelines():

@@ -94,14 +94,12 @@ def pheno(
     graph data model for the provided phenotypic file in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
-    # Check if output file already exists
     futil.check_overwrite(output, overwrite)
 
     data_dictionary = futil.load_json(dictionary)
     pheno_df = futil.load_tabular(pheno)
     putil.validate_inputs(data_dictionary, pheno_df)
 
-    # Display validated input paths to user
     # NOTE: `space` determines the amount of padding (in num. characters) before the file paths in the print statement.
     # It is currently calculated as = (length of the longer string, including the 3 leading spaces) + (2 extra spaces)
     space = 25
@@ -258,7 +256,6 @@ def bids(
     graph data model for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
-    # Check if output file already exists
     futil.check_overwrite(output, overwrite)
 
     space = 51
@@ -415,7 +412,6 @@ def derivatives(
     pipelines = status_df[PROC_STATUS_COLS["pipeline_name"]].unique()
     dutil.check_pipelines_are_recognized(pipelines)
 
-    # Per pipeline, check that version(s) are from the allowed set
     # TODO: Do we need to check all versions across all pipelines first, and report all unrecognized versions together?
     for pipeline in pipelines:
         versions = status_df[
@@ -440,8 +436,7 @@ def derivatives(
     ):
         existing_subject = existing_subs_dict.get(subject)
 
-        # Get existing imaging sessions for the subject
-        # Note: This dictionary can be empty if only bagel pheno was run
+        # Note: Dictionary of existing imaging sessions can be empty if only bagel pheno was run
         existing_sessions_dict = dutil.get_imaging_session_instances(
             existing_subject
         )
@@ -449,7 +444,6 @@ def derivatives(
         for session_name, sub_ses_proc_df in sub_proc_df.groupby(
             PROC_STATUS_COLS["session"]
         ):
-            # Create pipeline objects for the subject-session
             completed_pipelines = dutil.create_completed_pipelines(
                 sub_ses_proc_df
             )

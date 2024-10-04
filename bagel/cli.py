@@ -19,7 +19,7 @@ from bagel.utility import (
 )
 
 # TODO: Coordinate with Nipoppy about what we want to name this
-CUSTOM_SESSION_ID = "nb01"
+CUSTOM_SESSION_ID = "ses-nb01"
 
 bagel = typer.Typer(
     help="""
@@ -130,7 +130,7 @@ def pheno(
         for session_row_idx, session_row in _sub_pheno.iterrows():
             # If there is no session column, we create a session with a custom label "ses-nb01" to assign each subject's phenotypic data to
             if session_column is None:
-                session_name = f"ses-{CUSTOM_SESSION_ID}"
+                session_name = CUSTOM_SESSION_ID
             else:
                 # NOTE: We take the name from the first session column - we don't know how to handle multiple session columns yet
                 session_name = session_row[session_column[0]]
@@ -314,8 +314,8 @@ def bids(
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.
             # Here, we also need to add back "ses" prefix because pybids stripped it
-            session_label = "ses-" + (
-                CUSTOM_SESSION_ID if session is None else session
+            session_label = (
+                CUSTOM_SESSION_ID if session is None else f"ses-{session}"
             )
             session_path = butil.get_session_path(
                 layout=layout,
@@ -462,9 +462,7 @@ def derivatives(
             if not completed_pipelines:
                 continue
 
-            session_label = (
-                f"ses-{CUSTOM_SESSION_ID}" if session == "" else session
-            )
+            session_label = CUSTOM_SESSION_ID if session == "" else session
             if session_label in existing_sessions_dict:
                 existing_img_session = existing_sessions_dict.get(session)
                 existing_img_session.hasCompletedPipeline = completed_pipelines

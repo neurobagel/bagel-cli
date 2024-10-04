@@ -451,7 +451,7 @@ def derivatives(
             existing_subject
         )
 
-        for session_name, sub_ses_proc_df in sub_proc_df.groupby(
+        for session, sub_ses_proc_df in sub_proc_df.groupby(
             PROC_STATUS_COLS["session"]
         ):
             completed_pipelines = dutil.create_completed_pipelines(
@@ -460,17 +460,16 @@ def derivatives(
 
             if not completed_pipelines:
                 continue
-            if session_name in existing_sessions_dict:
-                existing_img_session = existing_sessions_dict.get(session_name)
+
+            session_label = (
+                f"ses-{CUSTOM_SESSION_ID}" if session == "" else session
+            )
+            if session_label in existing_sessions_dict:
+                existing_img_session = existing_sessions_dict.get(session)
                 existing_img_session.hasCompletedPipeline = completed_pipelines
             else:
-                new_session_label = (
-                    f"ses-{CUSTOM_SESSION_ID}"
-                    if session_name == ""
-                    else session_name
-                )
                 new_img_session = models.ImagingSession(
-                    hasLabel=new_session_label,
+                    hasLabel=session_label,
                     hasCompletedPipeline=completed_pipelines,
                 )
                 existing_subject.hasSession.append(new_img_session)

@@ -338,8 +338,7 @@ def bids(
                     hasFilePath=session_path,
                     hasAcquisition=image_list,
                 )
-
-            existing_subject.hasSession.append(new_imaging_session)
+                existing_subject.hasSession.append(new_imaging_session)
 
     context = generate_context()
     merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}

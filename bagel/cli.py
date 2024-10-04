@@ -285,7 +285,9 @@ def bids(
     print("Merging BIDS metadata with existing subject annotations...\n")
     for bids_sub_id in layout.get_subjects():
         existing_subject = existing_subs_dict.get(f"sub-{bids_sub_id}")
-        session_list = []
+        existing_sessions_dict = dutil.get_imaging_session_instances(
+            existing_subject
+        )
 
         bids_sessions = layout.get_sessions(subject=bids_sub_id)
         if not bids_sessions:
@@ -302,7 +304,6 @@ def bids(
                 session=session,
             )
 
-            # If subject's session has no image files, a Session object is not added
             if not image_list:
                 continue
 
@@ -311,7 +312,10 @@ def bids(
             # so the API can still find the session-level information.
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.
-            session_label = CUSTOM_SESSION_ID if session is None else session
+            # Here, we also need to add back "ses" prefix because pybids stripped it
+            session_label = "ses-" + (
+                CUSTOM_SESSION_ID if session is None else session
+            )
             session_path = butil.get_session_path(
                 layout=layout,
                 bids_dir=bids_dir,
@@ -319,16 +323,22 @@ def bids(
                 session=session,
             )
 
-            session_list.append(
-                # Add back "ses" prefix because pybids stripped it
-                models.ImagingSession(
-                    hasLabel="ses-" + session_label,
+            # If a custom Neurobagel-created session already exists (if `bagel derivatives` was run first),
+            # we add to that session when there is no session layer in the BIDS directory
+            if session_label in existing_sessions_dict:
+                existing_img_session = existing_sessions_dict.get(
+                    session_label
+                )
+                existing_img_session.hasAcquisition = image_list
+                existing_img_session.hasFilePath = session_path
+            else:
+                new_imaging_session = models.ImagingSession(
+                    hasLabel=session_label,
                     hasFilePath=session_path,
                     hasAcquisition=image_list,
                 )
-            )
 
-        existing_subject.hasSession += session_list
+            existing_subject.hasSession.append(new_imaging_session)
 
     context = generate_context()
     merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}

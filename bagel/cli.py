@@ -287,7 +287,7 @@ def bids(
 
     print("Merging BIDS metadata with existing subject annotations...\n")
     for bids_sub_id in layout.get_subjects():
-        jsonld_subject = existing_subs_dict.get(f"sub-{bids_sub_id}")
+        existing_subject = existing_subs_dict.get(f"sub-{bids_sub_id}")
         session_list = []
 
         bids_sessions = layout.get_sessions(subject=bids_sub_id)
@@ -331,7 +331,7 @@ def bids(
                 )
             )
 
-        jsonld_subject.hasSession += session_list
+        existing_subject.hasSession += session_list
 
     context = generate_context()
     merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}

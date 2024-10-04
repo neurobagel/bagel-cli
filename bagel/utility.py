@@ -97,3 +97,18 @@ def get_subject_instances(dataset: models.Dataset) -> dict:
     return {
         subject.hasLabel: subject for subject in getattr(dataset, "hasSamples")
     }
+
+
+def get_imaging_session_instances(
+    jsonld_subject: models.Subject,
+) -> dict:
+    """
+    Return a dictionary of imaging sessions for a given subject from JSONLD data,
+    where the keys are the session labels and values are the session objects.
+    """
+    jsonld_sub_sessions_dict = {}
+    for jsonld_sub_ses in getattr(jsonld_subject, "hasSession"):
+        if jsonld_sub_ses.schemaKey == "ImagingSession":
+            jsonld_sub_sessions_dict[jsonld_sub_ses.hasLabel] = jsonld_sub_ses
+
+    return jsonld_sub_sessions_dict

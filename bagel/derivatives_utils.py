@@ -49,21 +49,6 @@ def check_pipeline_versions_are_recognized(
         )
 
 
-def get_imaging_session_instances(
-    jsonld_subject: models.Subject,
-) -> dict:
-    """
-    Return a dictionary of imaging sessions for a given subject from JSONLD data,
-    where the keys are the session labels and values are the session objects.
-    """
-    jsonld_sub_sessions_dict = {}
-    for jsonld_sub_ses in getattr(jsonld_subject, "hasSession"):
-        if jsonld_sub_ses.schemaKey == "ImagingSession":
-            jsonld_sub_sessions_dict[jsonld_sub_ses.hasLabel] = jsonld_sub_ses
-
-    return jsonld_sub_sessions_dict
-
-
 def create_completed_pipelines(session_proc_df: pd.DataFrame) -> list:
     """
     Create a list of CompletedPipeline objects for a single subject-session based on the completion status

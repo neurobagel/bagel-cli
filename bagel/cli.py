@@ -14,6 +14,7 @@ from bagel.utility import (
     confirm_subs_match_pheno_data,
     extract_and_validate_jsonld_dataset,
     generate_context,
+    get_imaging_session_instances,
     get_subject_instances,
 )
 
@@ -285,7 +286,7 @@ def bids(
     print("Merging BIDS metadata with existing subject annotations...\n")
     for bids_sub_id in layout.get_subjects():
         existing_subject = existing_subs_dict.get(f"sub-{bids_sub_id}")
-        existing_sessions_dict = dutil.get_imaging_session_instances(
+        existing_sessions_dict = get_imaging_session_instances(
             existing_subject
         )
 
@@ -308,8 +309,8 @@ def bids(
                 continue
 
             # TODO: Currently if a subject has BIDS data but no "ses-" directories (e.g., only 1 session),
-            # we create a session for that subject with a custom label "ses-nb01" to be added to the graph
-            # so the API can still find the session-level information.
+            # we create a session for that subject with a custom label "ses-nb01" to be added to the graph.
+            # However, we still provide the BIDS SUBJECT directory as the session path, instead of making up a path.
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.
             # Here, we also need to add back "ses" prefix because pybids stripped it
@@ -447,7 +448,7 @@ def derivatives(
         existing_subject = existing_subs_dict.get(subject)
 
         # Note: Dictionary of existing imaging sessions can be empty if only bagel pheno was run
-        existing_sessions_dict = dutil.get_imaging_session_instances(
+        existing_sessions_dict = get_imaging_session_instances(
             existing_subject
         )
 

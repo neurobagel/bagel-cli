@@ -13,6 +13,7 @@ import bagel.pheno_utils as putil
 from bagel import mappings, models
 from bagel.utility import (
     generate_context,
+    get_imaging_session_instances,
     get_subject_instances,
     get_subs_missing_from_pheno_data,
 )
@@ -714,7 +715,7 @@ def test_get_imaging_session_instances():
         "schemaKey": "Subject",
     }
     example_subject = models.Subject(**example_subject_jsonld)
-    imaging_sessions = dutil.get_imaging_session_instances(example_subject)
+    imaging_sessions = get_imaging_session_instances(example_subject)
 
     assert list(imaging_sessions.keys()) == ["ses-im01"]
 

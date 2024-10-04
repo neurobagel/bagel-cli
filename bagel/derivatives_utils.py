@@ -5,6 +5,9 @@ import pandas as pd
 from bagel import mappings, models
 
 # Shorthands for expected column names in a Nipoppy processing status file
+# TODO: While there are multiple session ID columns in a Nipoppy processing status file,
+# we only only look at `bids_session` right now. We should revisit this after the schema is finalized,
+# to see if any other logic is needed to avoid issues with session ID discrepancies across columns.
 PROC_STATUS_COLS = {
     "participant": "bids_participant",
     "session": "bids_session",
@@ -17,14 +20,14 @@ PROC_STATUS_COLS = {
 def check_pipelines_are_recognized(pipelines: Iterable[str]):
     """Check that all pipelines in the processing status file are supported by Nipoppy."""
     unrecognized_pipelines = list(
-        set(pipelines).difference(mappings.get_pipeline_uris())
+        set(pipelines).difference(mappings.KNOWN_PIPELINE_URIS)
     )
     if len(unrecognized_pipelines) > 0:
         raise LookupError(
             f"The processing status file contains unrecognized pipelines in the column '{PROC_STATUS_COLS['pipeline_name']}': "
             f"{unrecognized_pipelines}. "
             f"Allowed pipeline names are the following pipelines supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog): \n"
-            f"{mappings.get_pipeline_uris()}"
+            f"{mappings.KNOWN_PIPELINE_URIS}"
         )
 
 
@@ -36,17 +39,17 @@ def check_pipeline_versions_are_recognized(
     Assumes that the input pipeline name is recognized.
     """
     unrecognized_versions = list(
-        set(versions).difference(mappings.get_pipeline_versions()[pipeline])
+        set(versions).difference(mappings.KNOWN_PIPELINE_VERSIONS[pipeline])
     )
     if len(unrecognized_versions) > 0:
         raise LookupError(
             f"The processing status file contains unrecognized {pipeline} versions in the column '{PROC_STATUS_COLS['pipeline_version']}': {unrecognized_versions}. "
             f"Allowed {pipeline} versions are the following versions supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog): \n"
-            f"{mappings.get_pipeline_versions()[pipeline]}"
+            f"{mappings.KNOWN_PIPELINE_VERSIONS[pipeline]}"
         )
 
 
-def get_subject_imaging_sessions(
+def get_imaging_session_instances(
     jsonld_subject: models.Subject,
 ) -> dict:
     """
@@ -80,7 +83,7 @@ def create_completed_pipelines(session_proc_df: pd.DataFrame) -> list:
         ).all():
             completed_pipeline = models.CompletedPipeline(
                 hasPipelineName=models.Pipeline(
-                    identifier=mappings.get_pipeline_uris()[pipeline]
+                    identifier=mappings.KNOWN_PIPELINE_URIS[pipeline]
                 ),
                 hasPipelineVersion=version,
             )

@@ -12,8 +12,8 @@ import bagel.file_utils as futil
 import bagel.pheno_utils as putil
 from bagel import mappings, models
 from bagel.utility import (
-    extract_subs_from_jsonld_dataset,
     generate_context,
+    get_subject_instances,
     get_subs_missing_from_pheno_data,
 )
 
@@ -440,7 +440,7 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
 
 
 @pytest.mark.parametrize(
-    "bids_list, missing_subs",
+    "bids_list, expected_bids_exclusive_subs",
     [
         (["sub-01", "sub-02", "sub-03"], []),
         (
@@ -457,22 +457,20 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
         ),
     ],
 )
-def test_get_subjects_missing_from_pheno_data(bids_list, missing_subs):
+def test_get_subjects_missing_from_pheno_data(
+    bids_list, expected_bids_exclusive_subs
+):
     """
     Given a list of BIDS subject IDs, test that IDs not found in the phenotypic subject list are returned.
     """
     pheno_list = ["sub-01", "sub-02", "sub-03", "sub-PD123", "sub-PD234"]
+    bids_exclusive_subs = get_subs_missing_from_pheno_data(
+        pheno_subjects=pheno_list, subjects=bids_list
+    )
 
     # We sort the list for comparison since the order of the missing subjects is not guaranteed
     # due to using set operations
-    assert (
-        sorted(
-            get_subs_missing_from_pheno_data(
-                pheno_subjects=pheno_list, subjects=bids_list
-            )
-        )
-        == missing_subs
-    )
+    assert sorted(bids_exclusive_subs) == expected_bids_exclusive_subs
 
 
 @pytest.mark.parametrize(
@@ -580,22 +578,34 @@ def test_unsupported_tsv_encoding_raises_informative_error(test_data, capsys):
     assert "Failed to decode the input file" in captured.err
 
 
-def test_extract_subs_from_jsonld_dataset(
-    test_data_upload_path, load_test_json
-):
-    """Test that subjects are correctly extracted from a JSONLD dataset."""
-    dataset = load_test_json(
-        test_data_upload_path / "example_synthetic.jsonld"
-    )
-    dataset.pop("@context")
-    subjects = extract_subs_from_jsonld_dataset(
-        models.Dataset.parse_obj(dataset)
+def test_get_subject_instances():
+    """Test that subjects are correctly extracted from a Neurobagel dataset instance."""
+    dataset = models.Dataset(
+        hasLabel="test_dataset",
+        hasSamples=[
+            models.Subject(
+                hasLabel="sub-01",
+                hasSession=[
+                    models.PhenotypicSession(
+                        hasLabel="ses-01",
+                        hasAge=26,
+                    ),
+                ],
+            ),
+            models.Subject(
+                hasLabel="sub-02",
+                hasSession=[
+                    models.PhenotypicSession(
+                        hasLabel="ses-01",
+                        hasAge=30,
+                    ),
+                ],
+            ),
+        ],
     )
 
-    assert len(subjects) == 5
-    assert all(
-        isinstance(subject, models.Subject) for subject in subjects.values()
-    )
+    subjects = get_subject_instances(dataset)
+    assert list(subjects.keys()) == ["sub-01", "sub-02"]
 
 
 def test_pipeline_uris_are_loaded():
@@ -658,8 +668,8 @@ def test_unrecognized_pipeline_versions_raise_error(
     )
 
 
-def test_get_subject_imaging_sessions():
-    """Test that get_subject_imaging_sessions() accurately finds imaging sessions for a given subject."""
+def test_get_imaging_session_instances():
+    """Test that get_imaging_session_instances() correctly returns existing imaging sessions for a given subject."""
     example_subject_jsonld = {
         "identifier": "nb:34ec1e2d-9a81-4a50-bcd0-eb22c88d11e1",
         "hasLabel": "sub-01",
@@ -704,16 +714,16 @@ def test_get_subject_imaging_sessions():
         "schemaKey": "Subject",
     }
     example_subject = models.Subject(**example_subject_jsonld)
+    imaging_sessions = dutil.get_imaging_session_instances(example_subject)
 
-    assert list(
-        dutil.get_subject_imaging_sessions(example_subject).keys()
-    ) == ["ses-im01"]
+    assert list(imaging_sessions.keys()) == ["ses-im01"]
 
 
 def test_create_completed_pipelines():
     """
-    Test that completed pipelines for a subject-session are accurately identified
-    based on completion status of all pipeline steps.
+    Test that completed pipelines for a subject-session are accurately identified,
+    where a completed pipeline is one meeting the condition that *all* steps of that pipeline
+    that were run for the session are marked with a status of "SUCCESS".
     """
     sub_ses_data = [
         [
@@ -748,7 +758,6 @@ def test_create_completed_pipelines():
         ],
     ]
     example_ses_proc_df = pd.DataFrame.from_records(
-        # TODO: Don't hardcode col names?
         columns=[
             "participant_id",
             "bids_participant",

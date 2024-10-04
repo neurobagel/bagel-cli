@@ -11,10 +11,10 @@ import bagel.pheno_utils as putil
 from bagel import mappings, models
 from bagel.derivatives_utils import PROC_STATUS_COLS
 from bagel.utility import (
+    confirm_subs_match_pheno_data,
     extract_and_validate_jsonld_dataset,
-    extract_subs_from_jsonld_dataset,
     generate_context,
-    get_subs_missing_from_pheno_data,
+    get_subject_instances,
 )
 
 # TODO: Coordinate with Nipoppy about what we want to name this
@@ -102,6 +102,8 @@ def pheno(
     putil.validate_inputs(data_dictionary, pheno_df)
 
     # Display validated input paths to user
+    # NOTE: `space` determines the amount of padding (in num. characters) before the file paths in the print statement.
+    # It is currently calculated as = (length of the longer string, including the 3 leading spaces) + (2 extra spaces)
     space = 25
     print(
         "Processing phenotypic annotations:\n"
@@ -266,24 +268,16 @@ def bids(
         f"   {'BIDS dataset directory:' : <{space}} {bids_dir}"
     )
 
-    jsonld = futil.load_json(jsonld_path)
-    jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld, jsonld_path)
+    jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld_path)
 
-    jsonld_subject_dict = extract_subs_from_jsonld_dataset(jsonld_dataset)
+    existing_subs_dict = get_subject_instances(jsonld_dataset)
 
     # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
-    unique_bids_subjects = get_subs_missing_from_pheno_data(
+    confirm_subs_match_pheno_data(
         subjects=butil.get_bids_subjects_simple(bids_dir),
-        pheno_subjects=jsonld_subject_dict.keys(),
+        subject_source_for_err="BIDS directory",
+        pheno_subjects=existing_subs_dict.keys(),
     )
-    if len(unique_bids_subjects) > 0:
-        raise LookupError(
-            "The specified BIDS directory contains subject IDs not found in "
-            "the provided phenotypic json-ld file:\n"
-            f"{unique_bids_subjects}\n"
-            "Subject IDs are case sensitive. "
-            "Please check that the BIDS directory corresponds to the dataset in the provided .jsonld."
-        )
 
     print("Initial checks of inputs passed.\n")
 
@@ -293,7 +287,7 @@ def bids(
 
     print("Merging BIDS metadata with existing subject annotations...\n")
     for bids_sub_id in layout.get_subjects():
-        jsonld_subject = jsonld_subject_dict.get(f"sub-{bids_sub_id}")
+        jsonld_subject = existing_subs_dict.get(f"sub-{bids_sub_id}")
         session_list = []
 
         bids_sessions = layout.get_sessions(subject=bids_sub_id)
@@ -401,15 +395,14 @@ def derivatives(
 
     space = 51
     print(
-        "Running initial checks of inputs...\n"
+        "Processing subject-level derivative metadata...\n"
         f"   {'Existing subject graph data to augment (.jsonld):' : <{space}}{jsonld_path}\n"
         f"   {'Processing status file (.tsv):' : <{space}}{tabular}"
     )
 
-    # Load and do basic TSV validation of the processing status file
     status_df = futil.load_tabular(tabular, input_type="processing status")
 
-    # Check for missing participant IDs
+    # We don't allow empty values in the participant ID column
     if row_indices := putil.get_rows_with_empty_strings(
         status_df, [PROC_STATUS_COLS["participant"]]
     ):
@@ -431,47 +424,29 @@ def derivatives(
 
         dutil.check_pipeline_versions_are_recognized(pipeline, versions)
 
-    jsonld = futil.load_json(jsonld_path)
-    jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld, jsonld_path)
+    jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld_path)
 
-    # Extract subjects from the JSONLD
-    jsonld_subject_dict = extract_subs_from_jsonld_dataset(jsonld_dataset)
+    existing_subs_dict = get_subject_instances(jsonld_dataset)
 
-    # Check that all subjects in the processing status file are found in the JSONLD
-    unique_derivatives_subs = get_subs_missing_from_pheno_data(
+    confirm_subs_match_pheno_data(
         subjects=status_df[PROC_STATUS_COLS["participant"]].unique(),
-        pheno_subjects=jsonld_subject_dict.keys(),
+        subject_source_for_err="processing status file",
+        pheno_subjects=existing_subs_dict.keys(),
     )
-    if len(unique_derivatives_subs) > 0:
-        raise LookupError(
-            "The specified processing status file contains subject IDs not found in "
-            "the provided json-ld file:\n"
-            f"{unique_derivatives_subs}\n"
-            "Subject IDs are case sensitive. "
-            "Please check that the processing status file corresponds to the dataset in the provided .jsonld."
-        )
 
     # Create sub-dataframes for each subject
     for subject, sub_proc_df in status_df.groupby(
         PROC_STATUS_COLS["participant"]
     ):
-        jsonld_subject = jsonld_subject_dict.get(subject)
+        existing_subject = existing_subs_dict.get(subject)
 
         # Get existing imaging sessions for the subject
         # Note: This dictionary can be empty if only bagel pheno was run
-        jsonld_sub_sessions_dict = dutil.get_subject_imaging_sessions(
-            jsonld_subject
+        existing_sessions_dict = dutil.get_imaging_session_instances(
+            existing_subject
         )
 
-        # Since at the moment, we internally only consider one of the possible session columns
-        # in the processing status file from Nipoppy (e.g., 'bids_session' but not 'session_id') to generate the graph data,
-        # there is an implicit assumption here that bids_session should have some accuracy/consistency in the context of the
-        # other session IDs in the file.
-        # E.g., if 'sub-01' has 2 TSV rows where 'session_id' is'01' and '02', but 'bids_session' has no values,
-        # is this allowed according to the Nipoppy schema? In this case, Neurobagel (which only looks at 'bids_session')
-        # will treat any pipeline completion info for these two rows as belonging to the *same* session - a custom new session we create.
-        # However, the other column 'session_id' seems to indicate that these rows actually belong to *separate* sessions = inaccurate modeling on our part?
-        for proc_session, sub_ses_proc_df in sub_proc_df.groupby(
+        for session_name, sub_ses_proc_df in sub_proc_df.groupby(
             PROC_STATUS_COLS["session"]
         ):
             # Create pipeline objects for the subject-session
@@ -481,22 +456,20 @@ def derivatives(
 
             if not completed_pipelines:
                 continue
-            if proc_session in jsonld_sub_sessions_dict:
-                existing_img_session = jsonld_sub_sessions_dict.get(
-                    proc_session
-                )
+            if session_name in existing_sessions_dict:
+                existing_img_session = existing_sessions_dict.get(session_name)
                 existing_img_session.hasCompletedPipeline = completed_pipelines
             else:
-                proc_session_label = (
+                new_session_label = (
                     f"ses-{CUSTOM_SESSION_ID}"
-                    if proc_session == ""
-                    else proc_session
+                    if session_name == ""
+                    else session_name
                 )
                 new_img_session = models.ImagingSession(
-                    hasLabel=proc_session_label,
+                    hasLabel=new_session_label,
                     hasCompletedPipeline=completed_pipelines,
                 )
-                jsonld_subject.hasSession.append(new_img_session)
+                existing_subject.hasSession.append(new_img_session)
 
     context = generate_context()
     merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}

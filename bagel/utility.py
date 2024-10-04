@@ -5,6 +5,7 @@ import pydantic
 import typer
 from pydantic import ValidationError
 
+import bagel.file_utils as futil
 from bagel import models
 from bagel.mappings import ALL_NAMESPACES, NB
 
@@ -41,13 +42,33 @@ def get_subs_missing_from_pheno_data(
     return list(set(subjects).difference(pheno_subjects))
 
 
-def extract_and_validate_jsonld_dataset(
-    jsonld: dict, file_path: Path
-) -> models.Dataset:
+def confirm_subs_match_pheno_data(
+    subjects: Iterable, subject_source_for_err: str, pheno_subjects: Iterable
+):
+    """
+    Return an error if not all subjects in the subject list are found in the provided phenotypic subject list.
+    """
+    missing_subs = get_subs_missing_from_pheno_data(
+        subjects=subjects,
+        pheno_subjects=pheno_subjects,
+    )
+
+    if len(missing_subs) > 0:
+        raise LookupError(
+            f"The specified {subject_source_for_err} contains subject IDs not found in "
+            "the provided json-ld file:\n"
+            f"{missing_subs}\n"
+            "Subject IDs are case sensitive. "
+            f"Please check that the {subject_source_for_err} corresponds to the dataset in the provided .jsonld."
+        )
+
+
+def extract_and_validate_jsonld_dataset(file_path: Path) -> models.Dataset:
     """
     Strip the context from a user-provided JSONLD and validate the remaining contents
     against the data model for a Neurobagel dataset.
     """
+    jsonld = futil.load_json(file_path)
     jsonld.pop("@context")
     try:
         jsonld_dataset = models.Dataset.parse_obj(jsonld)
@@ -68,7 +89,7 @@ def extract_and_validate_jsonld_dataset(
     return jsonld_dataset
 
 
-def extract_subs_from_jsonld_dataset(dataset: models.Dataset) -> dict:
+def get_subject_instances(dataset: models.Dataset) -> dict:
     """
     Return a dictionary of subjects for a given Neurobagel dataset from JSONLD data,
     where keys are subject labels and values are the subject objects.

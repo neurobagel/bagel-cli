@@ -34,7 +34,7 @@
 ## Example inputs to the `bagel derivatives` command
 Designed to work with `.jsonld` files from the [Neurobagel reference example dataset](https://github.com/neurobagel/neurobagel_examples).
 
-proc_status | Description | Expected result
+Example file `proc_status`... | Description | Expected result
 ----- | ----- | -----
 _synthetic.tsv | Captures a subset of subject-sessions represented in the BIDS examples synthetic dataset | Pass
 _synthetic.csv | Same as proc_status_synthetic.csv, but is a CSV file | Fail

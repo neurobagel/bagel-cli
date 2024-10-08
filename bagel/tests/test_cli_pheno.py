@@ -353,7 +353,7 @@ def test_providing_csv_file_raises_error(
             catch_exceptions=False,
         )
 
-    assert "Please provide a valid .tsv pheno file" in str(e.value)
+    assert "Please provide a valid .tsv phenotypic file" in str(e.value)
 
 
 def test_that_output_file_contains_dataset_level_attributes(

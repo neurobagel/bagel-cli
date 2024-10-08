@@ -3,12 +3,23 @@ from pathlib import Path
 
 import typer
 from bids import BIDSLayout
-from pydantic import ValidationError
 
 import bagel.bids_utils as butil
+import bagel.derivatives_utils as dutil
+import bagel.file_utils as futil
 import bagel.pheno_utils as putil
 from bagel import mappings, models
-from bagel.utility import check_overwrite, load_json
+from bagel.derivatives_utils import PROC_STATUS_COLS
+from bagel.utility import (
+    confirm_subs_match_pheno_data,
+    extract_and_validate_jsonld_dataset,
+    generate_context,
+    get_imaging_session_instances,
+    get_subject_instances,
+)
+
+# TODO: Coordinate with Nipoppy about what we want to name this
+CUSTOM_SESSION_LABEL = "ses-nb01"
 
 bagel = typer.Typer(
     help="""
@@ -84,14 +95,14 @@ def pheno(
     graph data model for the provided phenotypic file in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
-    # Check if output file already exists
-    check_overwrite(output, overwrite)
+    futil.check_overwrite(output, overwrite)
 
-    data_dictionary = load_json(dictionary)
-    pheno_df = putil.load_pheno(pheno)
+    data_dictionary = futil.load_json(dictionary)
+    pheno_df = futil.load_tabular(pheno)
     putil.validate_inputs(data_dictionary, pheno_df)
 
-    # Display validated input paths to user
+    # NOTE: `space` determines the amount of padding (in num. characters) before the file paths in the print statement.
+    # It is currently calculated as = (length of the longer string, including the 3 leading spaces) + (2 extra spaces)
     space = 25
     print(
         "Processing phenotypic annotations:\n"
@@ -119,12 +130,12 @@ def pheno(
         for session_row_idx, session_row in _sub_pheno.iterrows():
             # If there is no session column, we create a session with a custom label "ses-nb01" to assign each subject's phenotypic data to
             if session_column is None:
-                session_name = "ses-nb01"  # TODO: Should we make this more obscure to avoid potential overlap with actual session names?
+                session_label = CUSTOM_SESSION_LABEL
             else:
                 # NOTE: We take the name from the first session column - we don't know how to handle multiple session columns yet
-                session_name = session_row[session_column[0]]
+                session_label = session_row[session_column[0]]
 
-            session = models.PhenotypicSession(hasLabel=str(session_name))
+            session = models.PhenotypicSession(hasLabel=str(session_label))
             _ses_pheno = session_row
 
             if "sex" in column_mapping.keys():
@@ -185,7 +196,7 @@ def pheno(
         hasSamples=subject_list,
     )
 
-    context = putil.generate_context()
+    context = generate_context()
     # We can't just exclude_unset here because the identifier and schemaKey
     # for each instance are created as default values and so technically are never set
     # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
@@ -203,7 +214,8 @@ def bids(
         ...,
         "--jsonld-path",
         "-p",  # for pheno
-        help="The path to the .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command.",
+        help="The path to the .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command. "
+        "This file may optionally also include the processing pipeline metadata for the dataset (created by the bagel derivatives command).",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -236,55 +248,47 @@ def bids(
     ),
 ):
     """
-    Extract imaging metadata from a valid BIDS dataset and combine them
-    with phenotypic metadata (.jsonld) created by the bagel pheno command.
+    Extract imaging metadata from a valid BIDS dataset and integrate it with
+    subjects' harmonized phenotypic data (from the bagel pheno command) and, optionally,
+    processing pipeline metadata (from the bagel derivatives command) in a single .jsonld file.
     NOTE: Must be run AFTER the pheno command.
 
     This command will create a valid, subject-level instance of the Neurobagel
     graph data model for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
-    # Check if output file already exists
-    check_overwrite(output, overwrite)
+    futil.check_overwrite(output, overwrite)
 
-    space = 32
+    space = 51
     print(
         "Running initial checks of inputs...\n"
-        f"   {'Phenotypic .jsonld to augment:' : <{space}} {jsonld_path}\n"
+        f"   {'Existing subject graph data to augment (.jsonld):' : <{space}} {jsonld_path}\n"
         f"   {'BIDS dataset directory:' : <{space}} {bids_dir}"
     )
 
-    jsonld = load_json(jsonld_path)
-    # Strip and store context to be added back later, since it's not part of
-    # (and can't be easily added) to the existing data model
-    context = {"@context": jsonld.pop("@context")}
-    try:
-        pheno_dataset = models.Dataset.parse_obj(jsonld)
-    except ValidationError as err:
-        print(err)
+    jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld_path)
 
-    pheno_subject_dict = {
-        pheno_subject.hasLabel: pheno_subject
-        for pheno_subject in getattr(pheno_dataset, "hasSamples")
-    }
+    existing_subs_dict = get_subject_instances(jsonld_dataset)
 
     # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
-    butil.check_unique_bids_subjects(
-        pheno_subjects=pheno_subject_dict.keys(),
-        bids_subjects=butil.get_bids_subjects_simple(bids_dir),
+    confirm_subs_match_pheno_data(
+        subjects=butil.get_bids_subjects_simple(bids_dir),
+        subject_source_for_err="BIDS directory",
+        pheno_subjects=existing_subs_dict.keys(),
     )
+
     print("Initial checks of inputs passed.\n")
 
     print("Parsing and validating BIDS dataset. This may take a while...")
     layout = BIDSLayout(bids_dir, validate=True)
     print("BIDS parsing completed.\n")
 
-    print(
-        "Merging subject-level BIDS metadata with the phenotypic annotations...\n"
-    )
+    print("Merging BIDS metadata with existing subject annotations...\n")
     for bids_sub_id in layout.get_subjects():
-        pheno_subject = pheno_subject_dict.get(f"sub-{bids_sub_id}")
-        session_list = []
+        existing_subject = existing_subs_dict.get(f"sub-{bids_sub_id}")
+        existing_sessions_dict = get_imaging_session_instances(
+            existing_subject
+        )
 
         bids_sessions = layout.get_sessions(subject=bids_sub_id)
         if not bids_sessions:
@@ -294,42 +298,188 @@ def bids(
 
         # For some reason .get_sessions() doesn't always follow alphanumeric order
         # By default (without sorting) the session lists look like ["02", "01"] per subject
-        for session in sorted(bids_sessions):
+        for session_id in sorted(bids_sessions):
             image_list = butil.create_acquisitions(
                 layout=layout,
                 bids_sub_id=bids_sub_id,
-                session=session,
+                session=session_id,
             )
 
-            # If subject's session has no image files, a Session object is not added
             if not image_list:
                 continue
 
             # TODO: Currently if a subject has BIDS data but no "ses-" directories (e.g., only 1 session),
-            # we create a session for that subject with a custom label "ses-nb01" to be added to the graph
-            # so the API can still find the session-level information.
+            # we create a session for that subject with a custom label "ses-nb01" to be added to the graph.
+            # However, we still provide the BIDS SUBJECT directory as the session path, instead of making up a path.
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.
-            session_label = "nb01" if session is None else session
+            # Here, we also need to add back "ses" prefix because pybids stripped it
+            session_label = (
+                CUSTOM_SESSION_LABEL
+                if session_id is None
+                else f"ses-{session_id}"
+            )
             session_path = butil.get_session_path(
                 layout=layout,
                 bids_dir=bids_dir,
                 bids_sub_id=bids_sub_id,
-                session=session,
+                session=session_id,
             )
 
-            session_list.append(
-                # Add back "ses" prefix because pybids stripped it
-                models.ImagingSession(
-                    hasLabel="ses-" + session_label,
+            # If a custom Neurobagel-created session already exists (if `bagel derivatives` was run first),
+            # we add to that session when there is no session layer in the BIDS directory
+            if session_label in existing_sessions_dict:
+                existing_img_session = existing_sessions_dict.get(
+                    session_label
+                )
+                existing_img_session.hasAcquisition = image_list
+                existing_img_session.hasFilePath = session_path
+            else:
+                new_imaging_session = models.ImagingSession(
+                    hasLabel=session_label,
                     hasFilePath=session_path,
                     hasAcquisition=image_list,
                 )
+                existing_subject.hasSession.append(new_imaging_session)
+
+    context = generate_context()
+    merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}
+
+    with open(output, "w") as f:
+        f.write(json.dumps(merged_dataset, indent=2))
+
+    print(f"Saved output to:  {output}")
+
+
+@bagel.command()
+def derivatives(
+    tabular: Path = typer.Option(
+        ...,
+        "--tabular",
+        "-t",
+        help="The path to a .tsv containing subject-level processing pipeline status info. Expected to comply with the Nipoppy processing status file schema.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    # TODO: Remove _path?
+    jsonld_path: Path = typer.Option(
+        ...,
+        "--jsonld-path",
+        "-p",  # for pheno
+        help="The path to a .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command. This JSONLD may optionally also include the BIDS metadata for the dataset (created by the bagel bids command).",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    output: Path = typer.Option(
+        "pheno_derivatives.jsonld",
+        "--output",
+        "-o",
+        help="The path for the output .jsonld file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    overwrite: bool = typer.Option(
+        False,
+        "--overwrite",
+        "-f",
+        help="Overwrite output file if it already exists.",
+    ),
+):
+    """
+    Extract subject processing pipeline and derivative metadata from a tabular processing status file and
+    integrate them in a single .jsonld with subjects' harmonized phenotypic data (from the bagel pheno command) and optionally,
+    BIDS metadata (from the bagel bids command).
+    NOTE: Must be run AFTER the pheno command.
+
+    This command will create a valid, subject-level instance of the Neurobagel
+    graph data model for the combined metadata in the .jsonld format.
+    You can upload this .jsonld file to the Neurobagel graph.
+    """
+    futil.check_overwrite(output, overwrite)
+
+    space = 51
+    print(
+        "Processing subject-level derivative metadata...\n"
+        f"   {'Existing subject graph data to augment (.jsonld):' : <{space}}{jsonld_path}\n"
+        f"   {'Processing status file (.tsv):' : <{space}}{tabular}"
+    )
+
+    status_df = futil.load_tabular(tabular, input_type="processing status")
+
+    # We don't allow empty values in the participant ID column
+    if row_indices := putil.get_rows_with_empty_strings(
+        status_df, [PROC_STATUS_COLS["participant"]]
+    ):
+        raise LookupError(
+            f"Your processing status file contains missing values in the column '{PROC_STATUS_COLS['participant']}'. "
+            "Please ensure that every row has a non-empty participant id. "
+            f"We found missing values in the following rows (first row is zero): {row_indices}."
+        )
+
+    pipelines = status_df[PROC_STATUS_COLS["pipeline_name"]].unique()
+    dutil.check_pipelines_are_recognized(pipelines)
+
+    # TODO: Do we need to check all versions across all pipelines first, and report all unrecognized versions together?
+    for pipeline in pipelines:
+        versions = status_df[
+            status_df[PROC_STATUS_COLS["pipeline_name"]] == pipeline
+        ][PROC_STATUS_COLS["pipeline_version"]].unique()
+
+        dutil.check_pipeline_versions_are_recognized(pipeline, versions)
+
+    jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld_path)
+
+    existing_subs_dict = get_subject_instances(jsonld_dataset)
+
+    confirm_subs_match_pheno_data(
+        subjects=status_df[PROC_STATUS_COLS["participant"]].unique(),
+        subject_source_for_err="processing status file",
+        pheno_subjects=existing_subs_dict.keys(),
+    )
+
+    # Create sub-dataframes for each subject
+    for subject, sub_proc_df in status_df.groupby(
+        PROC_STATUS_COLS["participant"]
+    ):
+        existing_subject = existing_subs_dict.get(subject)
+
+        # Note: Dictionary of existing imaging sessions can be empty if only bagel pheno was run
+        existing_sessions_dict = get_imaging_session_instances(
+            existing_subject
+        )
+
+        for session_label, sub_ses_proc_df in sub_proc_df.groupby(
+            PROC_STATUS_COLS["session"]
+        ):
+            completed_pipelines = dutil.create_completed_pipelines(
+                sub_ses_proc_df
             )
 
-        pheno_subject.hasSession += session_list
+            if not completed_pipelines:
+                continue
 
-    merged_dataset = {**context, **pheno_dataset.dict(exclude_none=True)}
+            session_label = (
+                CUSTOM_SESSION_LABEL if session_label == "" else session_label
+            )
+            if session_label in existing_sessions_dict:
+                existing_img_session = existing_sessions_dict.get(
+                    session_label
+                )
+                existing_img_session.hasCompletedPipeline = completed_pipelines
+            else:
+                new_img_session = models.ImagingSession(
+                    hasLabel=session_label,
+                    hasCompletedPipeline=completed_pipelines,
+                )
+                existing_subject.hasSession.append(new_img_session)
+
+    context = generate_context()
+    merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}
 
     with open(output, "w") as f:
         f.write(json.dumps(merged_dataset, indent=2))

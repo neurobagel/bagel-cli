@@ -36,14 +36,14 @@ def test_bids_valid_inputs_run_successfully(
     ).exists(), "The pheno_bids.jsonld output was not created."
 
 
-def test_bids_sessions_have_correct_labels(
+def test_imaging_sessions_have_expected_labels(
     runner,
     test_data_upload_path,
     bids_synthetic,
     default_pheno_bids_output_path,
     load_test_json,
 ):
-    """Check that sessions added to pheno_bids.jsonld have the expected labels."""
+    """Check that the imaging sessions in the JSONLD output have the expected session labels."""
     runner.invoke(
         bagel,
         [
@@ -57,21 +57,77 @@ def test_bids_sessions_have_correct_labels(
         ],
     )
 
-    pheno_bids = load_test_json(default_pheno_bids_output_path)
-    for sub in pheno_bids["hasSamples"]:
+    output = load_test_json(default_pheno_bids_output_path)
+
+    for sub in output["hasSamples"]:
+        # all subjects in the BIDS synthetic dataset are expected to have 4 sessions total
         assert 4 == len(sub["hasSession"])
 
-        imaging_session = [
-            ses
+        imaging_ses_labels = [
+            ses["hasLabel"]
             for ses in sub["hasSession"]
             if ses["schemaKey"] == "ImagingSession"
         ]
-        assert 2 == len(imaging_session)
 
-        # We also need to make sure that we do not have duplicate imaging session labels
-        assert set(["ses-01", "ses-02"]) == set(
-            [ses["hasLabel"] for ses in imaging_session]
-        )
+        assert sorted(imaging_ses_labels) == ["ses-01", "ses-02"]
+
+
+@pytest.mark.parametrize(
+    "jsonld_path,expected_sessions_with_acq_and_pipe_metadata",
+    [
+        ("example_synthetic.jsonld", 0),
+        (
+            "pheno-derivatives-output/example_synthetic_pheno-derivatives.jsonld",
+            3,
+        ),
+    ],
+)
+def test_imaging_sessions_have_expected_metadata(
+    runner,
+    test_data_upload_path,
+    bids_synthetic,
+    default_pheno_bids_output_path,
+    load_test_json,
+    jsonld_path,
+    expected_sessions_with_acq_and_pipe_metadata,
+):
+    """
+    Check that the JSONLD output contains the expected total number of imaging sessions with
+    acquisition and completed pipeline metadata, based on whether a phenotypic-only JSONLD or
+    JSONLD with both phenotypic and processing pipeline metadata is provided as input.
+    """
+    runner.invoke(
+        bagel,
+        [
+            "bids",
+            "--jsonld-path",
+            test_data_upload_path / jsonld_path,
+            "--bids-dir",
+            bids_synthetic,
+            "--output",
+            default_pheno_bids_output_path,
+        ],
+    )
+
+    output = load_test_json(default_pheno_bids_output_path)
+
+    sessions_with_acq_metadata = []
+    sessions_with_acq_and_pipe_metadata = []
+    for sub in output["hasSamples"]:
+        for ses in sub["hasSession"]:
+            if (
+                ses["schemaKey"] == "ImagingSession"
+                and ses.get("hasAcquisition") is not None
+            ):
+                sessions_with_acq_metadata.append(ses)
+                if ses.get("hasCompletedPipeline") is not None:
+                    sessions_with_acq_and_pipe_metadata.append(ses)
+
+    assert len(sessions_with_acq_metadata) == 10
+    assert (
+        len(sessions_with_acq_and_pipe_metadata)
+        == expected_sessions_with_acq_and_pipe_metadata
+    )
 
 
 def test_bids_data_with_sessions_have_correct_paths(

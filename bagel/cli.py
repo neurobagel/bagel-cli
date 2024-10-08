@@ -19,7 +19,7 @@ from bagel.utility import (
 )
 
 # TODO: Coordinate with Nipoppy about what we want to name this
-CUSTOM_SESSION_ID = "ses-nb01"
+CUSTOM_SESSION_LABEL = "ses-nb01"
 
 bagel = typer.Typer(
     help="""
@@ -130,12 +130,12 @@ def pheno(
         for session_row_idx, session_row in _sub_pheno.iterrows():
             # If there is no session column, we create a session with a custom label "ses-nb01" to assign each subject's phenotypic data to
             if session_column is None:
-                session_name = CUSTOM_SESSION_ID
+                session_label = CUSTOM_SESSION_LABEL
             else:
                 # NOTE: We take the name from the first session column - we don't know how to handle multiple session columns yet
-                session_name = session_row[session_column[0]]
+                session_label = session_row[session_column[0]]
 
-            session = models.PhenotypicSession(hasLabel=str(session_name))
+            session = models.PhenotypicSession(hasLabel=str(session_label))
             _ses_pheno = session_row
 
             if "sex" in column_mapping.keys():
@@ -298,11 +298,11 @@ def bids(
 
         # For some reason .get_sessions() doesn't always follow alphanumeric order
         # By default (without sorting) the session lists look like ["02", "01"] per subject
-        for session in sorted(bids_sessions):
+        for session_id in sorted(bids_sessions):
             image_list = butil.create_acquisitions(
                 layout=layout,
                 bids_sub_id=bids_sub_id,
-                session=session,
+                session=session_id,
             )
 
             if not image_list:
@@ -315,13 +315,15 @@ def bids(
             # an exact representation of what's on disk.
             # Here, we also need to add back "ses" prefix because pybids stripped it
             session_label = (
-                CUSTOM_SESSION_ID if session is None else f"ses-{session}"
+                CUSTOM_SESSION_LABEL
+                if session_id is None
+                else f"ses-{session_id}"
             )
             session_path = butil.get_session_path(
                 layout=layout,
                 bids_dir=bids_dir,
                 bids_sub_id=bids_sub_id,
-                session=session,
+                session=session_id,
             )
 
             # If a custom Neurobagel-created session already exists (if `bagel derivatives` was run first),
@@ -451,7 +453,7 @@ def derivatives(
             existing_subject
         )
 
-        for session, sub_ses_proc_df in sub_proc_df.groupby(
+        for session_label, sub_ses_proc_df in sub_proc_df.groupby(
             PROC_STATUS_COLS["session"]
         ):
             completed_pipelines = dutil.create_completed_pipelines(
@@ -461,9 +463,13 @@ def derivatives(
             if not completed_pipelines:
                 continue
 
-            session_label = CUSTOM_SESSION_ID if session == "" else session
+            session_label = (
+                CUSTOM_SESSION_LABEL if session_label == "" else session_label
+            )
             if session_label in existing_sessions_dict:
-                existing_img_session = existing_sessions_dict.get(session)
+                existing_img_session = existing_sessions_dict.get(
+                    session_label
+                )
                 existing_img_session.hasCompletedPipeline = completed_pipelines
             else:
                 new_img_session = models.ImagingSession(

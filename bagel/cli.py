@@ -308,7 +308,8 @@ def bids(
                 continue
 
             # TODO: Currently if a subject has BIDS data but no "ses-" directories (e.g., only 1 session),
-            # we create a session for that subject with a custom label to be added to the graph.
+            # we create a session with a fixed, but unusual CUSTOM_SESSION_LABEL
+            # and add the imaging data info to a session with that label (or create it first).
             # However, we still provide the BIDS SUBJECT directory as the session path, instead of making up a path.
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.

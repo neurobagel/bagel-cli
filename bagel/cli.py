@@ -18,8 +18,7 @@ from bagel.utility import (
     get_subject_instances,
 )
 
-# TODO: Coordinate with Nipoppy about what we want to name this
-CUSTOM_SESSION_LABEL = "ses-nb01"
+CUSTOM_SESSION_LABEL = "ses-unnamed"
 
 bagel = typer.Typer(
     help="""
@@ -128,7 +127,9 @@ def pheno(
 
         sessions = []
         for session_row_idx, session_row in _sub_pheno.iterrows():
-            # If there is no session column, we create a session with a custom label "ses-nb01" to assign each subject's phenotypic data to
+            # Our data model requires a session. To support phenotypic data without sessions,
+            # we create a session with a fixed, but unusual CUSTOM_SESSION_LABEL and add the
+            # phenotypic data to that session.
             if session_column is None:
                 session_label = CUSTOM_SESSION_LABEL
             else:
@@ -309,7 +310,8 @@ def bids(
                 continue
 
             # TODO: Currently if a subject has BIDS data but no "ses-" directories (e.g., only 1 session),
-            # we create a session for that subject with a custom label "ses-nb01" to be added to the graph.
+            # we create a session with a fixed, but unusual CUSTOM_SESSION_LABEL
+            # and add the imaging data info to a session with that label (or create it first).
             # However, we still provide the BIDS SUBJECT directory as the session path, instead of making up a path.
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.

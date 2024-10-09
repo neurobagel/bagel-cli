@@ -774,7 +774,7 @@ def test_pheno_session_created_for_missing_session_column(
     for sub in pheno["hasSamples"]:
         assert 1 == len(sub["hasSession"])
         assert sub["hasSession"][0]["schemaKey"] == "PhenotypicSession"
-        assert sub["hasSession"][0]["hasLabel"] == "ses-nb01"
+        assert sub["hasSession"][0]["hasLabel"] == "ses-unnamed"
 
 
 def test_multicolumn_diagnosis_annot_is_handled(

@@ -197,7 +197,7 @@ def test_custom_imaging_sessions_created_for_missing_session_labels(
         for ses in sub["hasSession"]:
             if (
                 ses["schemaKey"] == "ImagingSession"
-                and ses["hasLabel"] == "ses-nb01"
+                and ses["hasLabel"] == "ses-unnamed"
             ):
                 custom_ses_completed_pipes[sub["hasLabel"]] = len(
                     ses["hasCompletedPipeline"]

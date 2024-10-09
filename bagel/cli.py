@@ -127,7 +127,9 @@ def pheno(
 
         sessions = []
         for session_row_idx, session_row in _sub_pheno.iterrows():
-            # If there is no session column, we create a session with a custom label to assign each subject's phenotypic data to
+            # Our data model requires a session. To support phenotypic data without sessions,
+            # we create a session with a fixed, but unusual CUSTOM_SESSION_LABEL and add the
+            # phenotypic data to that session.
             if session_column is None:
                 session_label = CUSTOM_SESSION_LABEL
             else:

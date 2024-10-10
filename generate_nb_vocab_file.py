@@ -1,4 +1,3 @@
-# Example usage: ./generate_nb_vocab_file.py > nb_vocab.ttl
 import inspect
 from pathlib import Path
 

@@ -23,14 +23,14 @@ def generate_vocab_string_from_models():
         and issubclass(obj, pydantic.BaseModel)
         and name not in EXCLUDE_CLASSES
     }
-    nb_vocab = ""
 
-    for count, (name, obj) in enumerate(sorted(all_classes.items())):
-        class_entry = f"{mappings.NB.pf}:{name}\n" "    a rdfs:Class"
+    class_entries = []
+    for name, obj in sorted(all_classes.items()):
+        class_entry = f"{mappings.NB.pf}:{name} a rdfs:Class"
 
         is_subclass = False
         for other_name, other_obj in all_classes.items():
-            if name != other_name and issubclass(obj, other_obj):
+            if other_obj in obj.__bases__:
                 class_entry += (
                     f";\n    rdfs:subClassOf {mappings.NB.pf}:{other_name}."
                 )
@@ -40,14 +40,12 @@ def generate_vocab_string_from_models():
         if not is_subclass:
             class_entry += "."
 
-        nb_vocab += class_entry + (
-            "\n\n" if count != (len(all_classes) - 1) else ""
-        )
+        class_entries.append(class_entry)
 
-    nb_vocab_full = PREAMBLE + "\n\n" + nb_vocab
+    nb_vocab = "\n\n".join([PREAMBLE] + class_entries) + "\n"
 
     with OUTPUT_PATH.open("w") as f:
-        f.write(nb_vocab_full)
+        f.write(nb_vocab)
 
 
 if __name__ == "__main__":

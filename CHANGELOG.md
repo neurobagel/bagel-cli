@@ -1,3 +1,31 @@
+# v0.3.0 (Thu Oct 24 2024)
+
+#### 💥 Breaking Changes
+
+- [MODEL] Model basic pipeline availability info in imaging session [#347](https://github.com/neurobagel/bagel-cli/pull/347) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🚀 Enhancements
+
+- [ENH] Add derivatives command and `pipeline-catalog` submodule [#349](https://github.com/neurobagel/bagel-cli/pull/349) ([@alyssadai](https://github.com/alyssadai))
+- [REF] Rename Neurobagel-created session to `ses-unnamed` [#358](https://github.com/neurobagel/bagel-cli/pull/358) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] More user-friendly handling of input decoding/reading errors [#337](https://github.com/neurobagel/bagel-cli/pull/337) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [INF] Add script to generate `nb_vocab.ttl` [#360](https://github.com/neurobagel/bagel-cli/pull/360) ([@alyssadai](https://github.com/alyssadai))
+- [MNT] Removed build docker nightly workflow file [#348](https://github.com/neurobagel/bagel-cli/pull/348) ([@rmanaem](https://github.com/rmanaem))
+
+#### 📝 Documentation
+
+- [DOC] Remove usage instructions & update development environment section in README [#365](https://github.com/neurobagel/bagel-cli/pull/365) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+
+---
+
 # v0.2.2 (Fri Jul 19 2024)
 
 ### Release Notes

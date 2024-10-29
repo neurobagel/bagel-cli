@@ -64,6 +64,17 @@ Now, update the developer dependencies in `dev_requirements.txt`:
     pip-compile -o dev_requirements.txt --extra all
     ```
 
+### Setting up code formatting and linting (recommended)
+
+[pre-commit](https://pre-commit.com/) is configured in the development environment for this repository, and can be set up to automatically run a number of code linters and formatters on any commit you make according to the consistent code style set for this project.
+
+Run the following from the repository root to install the configured pre-commit "hooks" for your local clone of the repo:
+```bash
+pre-commit install
+```
+
+pre-commit will now run automatically whenever you run `git commit`.
+
 ## Regenerating the Neurobagel vocabulary file
 Terms in the Neurobagel namespace (`nb` prefix) and their class relationships are serialized to a file 
 called [nb_vocab.ttl](https://github.com/neurobagel/recipes/blob/main/vocab/nb_vocab.ttl), which is automatically

@@ -54,6 +54,8 @@ Run the following from the repository root to install the configured pre-commit 
 pre-commit install
 ```
 
+pre-commit will now run automatically whenever you run `git commit`.
+
 ### Updating Python lock-file
 The `requirements.txt` file is automatically generated from the `setup.cfg`
 constraints. To update it, we use `pip-compile` from the `pip-tools` package.
@@ -72,8 +74,6 @@ Now, update the developer dependencies in `dev_requirements.txt`:
     ```bash
     pip-compile -o dev_requirements.txt --extra all
     ```
-
-pre-commit will now run automatically whenever you run `git commit`.
 
 ## Regenerating the Neurobagel vocabulary file
 Terms in the Neurobagel namespace (`nb` prefix) and their class relationships are serialized to a file 

@@ -45,7 +45,18 @@ that is as close as possible to the environment we run in production.
 Confirm that everything works well by running the tests: 
 `pytest .`
 
-### Update python lock-file
+### Setting up code formatting and linting (recommended)
+
+[pre-commit](https://pre-commit.com/) is configured in the development environment for this repository, and can be set up to automatically run a number of code linters and formatters on any commit you make according to the consistent code style set for this project.
+
+Run the following from the repository root to install the configured pre-commit "hooks" for your local clone of the repo:
+```bash
+pre-commit install
+```
+
+pre-commit will now run automatically whenever you run `git commit`.
+
+### Updating Python lock-file
 The `requirements.txt` file is automatically generated from the `setup.cfg`
 constraints. To update it, we use `pip-compile` from the `pip-tools` package.
 Here is how you can use these tools to update the `requirements.txt` file.

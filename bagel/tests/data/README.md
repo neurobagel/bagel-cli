@@ -42,7 +42,7 @@ _unique_subs.tsv | Includes subjects not found in the phenotypic dataset | Fail
 _incomplete.tsv | Has a missing value in the `bids_participant_id` column | Fail
 _unique_sessions.csv | Includes a unique subject-session (`sub-01`, `ses-03`) not found in the synthetic dataset | Pass
 _missing_sessions.tsv | One subject (`sub-02`) is missing all session labels | Pass
-_no_bids_sessions.tsv | Has session labels in all rows for `session_id`, but no values in `bids_session` column | Pass
+_no_bids_sessions.tsv | Has session labels in all rows for `session_id`, but no values in `bids_session_id` column | Pass
 
 
 ## Example expected CLI outputs

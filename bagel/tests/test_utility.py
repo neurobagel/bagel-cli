@@ -761,9 +761,9 @@ def test_create_completed_pipelines():
     example_ses_proc_df = pd.DataFrame.from_records(
         columns=[
             "participant_id",
-            "bids_participant",
+            "bids_participant_id",
             "session_id",
-            "bids_session",
+            "bids_session_id",
             "pipeline_name",
             "pipeline_version",
             "pipeline_step",

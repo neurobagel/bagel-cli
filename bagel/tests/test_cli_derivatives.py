@@ -161,7 +161,7 @@ def test_derivatives_invalid_inputs_fail(
         # TODO: Revisit this example once the updated Nipoppy proc status file schema is available
         # This example assumes that
         # 1. It is possible to have a subject with missing values in bids_session but not in session_id
-        # 2. Duplicate entries of pipeline name, version, and step for an apparent subject-session based on bids_participant and bids_session
+        # 2. Duplicate entries of pipeline name, version, and step for an apparent subject-session based on bids_participant_id and bids_session_id
         # (i.e., the two columns Neurobagel looks at) are allowed (see rows 8 and 9)
         ("proc_status_no_bids_sessions.tsv", {"sub-01": 3, "sub-02": 2}),
     ],

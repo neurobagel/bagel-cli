@@ -6,11 +6,11 @@ from bagel import mappings, models
 
 # Shorthands for expected column names in a Nipoppy processing status file
 # TODO: While there are multiple session ID columns in a Nipoppy processing status file,
-# we only only look at `bids_session` right now. We should revisit this after the schema is finalized,
+# we only only look at `bids_session_id` right now. We should revisit this after the schema is finalized,
 # to see if any other logic is needed to avoid issues with session ID discrepancies across columns.
 PROC_STATUS_COLS = {
-    "participant": "bids_participant",
-    "session": "bids_session",
+    "participant": "bids_participant_id",
+    "session": "bids_session_id",
     "pipeline_name": "pipeline_name",
     "pipeline_version": "pipeline_version",
     "status": "status",

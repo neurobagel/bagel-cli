@@ -1,3 +1,19 @@
+# v0.3.1 (Mon Nov 04 2024)
+
+#### 🚀 Enhancements
+
+- [FIX] Add missing `_id` suffix to processing status file column mappings [#370](https://github.com/neurobagel/bagel-cli/pull/370) ([@alyssadai](https://github.com/alyssadai))
+
+#### 📝 Documentation
+
+- [DOC] Move pre-commit setup to README.md [#368](https://github.com/neurobagel/bagel-cli/pull/368) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.3.0 (Thu Oct 24 2024)
 
 #### 💥 Breaking Changes

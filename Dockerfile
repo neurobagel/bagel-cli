@@ -2,7 +2,7 @@
 FROM python:3.10-slim-buster
 
 WORKDIR /app
-COPY . /app/src/
+COPY . /app/src
 
 # To have a deterministic build, we
 # 1. install the environment from our lockfile

@@ -13,20 +13,31 @@ bagelbids.egg-info
 .eggs/**/*
 .eggs
 
+.editorconfig
 **/.git
+**/.github
 **/.gitignore
 **/.vscode
 **/coverage
 **/.env
 **/.aws
 **/.ssh
-Dockerfile
-README.md
-docker-compose.yml
 **/.DS_Store
 **/venv
 **/env
+Dockerfile
 
+# other configuration files and scripts
+.autorc
+.pre-commit-config.yaml
+generate_nb_vocab_file.py
+
+# documentation
+CHANGELOG.md
+CITATION.cff
+LICENSE
+README.md
+
+# submodules used for testing
 bids-examples
-
-
+neurobagel_examples

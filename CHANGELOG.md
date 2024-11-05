@@ -1,3 +1,15 @@
+# v0.3.2 (Tue Nov 05 2024)
+
+#### 🚀 Enhancements
+
+- [FIX] Make `pipeline-catalog` submodule available to built Docker image [#373](https://github.com/neurobagel/bagel-cli/pull/373) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.3.1 (Mon Nov 04 2024)
 
 #### 🚀 Enhancements

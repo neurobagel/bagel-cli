@@ -2,9 +2,7 @@
 FROM python:3.10-slim-buster
 
 WORKDIR /app
-COPY requirements.txt pyproject.toml setup.cfg setup.py /app/src/
-COPY bagel /app/src/bagel
-COPY pipeline-catalog /app/src/pipeline-catalog
+COPY . /app/src/
 
 # To have a deterministic build, we
 # 1. install the environment from our lockfile

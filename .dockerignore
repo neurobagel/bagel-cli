@@ -25,11 +25,11 @@ bagelbids.egg-info
 **/.DS_Store
 **/venv
 **/env
+Dockerfile
 
-# other configuration files
+# other configuration files and scripts
 .autorc
 .pre-commit-config.yaml
-Dockerfile
 generate_nb_vocab_file.py
 
 # documentation

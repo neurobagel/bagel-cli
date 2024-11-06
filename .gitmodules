@@ -5,5 +5,5 @@
 	path = neurobagel_examples
 	url = https://github.com/neurobagel/neurobagel_examples.git
 [submodule "pipeline-catalog"]
-	path = pipeline-catalog
+	path = bagel/pipeline-catalog
 	url = https://github.com/nipoppy/pipeline-catalog.git

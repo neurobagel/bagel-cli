@@ -8,7 +8,7 @@ COPY . /app/src
 # 1. install the environment from our lockfile
 RUN pip install -r /app/src/requirements.txt
 # 2. install the CLI script without touching the dependencies again
-RUN pip install --no-cache-dir --no-deps /app/src[all]
+RUN pip install --no-cache-dir --no-deps /app/src
 
 ENTRYPOINT [ "bagel" ]
 CMD ["--help"]

@@ -1,8 +1,8 @@
 [submodule "bids-examples"]
-	path = bids-examples
+	path = tests/bids-examples
 	url = https://github.com/bids-standard/bids-examples.git
 [submodule "neurobagel_examples"]
-	path = neurobagel_examples
+	path = tests/neurobagel_examples
 	url = https://github.com/neurobagel/neurobagel_examples.git
 [submodule "pipeline-catalog"]
 	path = bagel/pipeline-catalog

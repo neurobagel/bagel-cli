@@ -184,3 +184,35 @@ def test_used_namespaces_in_context(test_data_upload_path, load_test_json):
             assert (
                 ns.pf in jsonld_context.keys()
             ), f"The namespace '{ns.pf}' was not found in the @context of {jsonld}."
+
+
+def test_add_context_to_graph_dataset():
+    """Test that add_context_to_graph_dataset() correctly adds the @context to a graph dataset instance."""
+    dataset = models.Dataset(
+        hasLabel="test_dataset",
+        hasSamples=[
+            models.Subject(
+                hasLabel="sub-01",
+                hasSession=[
+                    models.PhenotypicSession(
+                        hasLabel="ses-01",
+                        hasAge=26,
+                    ),
+                ],
+            ),
+            models.Subject(
+                hasLabel="sub-02",
+                hasSession=[
+                    models.PhenotypicSession(
+                        hasLabel="ses-01",
+                        hasAge=30,
+                    ),
+                ],
+            ),
+        ],
+    )
+
+    jsonld = mutil.add_context_to_graph_dataset(dataset=dataset)
+
+    assert "@context" in jsonld.keys()
+    assert len(jsonld["hasSamples"]) == 2

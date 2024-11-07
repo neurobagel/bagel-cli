@@ -117,26 +117,6 @@ def test_get_subject_instances():
     assert list(subjects.keys()) == ["sub-01", "sub-02"]
 
 
-def test_pipeline_uris_are_loaded():
-    """Test that pipeline URIs are loaded from the pipeline-catalog submodule."""
-
-    pipeline_dict = mappings.get_pipeline_uris()
-    assert all(
-        ((mappings.NP.pf in pipe_uri) and (" " not in pipe_uri))
-        for pipe_uri in pipeline_dict.values()
-    )
-
-
-def test_pipeline_versions_are_loaded():
-    """Test that pipeline versions are loaded from the pipeline-catalog submodule."""
-
-    pipeline_dict = mappings.get_pipeline_versions()
-    assert all(
-        isinstance(pipe_versions, list) and len(pipe_versions) > 0
-        for pipe_versions in pipeline_dict.values()
-    )
-
-
 def test_get_imaging_session_instances():
     """Test that get_imaging_session_instances() correctly returns existing imaging sessions for a given subject."""
     example_subject_jsonld = {

@@ -6,23 +6,18 @@ import pytest
 import typer
 from bids import BIDSLayout
 
-import bagel.bids_utils as butil
-import bagel.derivatives_utils as dutil
-import bagel.file_utils as futil
-import bagel.pheno_utils as putil
 from bagel import mappings, models
-from bagel.utility import (
-    generate_context,
-    get_imaging_session_instances,
-    get_subject_instances,
-    get_subs_missing_from_pheno_data,
-)
+from bagel.utilities import bids_utils as butil
+from bagel.utilities import derivatives_utils as dutil
+from bagel.utilities import file_utils as futil
+from bagel.utilities import model_utils as mutil
+from bagel.utilities import pheno_utils as putil
 
 
 @pytest.fixture
 def get_test_context():
     """Generate an @context dictionary to test against."""
-    return generate_context()
+    return mutil.generate_context()
 
 
 @pytest.fixture
@@ -465,7 +460,7 @@ def test_get_subjects_missing_from_pheno_data(
     Given a list of BIDS subject IDs, test that IDs not found in the phenotypic subject list are returned.
     """
     pheno_list = ["sub-01", "sub-02", "sub-03", "sub-PD123", "sub-PD234"]
-    bids_exclusive_subs = get_subs_missing_from_pheno_data(
+    bids_exclusive_subs = mutil.get_subs_missing_from_pheno_data(
         pheno_subjects=pheno_list, subjects=bids_list
     )
 
@@ -606,7 +601,7 @@ def test_get_subject_instances():
         ],
     )
 
-    subjects = get_subject_instances(dataset)
+    subjects = mutil.get_subject_instances(dataset)
     assert list(subjects.keys()) == ["sub-01", "sub-02"]
 
 
@@ -716,7 +711,7 @@ def test_get_imaging_session_instances():
         "schemaKey": "Subject",
     }
     example_subject = models.Subject(**example_subject_jsonld)
-    imaging_sessions = get_imaging_session_instances(example_subject)
+    imaging_sessions = mutil.get_imaging_session_instances(example_subject)
 
     assert list(imaging_sessions.keys()) == ["ses-im01"]
 

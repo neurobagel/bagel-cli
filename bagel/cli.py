@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 import typer
@@ -192,12 +191,10 @@ def pheno(
         hasSamples=subject_list,
     )
 
-    with open(output, "w") as f:
-        f.write(
-            json.dumps(mutil.add_context_to_graph_dataset(dataset), indent=2)
-        )
-
-    print(f"Saved output to:  {output}")
+    futil.save_jsonld(
+        data=mutil.add_context_to_graph_dataset(dataset),
+        filename=output,
+    )
 
 
 @bagel.command()
@@ -335,14 +332,10 @@ def bids(
                 )
                 existing_subject.hasSession.append(new_imaging_session)
 
-    with open(output, "w") as f:
-        f.write(
-            json.dumps(
-                mutil.add_context_to_graph_dataset(jsonld_dataset), indent=2
-            )
-        )
-
-    print(f"Saved output to:  {output}")
+    futil.save_jsonld(
+        data=mutil.add_context_to_graph_dataset(jsonld_dataset),
+        filename=output,
+    )
 
 
 @bagel.command()
@@ -472,11 +465,7 @@ def derivatives(
                 )
                 existing_subject.hasSession.append(new_img_session)
 
-    with open(output, "w") as f:
-        f.write(
-            json.dumps(
-                mutil.add_context_to_graph_dataset(jsonld_dataset), indent=2
-            )
-        )
-
-    print(f"Saved output to:  {output}")
+    futil.save_jsonld(
+        data=mutil.add_context_to_graph_dataset(jsonld_dataset),
+        filename=output,
+    )

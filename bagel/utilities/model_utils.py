@@ -5,9 +5,10 @@ import pydantic
 import typer
 from pydantic import ValidationError
 
-import bagel.file_utils as futil
 from bagel import models
 from bagel.mappings import ALL_NAMESPACES, NB
+
+from . import file_utils as futil
 
 
 def generate_context():

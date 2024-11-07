@@ -514,15 +514,16 @@ def test_create_acquisitions(bids_path, bids_dir, acquisitions, bids_session):
     "bids_sub_id, session",
     [("01", "01"), ("02", "02"), ("03", "01")],
 )
-def test_get_session_path_when_session_exists(bids_sub_id, session):
+def test_get_session_path_when_session_exists(
+    bids_sub_id, session, bids_synthetic
+):
     """
     Test that given a subject and session ID (i.e. when BIDS session layer exists for dataset),
     get_session_path() returns a path to the subject's session directory.
     """
-    bids_dir = Path(__file__).parent / "../../bids-examples/synthetic"
     session_path = butil.get_session_path(
-        layout=BIDSLayout(bids_dir, validate=True),
-        bids_dir=bids_dir,
+        layout=BIDSLayout(bids_synthetic, validate=True),
+        bids_dir=bids_synthetic,
         bids_sub_id=bids_sub_id,
         session=session,
     )
@@ -534,12 +535,12 @@ def test_get_session_path_when_session_exists(bids_sub_id, session):
 
 
 @pytest.mark.parametrize("bids_sub_id", ["01", "03", "05"])
-def test_get_session_path_when_session_missing(bids_sub_id):
+def test_get_session_path_when_session_missing(bids_sub_id, bids_path):
     """
     Test that given only a subject ID (i.e., when BIDS session layer is missing for dataset),
     get_session_path() returns the path to the subject directory.
     """
-    bids_dir = Path(__file__).parent / "../../bids-examples/ds001"
+    bids_dir = bids_path / "ds001"
     session_path = butil.get_session_path(
         layout=BIDSLayout(bids_dir, validate=True),
         bids_dir=bids_dir,

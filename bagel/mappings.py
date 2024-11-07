@@ -38,8 +38,9 @@ NEUROBAGEL = {
     "assessment_tool": NB.pf + ":Assessment",
 }
 
+# TODO: Use importlib.resources.files(bagel) to get the path to the pipeline-catalog instead?
 PROCESSING_PIPELINE_PATH = (
-    Path(__file__).parents[1] / "pipeline-catalog" / "processing"
+    Path(__file__).parent / "pipeline-catalog" / "processing"
 )
 
 

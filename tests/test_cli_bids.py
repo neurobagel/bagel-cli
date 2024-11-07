@@ -133,6 +133,7 @@ def test_imaging_sessions_have_expected_metadata(
 def test_bids_data_with_sessions_have_correct_paths(
     runner,
     test_data_upload_path,
+    bids_synthetic,
     default_pheno_bids_output_path,
     load_test_json,
 ):
@@ -147,7 +148,7 @@ def test_bids_data_with_sessions_have_correct_paths(
             "--jsonld-path",
             test_data_upload_path / "example_synthetic.jsonld",
             "--bids-dir",
-            Path(__file__).parent / "../../bids-examples/synthetic",
+            bids_synthetic,
             "--output",
             default_pheno_bids_output_path,
         ],

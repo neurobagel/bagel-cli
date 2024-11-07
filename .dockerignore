@@ -38,6 +38,5 @@ CITATION.cff
 LICENSE
 README.md
 
-# submodules used for testing
-bids-examples
-neurobagel_examples
+# testing
+tests

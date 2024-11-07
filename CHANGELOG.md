@@ -1,3 +1,15 @@
+# v0.3.3 (Thu Nov 07 2024)
+
+#### 🚀 Enhancements
+
+- [FIX] Package `pipeline-catalog` as data files in CLI installation [#379](https://github.com/neurobagel/bagel-cli/pull/379) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.3.2 (Tue Nov 05 2024)
 
 #### 🚀 Enhancements

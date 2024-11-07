@@ -4,19 +4,14 @@ from pathlib import Path
 import typer
 from bids import BIDSLayout
 
-import bagel.bids_utils as butil
-import bagel.derivatives_utils as dutil
-import bagel.file_utils as futil
-import bagel.pheno_utils as putil
 from bagel import mappings, models
-from bagel.derivatives_utils import PROC_STATUS_COLS
-from bagel.utility import (
-    confirm_subs_match_pheno_data,
-    extract_and_validate_jsonld_dataset,
-    generate_context,
-    get_imaging_session_instances,
-    get_subject_instances,
-)
+
+from .utilities import bids_utils as butil
+from .utilities import derivatives_utils as dutil
+from .utilities import file_utils as futil
+from .utilities import model_utils as mutil
+from .utilities import pheno_utils as putil
+from .utilities.derivatives_utils import PROC_STATUS_COLS
 
 CUSTOM_SESSION_LABEL = "ses-unnamed"
 
@@ -197,7 +192,7 @@ def pheno(
         hasSamples=subject_list,
     )
 
-    context = generate_context()
+    context = mutil.generate_context()
     # We can't just exclude_unset here because the identifier and schemaKey
     # for each instance are created as default values and so technically are never set
     # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
@@ -267,12 +262,12 @@ def bids(
         f"   {'BIDS dataset directory:' : <{space}} {bids_dir}"
     )
 
-    jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld_path)
+    jsonld_dataset = mutil.extract_and_validate_jsonld_dataset(jsonld_path)
 
-    existing_subs_dict = get_subject_instances(jsonld_dataset)
+    existing_subs_dict = mutil.get_subject_instances(jsonld_dataset)
 
     # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
-    confirm_subs_match_pheno_data(
+    mutil.confirm_subs_match_pheno_data(
         subjects=butil.get_bids_subjects_simple(bids_dir),
         subject_source_for_err="BIDS directory",
         pheno_subjects=existing_subs_dict.keys(),
@@ -287,7 +282,7 @@ def bids(
     print("Merging BIDS metadata with existing subject annotations...\n")
     for bids_sub_id in layout.get_subjects():
         existing_subject = existing_subs_dict.get(f"sub-{bids_sub_id}")
-        existing_sessions_dict = get_imaging_session_instances(
+        existing_sessions_dict = mutil.get_imaging_session_instances(
             existing_subject
         )
 
@@ -344,7 +339,7 @@ def bids(
                 )
                 existing_subject.hasSession.append(new_imaging_session)
 
-    context = generate_context()
+    context = mutil.generate_context()
     merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}
 
     with open(output, "w") as f:
@@ -434,11 +429,11 @@ def derivatives(
 
         dutil.check_pipeline_versions_are_recognized(pipeline, versions)
 
-    jsonld_dataset = extract_and_validate_jsonld_dataset(jsonld_path)
+    jsonld_dataset = mutil.extract_and_validate_jsonld_dataset(jsonld_path)
 
-    existing_subs_dict = get_subject_instances(jsonld_dataset)
+    existing_subs_dict = mutil.get_subject_instances(jsonld_dataset)
 
-    confirm_subs_match_pheno_data(
+    mutil.confirm_subs_match_pheno_data(
         subjects=status_df[PROC_STATUS_COLS["participant"]].unique(),
         subject_source_for_err="processing status file",
         pheno_subjects=existing_subs_dict.keys(),
@@ -451,7 +446,7 @@ def derivatives(
         existing_subject = existing_subs_dict.get(subject)
 
         # Note: Dictionary of existing imaging sessions can be empty if only bagel pheno was run
-        existing_sessions_dict = get_imaging_session_instances(
+        existing_sessions_dict = mutil.get_imaging_session_instances(
             existing_subject
         )
 
@@ -480,7 +475,7 @@ def derivatives(
                 )
                 existing_subject.hasSession.append(new_img_session)
 
-    context = generate_context()
+    context = mutil.generate_context()
     merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}
 
     with open(output, "w") as f:

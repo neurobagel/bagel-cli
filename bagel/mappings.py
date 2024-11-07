@@ -1,7 +1,7 @@
 from collections import namedtuple
 from pathlib import Path
 
-import bagel.file_utils as futil
+from .utilities import file_utils as futil
 
 Namespace = namedtuple("Namespace", ["pf", "url"])
 COGATLAS = Namespace("cogatlas", "https://www.cognitiveatlas.org/task/id/")

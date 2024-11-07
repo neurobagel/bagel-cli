@@ -192,14 +192,10 @@ def pheno(
         hasSamples=subject_list,
     )
 
-    context = mutil.generate_context()
-    # We can't just exclude_unset here because the identifier and schemaKey
-    # for each instance are created as default values and so technically are never set
-    # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
-    context.update(**dataset.dict(exclude_none=True))
-
     with open(output, "w") as f:
-        f.write(json.dumps(context, indent=2))
+        f.write(
+            json.dumps(mutil.add_context_to_graph_dataset(dataset), indent=2)
+        )
 
     print(f"Saved output to:  {output}")
 
@@ -339,11 +335,12 @@ def bids(
                 )
                 existing_subject.hasSession.append(new_imaging_session)
 
-    context = mutil.generate_context()
-    merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}
-
     with open(output, "w") as f:
-        f.write(json.dumps(merged_dataset, indent=2))
+        f.write(
+            json.dumps(
+                mutil.add_context_to_graph_dataset(jsonld_dataset), indent=2
+            )
+        )
 
     print(f"Saved output to:  {output}")
 
@@ -475,10 +472,11 @@ def derivatives(
                 )
                 existing_subject.hasSession.append(new_img_session)
 
-    context = mutil.generate_context()
-    merged_dataset = {**context, **jsonld_dataset.dict(exclude_none=True)}
-
     with open(output, "w") as f:
-        f.write(json.dumps(merged_dataset, indent=2))
+        f.write(
+            json.dumps(
+                mutil.add_context_to_graph_dataset(jsonld_dataset), indent=2
+            )
+        )
 
     print(f"Saved output to:  {output}")

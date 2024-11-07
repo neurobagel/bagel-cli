@@ -36,6 +36,15 @@ def generate_context():
     return {"@context": field_preamble}
 
 
+def add_context_to_graph_dataset(dataset: models.Dataset) -> dict:
+    """Add the Neurobagel context to a graph-ready dataset to form a JSONLD dictionary."""
+    context = generate_context()
+    # We can't just exclude_unset here because the identifier and schemaKey
+    # for each instance are created as default values and so technically are never set
+    # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
+    return {**context, **dataset.dict(exclude_none=True)}
+
+
 def get_subs_missing_from_pheno_data(
     subjects: Iterable, pheno_subjects: Iterable
 ) -> list:

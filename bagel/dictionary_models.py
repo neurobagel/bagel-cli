@@ -1,6 +1,24 @@
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
-from pydantic import BaseModel, Extra, Field, conlist
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from typing_extensions import Annotated
+
+
+# TODO: Test this function?
+def validate_unique_list(values: List[str]) -> List[str]:
+    """
+    Check that provided list is unique.
+
+    This custom validator is needed because constrained dtypes and their `unique_items` parameter
+    were deprecated in Pydantic v2. This function was adapted from https://github.com/pydantic/pydantic-core/pull/820#issuecomment-1656228704
+    and https://docs.pydantic.dev/latest/concepts/validators/#annotated-validators.
+
+    See also:
+    - https://docs.pydantic.dev/latest/migration/#changes-to-pydanticfield
+    - https://docs.pydantic.dev/latest/api/types/#pydantic.types.conlist)
+    """
+    assert len(values) == len(set(values)), f"{values} is not a unique list"
+    return values
 
 
 class Identifier(BaseModel):
@@ -27,15 +45,19 @@ class Neurobagel(BaseModel):
         description="The concept or controlled term that describes this column",
         alias="IsAbout",
     )
-    missingValues: conlist(str, unique_items=True) = Field(
-        [],
-        description="A list of unique values that represent "
-        "invalid responses, typos, or missing data",
-        alias="MissingValues",
-    )
+    missingValues: Annotated[
+        List[str],
+        AfterValidator(validate_unique_list),
+        Field(
+            [],
+            description="A list of unique values that represent "
+            "invalid responses, typos, or missing data",
+            alias="MissingValues",
+            json_schema_extra={"uniqueItems": True},
+        ),
+    ]
 
-    class Config:
-        extra = Extra.forbid
+    model_config = ConfigDict(extra="forbid")
 
 
 class CategoricalNeurobagel(Neurobagel):
@@ -66,7 +88,7 @@ class ContinuousNeurobagel(Neurobagel):
 class IdentifierNeurobagel(Neurobagel):
     """A Neurobagel annotation for an identifier column"""
 
-    identifies: "str" = Field(
+    identifies: str = Field(
         ...,
         description="For identifier columns, the type of observation uniquely identified by this column.",
         alias="Identifies",
@@ -76,6 +98,7 @@ class IdentifierNeurobagel(Neurobagel):
 class ToolNeurobagel(Neurobagel):
     """A Neurobagel annotation for an assessment tool column"""
 
+    # TODO: Why is this optional again?
     isPartOf: Optional[Identifier] = Field(
         ...,
         description="If the column is a subscale or item of an assessment tool "

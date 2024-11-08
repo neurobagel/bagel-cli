@@ -1,7 +1,7 @@
 import uuid
 from typing import List, Literal, Optional, Union
 
-from pydantic import BaseModel, Extra, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 from bagel.mappings import NB
 
@@ -9,14 +9,16 @@ UUID_PATTERN = r"[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{
 BAGEL_UUID_PATTERN = rf"^{NB.pf}:{UUID_PATTERN}"
 
 
-class Bagel(BaseModel, extra=Extra.forbid):
+class Bagel(BaseModel):
     """identifier has to be a valid UUID prepended by the Neurobagel namespace
     by default, a random (uuid4) string UUID will be created"""
 
     identifier: str = Field(
-        regex=BAGEL_UUID_PATTERN,
+        pattern=BAGEL_UUID_PATTERN,
         default_factory=lambda: NB.pf + ":" + str(uuid.uuid4()),
     )
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class ControlledTerm(BaseModel):

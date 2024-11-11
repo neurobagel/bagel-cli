@@ -94,3 +94,9 @@ def check_overwrite(output: Path, overwrite: bool):
                 fg=typer.colors.RED,
             )
         )
+
+
+def save_jsonld(data: dict, filename: Path):
+    with open(filename, "w") as f:
+        f.write(json.dumps(data, indent=2))
+    print(f"Saved output to:  {filename}")

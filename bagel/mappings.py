@@ -1,7 +1,7 @@
 from collections import namedtuple
 from pathlib import Path
 
-import bagel.file_utils as futil
+from .utilities import file_utils
 
 Namespace = namedtuple("Namespace", ["pf", "url"])
 COGATLAS = Namespace("cogatlas", "https://www.cognitiveatlas.org/task/id/")
@@ -51,7 +51,7 @@ def get_pipeline_uris() -> dict:
     """
     output_dict = {}
     for pipe_file in PROCESSING_PIPELINE_PATH.glob("*.json"):
-        pipe = futil.load_json(pipe_file)
+        pipe = file_utils.load_json(pipe_file)
         output_dict[pipe["name"]] = f"{NP.pf}:{pipe['name']}"
 
     return output_dict
@@ -64,7 +64,7 @@ def get_pipeline_versions() -> dict:
     """
     output_dict = {}
     for pipe_file in PROCESSING_PIPELINE_PATH.glob("*.json"):
-        pipe = futil.load_json(pipe_file)
+        pipe = file_utils.load_json(pipe_file)
         output_dict[pipe["name"]] = pipe["versions"]
 
     return output_dict

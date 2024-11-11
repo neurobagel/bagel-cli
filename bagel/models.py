@@ -27,23 +27,23 @@ class ControlledTerm(BaseModel):
 
 
 class Sex(ControlledTerm):
-    schemaKey = "Sex"
+    schemaKey: Literal["Sex"] = "Sex"
 
 
 class Diagnosis(ControlledTerm):
-    schemaKey = "Diagnosis"
+    schemaKey: Literal["Diagnosis"] = "Diagnosis"
 
 
 class SubjectGroup(ControlledTerm):
-    schemaKey = "SubjectGroup"
+    schemaKey: Literal["SubjectGroup"] = "SubjectGroup"
 
 
 class Assessment(ControlledTerm):
-    schemaKey = "Assessment"
+    schemaKey: Literal["Assessment"] = "Assessment"
 
 
 class Image(ControlledTerm):
-    schemaKey = "Image"
+    schemaKey: Literal["Image"] = "Image"
 
 
 class Acquisition(Bagel):
@@ -52,7 +52,7 @@ class Acquisition(Bagel):
 
 
 class Pipeline(ControlledTerm):
-    schemaKey = "Pipeline"
+    schemaKey: Literal["Pipeline"] = "Pipeline"
 
 
 class CompletedPipeline(Bagel):
@@ -71,7 +71,7 @@ class PhenotypicSession(Session):
     isSubjectGroup: Optional[SubjectGroup] = None
     hasDiagnosis: Optional[List[Diagnosis]] = None
     hasAssessment: Optional[List[Assessment]] = None
-    schemaKey = "PhenotypicSession"
+    schemaKey: Literal["PhenotypicSession"] = "PhenotypicSession"
 
 
 class ImagingSession(Session):
@@ -79,7 +79,7 @@ class ImagingSession(Session):
     hasFilePath: Optional[str] = None
     hasAcquisition: Optional[List[Acquisition]] = None
     hasCompletedPipeline: Optional[List[CompletedPipeline]] = None
-    schemaKey = "ImagingSession"
+    schemaKey: Literal["ImagingSession"] = "ImagingSession"
 
 
 class Subject(Bagel):

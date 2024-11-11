@@ -5,9 +5,9 @@ import pydantic
 import typer
 from pydantic import ValidationError
 
-import bagel.file_utils as futil
 from bagel import models
 from bagel.mappings import ALL_NAMESPACES, NB
+from bagel.utilities import file_utils
 
 
 def generate_context():
@@ -33,6 +33,15 @@ def generate_context():
     field_preamble.update(**fields)
 
     return {"@context": field_preamble}
+
+
+def add_context_to_graph_dataset(dataset: models.Dataset) -> dict:
+    """Add the Neurobagel context to a graph-ready dataset to form a JSONLD dictionary."""
+    context = generate_context()
+    # We can't just exclude_unset here because the identifier and schemaKey
+    # for each instance are created as default values and so technically are never set
+    # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
+    return {**context, **dataset.dict(exclude_none=True)}
 
 
 def get_subs_missing_from_pheno_data(
@@ -68,7 +77,7 @@ def extract_and_validate_jsonld_dataset(file_path: Path) -> models.Dataset:
     Strip the context from a user-provided JSONLD and validate the remaining contents
     against the data model for a Neurobagel dataset.
     """
-    jsonld = futil.load_json(file_path)
+    jsonld = file_utils.load_json(file_path)
     jsonld.pop("@context")
     try:
         jsonld_dataset = models.Dataset.parse_obj(jsonld)

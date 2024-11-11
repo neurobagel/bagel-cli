@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from bids import BIDSLayout
 
-from bagel.utilities import bids_utils as butil
+from bagel.utilities import bids_utils
 
 
 @pytest.mark.parametrize(
@@ -13,7 +13,9 @@ from bagel.utilities import bids_utils as butil
 )
 def test_get_bids_subjects_simple(bids_path, bids_dir):
     """Test that get_bids_subjects_simple() correctly extracts subject IDs from a BIDS directory."""
-    bids_subject_list = butil.get_bids_subjects_simple(bids_path / bids_dir)
+    bids_subject_list = bids_utils.get_bids_subjects_simple(
+        bids_path / bids_dir
+    )
     expected_subjects = [
         f"sub-{sub_id}"
         for sub_id in BIDSLayout(
@@ -45,7 +47,7 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
 )
 def test_create_acquisitions(bids_path, bids_dir, acquisitions, bids_session):
     """Given a BIDS dataset, creates a list of acquisitions matching the image files found on disk."""
-    image_list = butil.create_acquisitions(
+    image_list = bids_utils.create_acquisitions(
         layout=BIDSLayout(bids_path / bids_dir, validate=True),
         bids_sub_id="01",
         session=bids_session,
@@ -70,7 +72,7 @@ def test_get_session_path_when_session_exists(
     Test that given a subject and session ID (i.e. when BIDS session layer exists for dataset),
     get_session_path() returns a path to the subject's session directory.
     """
-    session_path = butil.get_session_path(
+    session_path = bids_utils.get_session_path(
         layout=BIDSLayout(bids_synthetic, validate=True),
         bids_dir=bids_synthetic,
         bids_sub_id=bids_sub_id,
@@ -90,7 +92,7 @@ def test_get_session_path_when_session_missing(bids_sub_id, bids_path):
     get_session_path() returns the path to the subject directory.
     """
     bids_dir = bids_path / "ds001"
-    session_path = butil.get_session_path(
+    session_path = bids_utils.get_session_path(
         layout=BIDSLayout(bids_dir, validate=True),
         bids_dir=bids_dir,
         bids_sub_id=bids_sub_id,

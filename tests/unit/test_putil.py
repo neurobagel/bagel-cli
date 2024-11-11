@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from bagel import mappings
-from bagel.utilities import pheno_utils as putil
+from bagel.utilities import pheno_utils
 
 
 @pytest.mark.parametrize(
@@ -65,7 +65,7 @@ def test_schema_invalid_column_raises_error(
     an informative error is raised which includes the name of the offending column.
     """
     with pytest.raises(ValueError) as e:
-        putil.validate_data_dict(partial_data_dict)
+        pheno_utils.validate_data_dict(partial_data_dict)
 
     for substring in [
         "not a valid Neurobagel data dictionary",
@@ -79,10 +79,10 @@ def test_get_columns_that_are_about_concept(test_data, load_test_json):
     and that empty list is returned if nothing matches"""
     data_dict = load_test_json(test_data / "example14.json")
 
-    assert ["participant_id"] == putil.get_columns_about(
+    assert ["participant_id"] == pheno_utils.get_columns_about(
         data_dict, concept=mappings.NEUROBAGEL["participant"]
     )
-    assert [] == putil.get_columns_about(
+    assert [] == pheno_utils.get_columns_about(
         data_dict, concept="does not exist concept"
     )
 
@@ -102,7 +102,7 @@ def test_get_columns_with_annotations():
             },
         },
     }
-    result = putil.get_annotated_columns(example)[0]
+    result = pheno_utils.get_annotated_columns(example)[0]
     assert result[0] == "participant_id"
     assert result[1] == example["participant_id"]
 
@@ -111,7 +111,7 @@ def test_map_categories_to_columns(test_data, load_test_json):
     """Test that inverse mapping of concepts to columns is correctly created"""
     data_dict = load_test_json(test_data / "example2.json")
 
-    result = putil.map_categories_to_columns(data_dict)
+    result = pheno_utils.map_categories_to_columns(data_dict)
 
     assert {"participant", "session", "sex"}.issubset(result.keys())
     assert ["participant_id"] == result["participant"]
@@ -129,7 +129,7 @@ def test_map_categories_to_columns(test_data, load_test_json):
 def test_map_tools_to_columns(test_data, load_test_json, tool, columns):
     data_dict = load_test_json(test_data / "example6.json")
 
-    result = putil.map_tools_to_columns(data_dict)
+    result = pheno_utils.map_tools_to_columns(data_dict)
 
     assert result[tool] == columns
 
@@ -152,7 +152,7 @@ def test_get_transformed_categorical_values(
     data_dict = load_test_json(test_data / f"{example}.json")
     pheno = pd.read_csv(test_data / f"{example}.tsv", sep="\t")
 
-    assert expected_values == putil.get_transformed_values(
+    assert expected_values == pheno_utils.get_transformed_values(
         columns=column_list,
         row=pheno.iloc[0],
         data_dict=data_dict,
@@ -189,7 +189,9 @@ def test_get_transformed_categorical_values(
     ],
 )
 def test_detect_categorical_column(example, expected_result):
-    result = putil.is_column_categorical(column="column", data_dict=example)
+    result = pheno_utils.is_column_categorical(
+        column="column", data_dict=example
+    )
 
     assert result is expected_result
 
@@ -209,7 +211,9 @@ def test_missing_values(value, column, expected):
         "empty_column": {"Annotations": {}},
     }
 
-    assert putil.is_missing_value(value, column, test_data_dict) is expected
+    assert (
+        pheno_utils.is_missing_value(value, column, test_data_dict) is expected
+    )
 
 
 @pytest.mark.parametrize(
@@ -228,7 +232,7 @@ def test_get_assessment_tool_availability(
     test_columns = ["tool_item1", "tool_item2"]
 
     assert (
-        putil.are_any_available(
+        pheno_utils.are_any_available(
             test_columns, pheno.iloc[subject_idx], data_dict
         )
         is is_avail
@@ -247,7 +251,7 @@ def test_missing_ids_in_columns(test_data, columns, expected_indices):
     pheno = pd.read_csv(
         test_data / "example11.tsv", sep="\t", keep_default_na=False, dtype=str
     )
-    assert expected_indices == putil.get_rows_with_empty_strings(
+    assert expected_indices == pheno_utils.get_rows_with_empty_strings(
         pheno, columns=columns
     )
 
@@ -265,7 +269,7 @@ def test_missing_ids_in_columns(test_data, columns, expected_indices):
     ],
 )
 def test_age_gets_converted(raw_age, expected_age, heuristic):
-    assert expected_age == putil.transform_age(raw_age, heuristic)
+    assert expected_age == pheno_utils.transform_age(raw_age, heuristic)
 
 
 @pytest.mark.parametrize(
@@ -279,7 +283,7 @@ def test_age_gets_converted(raw_age, expected_age, heuristic):
 def test_incorrect_age_heuristic(raw_age, incorrect_heuristic):
     """Given an age transformation that does not match the type of age value provided, returns an informative error."""
     with pytest.raises(ValueError) as e:
-        putil.transform_age(raw_age, incorrect_heuristic)
+        pheno_utils.transform_age(raw_age, incorrect_heuristic)
 
     assert (
         f"problem with applying the age transformation: {incorrect_heuristic}."
@@ -290,6 +294,6 @@ def test_incorrect_age_heuristic(raw_age, incorrect_heuristic):
 def test_invalid_age_heuristic():
     """Given an age transformation that is not recognized, returns an informative ValueError."""
     with pytest.raises(ValueError) as e:
-        putil.transform_age("11,0", "nb:birthyear")
+        pheno_utils.transform_age("11,0", "nb:birthyear")
 
     assert "unrecognized age transformation: nb:birthyear" in str(e.value)

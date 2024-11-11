@@ -8,7 +8,7 @@ from pydantic import ValidationError
 from bagel import models
 from bagel.mappings import ALL_NAMESPACES, NB
 
-from . import file_utils as futil
+from . import file_utils
 
 
 def generate_context():
@@ -78,7 +78,7 @@ def extract_and_validate_jsonld_dataset(file_path: Path) -> models.Dataset:
     Strip the context from a user-provided JSONLD and validate the remaining contents
     against the data model for a Neurobagel dataset.
     """
-    jsonld = futil.load_json(file_path)
+    jsonld = file_utils.load_json(file_path)
     jsonld.pop("@context")
     try:
         jsonld_dataset = models.Dataset.parse_obj(jsonld)

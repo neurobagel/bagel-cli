@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from bagel import mappings
-from bagel.utilities import derivatives_utils as dutil
+from bagel.utilities import derivative_utils
 
 
 def test_pipeline_uris_are_loaded():
@@ -35,7 +35,7 @@ def test_pipeline_versions_are_loaded():
 def test_unrecognized_pipeline_names_raise_error(pipelines, unrecog_pipelines):
     """Test that pipeline names not found in the pipeline catalog raise an informative error."""
     with pytest.raises(LookupError) as e:
-        dutil.check_pipelines_are_recognized(pipelines)
+        derivative_utils.check_pipelines_are_recognized(pipelines)
 
     assert all(
         substr in str(e.value)
@@ -55,7 +55,7 @@ def test_unrecognized_pipeline_versions_raise_error(
 ):
     """Test that versions of a pipeline not found in the pipeline catalog raise an informative error."""
     with pytest.raises(LookupError) as e:
-        dutil.check_pipeline_versions_are_recognized(
+        derivative_utils.check_pipeline_versions_are_recognized(
             "fmriprep", fmriprep_versions
         )
 
@@ -116,7 +116,9 @@ def test_create_completed_pipelines():
         ],
         data=sub_ses_data,
     )
-    completed_pipelines = dutil.create_completed_pipelines(example_ses_proc_df)
+    completed_pipelines = derivative_utils.create_completed_pipelines(
+        example_ses_proc_df
+    )
 
     assert len(completed_pipelines) == 1
     assert (

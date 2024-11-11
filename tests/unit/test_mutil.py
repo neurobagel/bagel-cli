@@ -1,13 +1,13 @@
 import pytest
 
 from bagel import mappings, models
-from bagel.utilities import model_utils as mutil
+from bagel.utilities import model_utils
 
 
 @pytest.fixture
 def get_test_context():
     """Generate an @context dictionary to test against."""
-    return mutil.generate_context()
+    return model_utils.generate_context()
 
 
 @pytest.fixture
@@ -78,7 +78,7 @@ def test_get_subjects_missing_from_pheno_data(
     Given a list of BIDS subject IDs, test that IDs not found in the phenotypic subject list are returned.
     """
     pheno_list = ["sub-01", "sub-02", "sub-03", "sub-PD123", "sub-PD234"]
-    bids_exclusive_subs = mutil.get_subs_missing_from_pheno_data(
+    bids_exclusive_subs = model_utils.get_subs_missing_from_pheno_data(
         pheno_subjects=pheno_list, subjects=bids_list
     )
 
@@ -113,7 +113,7 @@ def test_get_subject_instances():
         ],
     )
 
-    subjects = mutil.get_subject_instances(dataset)
+    subjects = model_utils.get_subject_instances(dataset)
     assert list(subjects.keys()) == ["sub-01", "sub-02"]
 
 
@@ -163,7 +163,9 @@ def test_get_imaging_session_instances():
         "schemaKey": "Subject",
     }
     example_subject = models.Subject(**example_subject_jsonld)
-    imaging_sessions = mutil.get_imaging_session_instances(example_subject)
+    imaging_sessions = model_utils.get_imaging_session_instances(
+        example_subject
+    )
 
     assert list(imaging_sessions.keys()) == ["ses-im01"]
 
@@ -212,7 +214,7 @@ def test_add_context_to_graph_dataset():
         ],
     )
 
-    jsonld = mutil.add_context_to_graph_dataset(dataset=dataset)
+    jsonld = model_utils.add_context_to_graph_dataset(dataset=dataset)
 
     assert "@context" in jsonld.keys()
     assert len(jsonld["hasSamples"]) == 2

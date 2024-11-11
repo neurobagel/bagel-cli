@@ -5,12 +5,14 @@ from bids import BIDSLayout
 
 from bagel import mappings, models
 
-from .utilities import bids_utils as butil
-from .utilities import derivatives_utils as dutil
-from .utilities import file_utils as futil
-from .utilities import model_utils as mutil
-from .utilities import pheno_utils as putil
-from .utilities.derivatives_utils import PROC_STATUS_COLS
+from .utilities import (
+    bids_utils,
+    derivative_utils,
+    file_utils,
+    model_utils,
+    pheno_utils,
+)
+from .utilities.derivative_utils import PROC_STATUS_COLS
 
 CUSTOM_SESSION_LABEL = "ses-unnamed"
 
@@ -60,7 +62,7 @@ def pheno(
         None,
         "--portal",
         "-u",  # for URL
-        callback=putil.validate_portal_uri,
+        callback=pheno_utils.validate_portal_uri,
         help="URL (HTTP/HTTPS) to a website or page that describes the dataset and access instructions (if available).",
     ),
     output: Path = typer.Option(
@@ -88,11 +90,11 @@ def pheno(
     graph data model for the provided phenotypic file in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
-    futil.check_overwrite(output, overwrite)
+    file_utils.check_overwrite(output, overwrite)
 
-    data_dictionary = futil.load_json(dictionary)
-    pheno_df = futil.load_tabular(pheno)
-    putil.validate_inputs(data_dictionary, pheno_df)
+    data_dictionary = file_utils.load_json(dictionary)
+    pheno_df = file_utils.load_tabular(pheno)
+    pheno_utils.validate_inputs(data_dictionary, pheno_df)
 
     # NOTE: `space` determines the amount of padding (in num. characters) before the file paths in the print statement.
     # It is currently calculated as = (length of the longer string, including the 3 leading spaces) + (2 extra spaces)
@@ -105,8 +107,8 @@ def pheno(
 
     subject_list = []
 
-    column_mapping = putil.map_categories_to_columns(data_dictionary)
-    tool_mapping = putil.map_tools_to_columns(data_dictionary)
+    column_mapping = pheno_utils.map_categories_to_columns(data_dictionary)
+    tool_mapping = pheno_utils.map_tools_to_columns(data_dictionary)
 
     # TODO: needs refactoring once we handle multiple participant IDs
     participants = column_mapping.get("participant")[0]
@@ -134,7 +136,7 @@ def pheno(
             _ses_pheno = session_row
 
             if "sex" in column_mapping.keys():
-                _sex_vals = putil.get_transformed_values(
+                _sex_vals = pheno_utils.get_transformed_values(
                     column_mapping["sex"], _ses_pheno, data_dictionary
                 )
                 if _sex_vals:
@@ -142,7 +144,7 @@ def pheno(
                     session.hasSex = models.Sex(identifier=_sex_vals[0])
 
             if "diagnosis" in column_mapping.keys():
-                _dx_vals = putil.get_transformed_values(
+                _dx_vals = pheno_utils.get_transformed_values(
                     column_mapping["diagnosis"], _ses_pheno, data_dictionary
                 )
                 if not _dx_vals:
@@ -160,7 +162,7 @@ def pheno(
                     ]
 
             if "age" in column_mapping.keys():
-                _age_vals = putil.get_transformed_values(
+                _age_vals = pheno_utils.get_transformed_values(
                     column_mapping["age"], _ses_pheno, data_dictionary
                 )
                 if _age_vals:
@@ -171,7 +173,7 @@ def pheno(
                 _assessments = [
                     models.Assessment(identifier=tool)
                     for tool, columns in tool_mapping.items()
-                    if putil.are_any_available(
+                    if pheno_utils.are_any_available(
                         columns, _ses_pheno, data_dictionary
                     )
                 ]
@@ -191,8 +193,8 @@ def pheno(
         hasSamples=subject_list,
     )
 
-    futil.save_jsonld(
-        data=mutil.add_context_to_graph_dataset(dataset),
+    file_utils.save_jsonld(
+        data=model_utils.add_context_to_graph_dataset(dataset),
         filename=output,
     )
 
@@ -246,7 +248,7 @@ def bids(
     graph data model for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
-    futil.check_overwrite(output, overwrite)
+    file_utils.check_overwrite(output, overwrite)
 
     space = 51
     print(
@@ -255,13 +257,15 @@ def bids(
         f"   {'BIDS dataset directory:' : <{space}} {bids_dir}"
     )
 
-    jsonld_dataset = mutil.extract_and_validate_jsonld_dataset(jsonld_path)
+    jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
+        jsonld_path
+    )
 
-    existing_subs_dict = mutil.get_subject_instances(jsonld_dataset)
+    existing_subs_dict = model_utils.get_subject_instances(jsonld_dataset)
 
     # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
-    mutil.confirm_subs_match_pheno_data(
-        subjects=butil.get_bids_subjects_simple(bids_dir),
+    model_utils.confirm_subs_match_pheno_data(
+        subjects=bids_utils.get_bids_subjects_simple(bids_dir),
         subject_source_for_err="BIDS directory",
         pheno_subjects=existing_subs_dict.keys(),
     )
@@ -275,7 +279,7 @@ def bids(
     print("Merging BIDS metadata with existing subject annotations...\n")
     for bids_sub_id in layout.get_subjects():
         existing_subject = existing_subs_dict.get(f"sub-{bids_sub_id}")
-        existing_sessions_dict = mutil.get_imaging_session_instances(
+        existing_sessions_dict = model_utils.get_imaging_session_instances(
             existing_subject
         )
 
@@ -288,7 +292,7 @@ def bids(
         # For some reason .get_sessions() doesn't always follow alphanumeric order
         # By default (without sorting) the session lists look like ["02", "01"] per subject
         for session_id in sorted(bids_sessions):
-            image_list = butil.create_acquisitions(
+            image_list = bids_utils.create_acquisitions(
                 layout=layout,
                 bids_sub_id=bids_sub_id,
                 session=session_id,
@@ -309,7 +313,7 @@ def bids(
                 if session_id is None
                 else f"ses-{session_id}"
             )
-            session_path = butil.get_session_path(
+            session_path = bids_utils.get_session_path(
                 layout=layout,
                 bids_dir=bids_dir,
                 bids_sub_id=bids_sub_id,
@@ -332,8 +336,8 @@ def bids(
                 )
                 existing_subject.hasSession.append(new_imaging_session)
 
-    futil.save_jsonld(
-        data=mutil.add_context_to_graph_dataset(jsonld_dataset),
+    file_utils.save_jsonld(
+        data=model_utils.add_context_to_graph_dataset(jsonld_dataset),
         filename=output,
     )
 
@@ -387,7 +391,7 @@ def derivatives(
     graph data model for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
-    futil.check_overwrite(output, overwrite)
+    file_utils.check_overwrite(output, overwrite)
 
     space = 51
     print(
@@ -396,10 +400,12 @@ def derivatives(
         f"   {'Processing status file (.tsv):' : <{space}}{tabular}"
     )
 
-    status_df = futil.load_tabular(tabular, input_type="processing status")
+    status_df = file_utils.load_tabular(
+        tabular, input_type="processing status"
+    )
 
     # We don't allow empty values in the participant ID column
-    if row_indices := putil.get_rows_with_empty_strings(
+    if row_indices := pheno_utils.get_rows_with_empty_strings(
         status_df, [PROC_STATUS_COLS["participant"]]
     ):
         raise LookupError(
@@ -409,7 +415,7 @@ def derivatives(
         )
 
     pipelines = status_df[PROC_STATUS_COLS["pipeline_name"]].unique()
-    dutil.check_pipelines_are_recognized(pipelines)
+    derivative_utils.check_pipelines_are_recognized(pipelines)
 
     # TODO: Do we need to check all versions across all pipelines first, and report all unrecognized versions together?
     for pipeline in pipelines:
@@ -417,13 +423,17 @@ def derivatives(
             status_df[PROC_STATUS_COLS["pipeline_name"]] == pipeline
         ][PROC_STATUS_COLS["pipeline_version"]].unique()
 
-        dutil.check_pipeline_versions_are_recognized(pipeline, versions)
+        derivative_utils.check_pipeline_versions_are_recognized(
+            pipeline, versions
+        )
 
-    jsonld_dataset = mutil.extract_and_validate_jsonld_dataset(jsonld_path)
+    jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
+        jsonld_path
+    )
 
-    existing_subs_dict = mutil.get_subject_instances(jsonld_dataset)
+    existing_subs_dict = model_utils.get_subject_instances(jsonld_dataset)
 
-    mutil.confirm_subs_match_pheno_data(
+    model_utils.confirm_subs_match_pheno_data(
         subjects=status_df[PROC_STATUS_COLS["participant"]].unique(),
         subject_source_for_err="processing status file",
         pheno_subjects=existing_subs_dict.keys(),
@@ -436,14 +446,14 @@ def derivatives(
         existing_subject = existing_subs_dict.get(subject)
 
         # Note: Dictionary of existing imaging sessions can be empty if only bagel pheno was run
-        existing_sessions_dict = mutil.get_imaging_session_instances(
+        existing_sessions_dict = model_utils.get_imaging_session_instances(
             existing_subject
         )
 
         for session_label, sub_ses_proc_df in sub_proc_df.groupby(
             PROC_STATUS_COLS["session"]
         ):
-            completed_pipelines = dutil.create_completed_pipelines(
+            completed_pipelines = derivative_utils.create_completed_pipelines(
                 sub_ses_proc_df
             )
 
@@ -465,7 +475,7 @@ def derivatives(
                 )
                 existing_subject.hasSession.append(new_img_session)
 
-    futil.save_jsonld(
-        data=mutil.add_context_to_graph_dataset(jsonld_dataset),
+    file_utils.save_jsonld(
+        data=model_utils.add_context_to_graph_dataset(jsonld_dataset),
         filename=output,
     )

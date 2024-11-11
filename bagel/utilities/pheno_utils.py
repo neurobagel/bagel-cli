@@ -13,7 +13,7 @@ from typer import BadParameter
 from bagel import dictionary_models, mappings
 from bagel.mappings import NB
 
-DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
+DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()
 
 AGE_HEURISTICS = {
     "float": NB.pf + ":FromFloat",
@@ -27,7 +27,9 @@ AGE_HEURISTICS = {
 def validate_portal_uri(portal: str) -> Optional[str]:
     """Custom validation that portal is a valid HttpUrl"""
     try:
-        pydantic.parse_obj_as(Optional[pydantic.HttpUrl], portal)
+        pydantic.TypeAdapter(Optional[pydantic.HttpUrl]).validate_python(
+            portal
+        )
     except pydantic.ValidationError as err:
         raise BadParameter(
             "Not a valid http or https URL: "

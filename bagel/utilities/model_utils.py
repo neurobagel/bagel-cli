@@ -41,7 +41,7 @@ def add_context_to_graph_dataset(dataset: models.Dataset) -> dict:
     # We can't just exclude_unset here because the identifier and schemaKey
     # for each instance are created as default values and so technically are never set
     # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
-    return {**context, **dataset.dict(exclude_none=True)}
+    return {**context, **dataset.model_dump(exclude_none=True)}
 
 
 def get_subs_missing_from_pheno_data(
@@ -80,7 +80,7 @@ def extract_and_validate_jsonld_dataset(file_path: Path) -> models.Dataset:
     jsonld = file_utils.load_json(file_path)
     jsonld.pop("@context")
     try:
-        jsonld_dataset = models.Dataset.parse_obj(jsonld)
+        jsonld_dataset = models.Dataset.model_validate(jsonld)
     except ValidationError as err:
         typer.echo(
             typer.style(

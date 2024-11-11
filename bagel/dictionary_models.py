@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Union
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, RootModel
 from typing_extensions import Annotated
 
 
@@ -146,7 +146,9 @@ class ContinuousColumn(Column):
     )
 
 
-class DataDictionary(BaseModel):
+class DataDictionary(
+    RootModel[Dict[str, Union[ContinuousColumn, CategoricalColumn]]]
+):
     """A data dictionary with human and machine readable information for a tabular data file"""
 
-    __root__: Dict[str, Union[ContinuousColumn, CategoricalColumn]]
+    pass

@@ -7,8 +7,7 @@ from pydantic import ValidationError
 
 from bagel import models
 from bagel.mappings import ALL_NAMESPACES, NB
-
-from . import file_utils
+from bagel.utilities import file_utils
 
 
 def generate_context():

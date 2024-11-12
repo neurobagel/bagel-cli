@@ -149,10 +149,10 @@ def test_invalid_inputs_are_handled_gracefully(
 
 
 @pytest.mark.parametrize(
+    # See also https://docs.pydantic.dev/latest/api/networks/#pydantic.networks.HttpUrl for v2 URL requirements
     "portal",
     [
         "openneuro.org/datasets/ds002080",
-        "https://openneuro",
         "not a url",
         "www.github.com/mycoolrepo/mycooldataset",
     ],

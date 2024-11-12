@@ -62,6 +62,8 @@ The `requirements.txt` file is automatically generated from the `setup.cfg`
 constraints. To update it, we use `pip-compile` from the `pip-tools` package.
 Here is how you can use these tools to update the `requirements.txt` file.
 
+_Note: `pip-compile` will update dependencies based on the Python version of the environment it's running in._
+
 1. Ensure `pip-tools` is installed:
     ```bash
     pip install pip-tools

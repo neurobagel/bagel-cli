@@ -90,6 +90,8 @@ class Subject(Bagel):
 
 class Dataset(Bagel):
     hasLabel: str
-    hasPortalURI: Optional[HttpUrl] = None
+    # NOTE: Since Pydantic v2, URL types no longer inherit from `str`
+    # (see https://docs.pydantic.dev/latest/migration/#url-and-dsn-types-in-pydanticnetworks-no-longer-inherit-from-str)
+    hasPortalURI: Optional[Union[str, HttpUrl]] = None
     hasSamples: List[Subject]
     schemaKey: Literal["Dataset"] = "Dataset"

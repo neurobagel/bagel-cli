@@ -24,8 +24,9 @@ AGE_HEURISTICS = {
 }
 
 
-def validate_portal_uri(portal: str) -> Optional[str]:
+def validate_portal_uri(portal: Optional[str]) -> Optional[str]:
     """Custom validation that portal is a valid HttpUrl"""
+    # NOTE: We need Optional in the validation type below to account for --portal being an optional argument in the pheno command
     try:
         pydantic.TypeAdapter(Optional[pydantic.HttpUrl]).validate_python(
             portal

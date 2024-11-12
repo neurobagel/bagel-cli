@@ -284,11 +284,7 @@ def get_rows_with_empty_strings(df: pd.DataFrame, columns: list) -> list:
     """For specified columns, returns the indices of rows with empty strings"""
     # NOTE: Profile this section if things get slow, transforming "" -> nan and then
     # using .isna() will very likely be much faster
-    empty_row = (
-        df[columns]
-        .applymap(lambda cell: cell == "")
-        .apply(lambda row: any([value for value in row]), axis=1)
-    )
+    empty_row = df[columns].eq("").any(axis=1)
     return list(empty_row[empty_row].index)
 
 

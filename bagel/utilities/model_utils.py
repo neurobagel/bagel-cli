@@ -1,3 +1,4 @@
+import inspect
 from pathlib import Path
 from typing import Iterable
 
@@ -17,18 +18,16 @@ def generate_context():
         namespace.pf: namespace.url for namespace in ALL_NAMESPACES
     }
     fields = {}
-    for val in dir(models):
-        klass = getattr(models, val)
-        if not isinstance(klass, pydantic.main.ModelMetaclass):
-            continue
-        fields[klass.__name__] = f"{NB.pf}:{klass.__name__}"
-        for name, field in klass.__fields__.items():
-            if name == "schemaKey":
-                fields[name] = "@type"
-            elif name == "identifier":
-                fields[name] = "@id"
-            elif name not in fields:
-                fields[name] = {"@id": f"{NB.pf}:{name}"}
+    for klass_name, klass in inspect.getmembers(models):
+        if inspect.isclass(klass) and issubclass(klass, pydantic.BaseModel):
+            fields[klass_name] = f"{NB.pf}:{klass_name}"
+            for name, field in klass.model_fields.items():
+                if name == "schemaKey":
+                    fields[name] = "@type"
+                elif name == "identifier":
+                    fields[name] = "@id"
+                elif name not in fields:
+                    fields[name] = {"@id": f"{NB.pf}:{name}"}
 
     field_preamble.update(**fields)
 

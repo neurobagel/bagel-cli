@@ -72,7 +72,7 @@ Here is how you can use these tools to update the `requirements.txt` file.
 3. The above command only updates the runtime dependencies.
 Now, update the developer dependencies in `dev_requirements.txt`:
     ```bash
-    pip-compile -o dev_requirements.txt --extra all
+    pip-compile -o dev_requirements.txt --extra all --upgrade
     ```
 
 ## Regenerating the Neurobagel vocabulary file

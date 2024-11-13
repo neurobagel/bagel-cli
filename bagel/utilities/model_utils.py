@@ -12,7 +12,7 @@ from bagel.utilities import file_utils
 
 
 def generate_context():
-    # Direct copy of the dandi-schema context generation function
+    # Adapted from the dandi-schema context generation function
     # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
     field_preamble = {
         namespace.pf: namespace.url for namespace in ALL_NAMESPACES

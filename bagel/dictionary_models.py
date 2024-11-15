@@ -1,6 +1,7 @@
 from typing import Dict, List, Union
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, RootModel
+from pydantic_core import PydanticCustomError
 from typing_extensions import Annotated
 
 
@@ -16,7 +17,10 @@ def validate_unique_list(values: List[str]) -> List[str]:
     - https://docs.pydantic.dev/latest/migration/#changes-to-pydanticfield
     - https://docs.pydantic.dev/latest/api/types/#pydantic.types.conlist)
     """
-    assert len(values) == len(set(values)), f"{values} is not a unique list"
+    if len(values) != len(set(values)):
+        raise PydanticCustomError(
+            "unique_list", f"{values} is not a unique list"
+        )
     return values
 
 

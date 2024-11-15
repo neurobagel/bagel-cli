@@ -7,7 +7,7 @@ from typing_extensions import Annotated
 # TODO: Test this function?
 def validate_unique_list(values: List[str]) -> List[str]:
     """
-    Check that provided list is unique.
+    Check that provided list only has unique elements.
 
     This custom validator is needed because constrained dtypes and their `unique_items` parameter
     were deprecated in Pydantic v2. This function was adapted from https://github.com/pydantic/pydantic-core/pull/820#issuecomment-1656228704

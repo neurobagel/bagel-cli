@@ -86,5 +86,19 @@ def get_pipeline_versions() -> dict:
     return output_dict
 
 
-KNOWN_PIPELINE_URIS = get_pipeline_uris()
-KNOWN_PIPELINE_VERSIONS = get_pipeline_versions()
+def parse_pipeline_catalog():
+    """
+    Load the pipeline catalog and return a dictionary of pipeline names and their URIs
+    and a dictionary of pipeline names and their versions.
+    """
+    in_arr = get_pipeline_catalog()
+    version_dict = {}
+    uri_dict = {}
+    for pipeline in in_arr:
+        version_dict[pipeline["name"]] = pipeline["versions"]
+        uri_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
+        
+    return uri_dict, version_dict
+
+
+KNOWN_PIPELINE_URIS, KNOWN_PIPELINE_VERSIONS = parse_pipeline_catalog()

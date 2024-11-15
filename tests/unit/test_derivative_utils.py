@@ -8,20 +8,20 @@ from bagel.utilities import derivative_utils
 def test_pipeline_uris_are_loaded():
     """Test that pipeline URIs are loaded from the pipeline-catalog submodule."""
 
-    pipeline_dict = mappings.get_pipeline_uris()
+    uri_dict, _  = mappings.parse_pipeline_catalog()
     assert all(
         ((mappings.NP.pf in pipe_uri) and (" " not in pipe_uri))
-        for pipe_uri in pipeline_dict.values()
+        for pipe_uri in uri_dict.values()
     )
 
 
 def test_pipeline_versions_are_loaded():
     """Test that pipeline versions are loaded from the pipeline-catalog submodule."""
 
-    pipeline_dict = mappings.get_pipeline_versions()
+    _, version_dict = mappings.parse_pipeline_catalog()
     assert all(
         isinstance(pipe_versions, list) and len(pipe_versions) > 0
-        for pipe_versions in pipeline_dict.values()
+        for pipe_versions in version_dict.values()
     )
 
 

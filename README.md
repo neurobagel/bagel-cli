@@ -4,6 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/neurobagel/bagel-cli/badge.svg?branch=main)](https://coveralls.io/github/neurobagel/bagel-cli?branch=main)
 [![Tests](https://github.com/neurobagel/bagel-cli/actions/workflows/test.yml/badge.svg)](https://github.com/neurobagel/bagel-cli/actions/workflows/test.yml)
 [![Docker Image Version](https://img.shields.io/docker/v/neurobagel/bagelcli?label=docker)](https://hub.docker.com/r/neurobagel/bagelcli/tags)
+[![Python versions](https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue?style=flat)](https://www.python.org)
 
 </div>
 
@@ -61,6 +62,8 @@ The `requirements.txt` file is automatically generated from the `setup.cfg`
 constraints. To update it, we use `pip-compile` from the `pip-tools` package.
 Here is how you can use these tools to update the `requirements.txt` file.
 
+_Note: `pip-compile` will update dependencies based on the Python version of the environment it's running in._
+
 1. Ensure `pip-tools` is installed:
     ```bash
     pip install pip-tools
@@ -72,7 +75,7 @@ Here is how you can use these tools to update the `requirements.txt` file.
 3. The above command only updates the runtime dependencies.
 Now, update the developer dependencies in `dev_requirements.txt`:
     ```bash
-    pip-compile -o dev_requirements.txt --extra all
+    pip-compile -o dev_requirements.txt --extra all --upgrade
     ```
 
 ## Regenerating the Neurobagel vocabulary file

@@ -1,3 +1,4 @@
+import inspect
 from pathlib import Path
 from typing import Iterable
 
@@ -11,24 +12,22 @@ from bagel.utilities import file_utils
 
 
 def generate_context():
-    # Direct copy of the dandi-schema context generation function
+    # Adapted from the dandi-schema context generation function
     # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
     field_preamble = {
         namespace.pf: namespace.url for namespace in ALL_NAMESPACES
     }
     fields = {}
-    for val in dir(models):
-        klass = getattr(models, val)
-        if not isinstance(klass, pydantic.main.ModelMetaclass):
-            continue
-        fields[klass.__name__] = f"{NB.pf}:{klass.__name__}"
-        for name, field in klass.__fields__.items():
-            if name == "schemaKey":
-                fields[name] = "@type"
-            elif name == "identifier":
-                fields[name] = "@id"
-            elif name not in fields:
-                fields[name] = {"@id": f"{NB.pf}:{name}"}
+    for klass_name, klass in inspect.getmembers(models):
+        if inspect.isclass(klass) and issubclass(klass, pydantic.BaseModel):
+            fields[klass_name] = f"{NB.pf}:{klass_name}"
+            for name, field in klass.model_fields.items():
+                if name == "schemaKey":
+                    fields[name] = "@type"
+                elif name == "identifier":
+                    fields[name] = "@id"
+                elif name not in fields:
+                    fields[name] = {"@id": f"{NB.pf}:{name}"}
 
     field_preamble.update(**fields)
 
@@ -41,7 +40,7 @@ def add_context_to_graph_dataset(dataset: models.Dataset) -> dict:
     # We can't just exclude_unset here because the identifier and schemaKey
     # for each instance are created as default values and so technically are never set
     # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
-    return {**context, **dataset.dict(exclude_none=True)}
+    return {**context, **dataset.model_dump(exclude_none=True)}
 
 
 def get_subs_missing_from_pheno_data(
@@ -80,7 +79,7 @@ def extract_and_validate_jsonld_dataset(file_path: Path) -> models.Dataset:
     jsonld = file_utils.load_json(file_path)
     jsonld.pop("@context")
     try:
-        jsonld_dataset = models.Dataset.parse_obj(jsonld)
+        jsonld_dataset = models.Dataset.model_validate(jsonld)
     except ValidationError as err:
         typer.echo(
             typer.style(

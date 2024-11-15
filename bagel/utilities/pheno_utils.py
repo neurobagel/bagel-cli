@@ -13,7 +13,7 @@ from typer import BadParameter
 from bagel import dictionary_models, mappings
 from bagel.mappings import NB
 
-DICTIONARY_SCHEMA = dictionary_models.DataDictionary.schema()
+DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()
 
 AGE_HEURISTICS = {
     "float": NB.pf + ":FromFloat",
@@ -24,10 +24,13 @@ AGE_HEURISTICS = {
 }
 
 
-def validate_portal_uri(portal: str) -> Optional[str]:
+def validate_portal_uri(portal: Optional[str]) -> Optional[str]:
     """Custom validation that portal is a valid HttpUrl"""
+    # NOTE: We need Optional in the validation type below to account for --portal being an optional argument in the pheno command
     try:
-        pydantic.parse_obj_as(Optional[pydantic.HttpUrl], portal)
+        pydantic.TypeAdapter(Optional[pydantic.HttpUrl]).validate_python(
+            portal
+        )
     except pydantic.ValidationError as err:
         raise BadParameter(
             "Not a valid http or https URL: "
@@ -281,11 +284,7 @@ def get_rows_with_empty_strings(df: pd.DataFrame, columns: list) -> list:
     """For specified columns, returns the indices of rows with empty strings"""
     # NOTE: Profile this section if things get slow, transforming "" -> nan and then
     # using .isna() will very likely be much faster
-    empty_row = (
-        df[columns]
-        .applymap(lambda cell: cell == "")
-        .apply(lambda row: any([value for value in row]), axis=1)
-    )
+    empty_row = df[columns].eq("").any(axis=1)
     return list(empty_row[empty_row].index)
 
 

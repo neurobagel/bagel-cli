@@ -149,10 +149,10 @@ def test_invalid_inputs_are_handled_gracefully(
 
 
 @pytest.mark.parametrize(
+    # See also https://docs.pydantic.dev/latest/api/networks/#pydantic.networks.HttpUrl for v2 URL requirements
     "portal",
     [
         "openneuro.org/datasets/ds002080",
-        "https://openneuro",
         "not a url",
         "www.github.com/mycoolrepo/mycooldataset",
     ],
@@ -356,7 +356,7 @@ def test_providing_csv_file_raises_error(
     assert "Please provide a valid .tsv phenotypic file" in str(e.value)
 
 
-def test_that_output_file_contains_dataset_level_attributes(
+def test_output_file_contains_dataset_level_attributes(
     runner, test_data, default_pheno_output_path, load_test_json
 ):
     runner.invoke(

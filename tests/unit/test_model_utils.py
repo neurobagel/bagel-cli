@@ -1,6 +1,9 @@
-import pytest
+from contextlib import nullcontext as does_not_raise
 
-from bagel import mappings, models
+import pytest
+from pydantic import ValidationError
+
+from bagel import dictionary_models, mappings, models
 from bagel.utilities import model_utils
 
 
@@ -28,6 +31,30 @@ def get_values_by_key():
                 yield from _find_by_key(item, target)
 
     return _find_by_key
+
+
+@pytest.mark.parametrize(
+    "missing_values,expectation",
+    [
+        (["", "999"], does_not_raise()),
+        (
+            ["", "999", "999"],
+            pytest.raises(ValidationError, match="not a unique list"),
+        ),
+    ],
+)
+def test_unique_missing_values_validation(missing_values, expectation):
+    """
+    Test that validate_unique_list() correctly validates a list of missing values in a data dictionary column instance.
+    """
+    with expectation:
+        dictionary_models.Neurobagel(
+            IsAbout={
+                "TermURL": "nb:Sex",
+                "Label": "Sex",
+            },
+            MissingValues=missing_values,
+        )
 
 
 def test_all_used_namespaces_have_urls(

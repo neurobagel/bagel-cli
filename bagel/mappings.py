@@ -40,7 +40,7 @@ NEUROBAGEL = {
 
 # TODO: Use importlib.resources.files(bagel) to get the path to the pipeline-catalog instead?
 PROCESSING_PIPELINE_PATH = (
-    Path(__file__).parent / "pipeline-catalog" / "processing"
+    Path(__file__).parent / "local_vocab_backup"
 )
 
 
@@ -49,10 +49,10 @@ def get_pipeline_uris() -> dict:
     Load files from the pipeline-catalog and return a dictionary of pipeline names
     and their URIs in the Nipoppy namespace.
     """
+    in_arr = file_utils.load_json(PROCESSING_PIPELINE_PATH / "processing_pipelines.json")
     output_dict = {}
-    for pipe_file in PROCESSING_PIPELINE_PATH.glob("*.json"):
-        pipe = file_utils.load_json(pipe_file)
-        output_dict[pipe["name"]] = f"{NP.pf}:{pipe['name']}"
+    for pipeline in in_arr:
+        output_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
 
     return output_dict
 
@@ -62,10 +62,10 @@ def get_pipeline_versions() -> dict:
     Load files from the pipeline-catalog and return a dictionary of pipeline names
     and corresponding supported versions in the Nipoppy namespace.
     """
+    in_arr = file_utils.load_json(PROCESSING_PIPELINE_PATH / "processing_pipelines.json")
     output_dict = {}
-    for pipe_file in PROCESSING_PIPELINE_PATH.glob("*.json"):
-        pipe = file_utils.load_json(pipe_file)
-        output_dict[pipe["name"]] = pipe["versions"]
+    for pipeline in in_arr:
+        output_dict[pipeline["name"]] = pipeline["versions"]
 
     return output_dict
 

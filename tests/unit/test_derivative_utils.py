@@ -8,7 +8,7 @@ from bagel.utilities import derivative_utils
 def test_pipeline_uris_are_loaded():
     """Test that pipeline URIs are loaded from the pipeline-catalog submodule."""
 
-    uri_dict, _  = mappings.parse_pipeline_catalog()
+    uri_dict, _ = mappings.parse_pipeline_catalog()
     assert all(
         ((mappings.NP.pf in pipe_uri) and (" " not in pipe_uri))
         for pipe_uri in uri_dict.values()

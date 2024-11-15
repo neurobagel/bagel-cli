@@ -16,13 +16,15 @@ bids-validator==1.14.7.post0
     # via pybids
 bidsschematools==0.11.3.post2
     # via bids-validator
+certifi==2024.8.30
+    # via requests
+charset-normalizer==3.4.0
+    # via requests
 click==8.1.7
     # via
     #   bidsschematools
     #   pybids
     #   typer
-colorama==0.4.6
-    # via click
 docopt==0.6.2
     # via num2words
 formulaic==0.5.2
@@ -31,6 +33,8 @@ fsspec==2024.10.0
     # via universal-pathlib
 greenlet==3.1.1
     # via sqlalchemy
+idna==3.10
+    # via requests
 importlib-resources==6.4.5
     # via nibabel
 interface-meta==1.3.0
@@ -82,6 +86,8 @@ referencing==0.35.1
     # via
     #   jsonschema
     #   jsonschema-specifications
+requests==2.32.3
+    # via bagel (setup.py)
 rich==13.9.4
     # via
     #   bagel (setup.py)
@@ -114,5 +120,7 @@ tzdata==2024.2
     # via pandas
 universal-pathlib==0.2.5
     # via pybids
+urllib3==2.2.3
+    # via requests
 wrapt==1.16.0
     # via formulaic

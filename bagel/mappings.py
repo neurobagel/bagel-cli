@@ -1,6 +1,8 @@
 from collections import namedtuple
 from pathlib import Path
 
+import requests
+
 from .utilities import file_utils
 
 Namespace = namedtuple("Namespace", ["pf", "url"])
@@ -42,6 +44,20 @@ NEUROBAGEL = {
 PROCESSING_PIPELINE_PATH = (
     Path(__file__).parent / "local_vocab_backup"
 )
+PROCESSING_PIPELINE_URL = "https://raw.githubusercontent.com/nipoppy/pipeline-catalog/refs/heads/main/processing/processing.json"
+
+
+def get_pipeline_catalog() -> dict:
+    """
+    Load the pipeline catalog from the remote location or, if that fails,
+    from the local backup.
+    """
+    try:
+        response = requests.get(PROCESSING_PIPELINE_URL)
+        response.raise_for_status()
+        return response.json()
+    except (requests.RequestException, json.JSONDecodeError):
+        return file_utils.load_json(PROCESSING_PIPELINE_PATH / "processing_pipelines.json")
 
 
 def get_pipeline_uris() -> dict:
@@ -49,7 +65,7 @@ def get_pipeline_uris() -> dict:
     Load files from the pipeline-catalog and return a dictionary of pipeline names
     and their URIs in the Nipoppy namespace.
     """
-    in_arr = file_utils.load_json(PROCESSING_PIPELINE_PATH / "processing_pipelines.json")
+    in_arr = get_pipeline_catalog()
     output_dict = {}
     for pipeline in in_arr:
         output_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
@@ -62,7 +78,7 @@ def get_pipeline_versions() -> dict:
     Load files from the pipeline-catalog and return a dictionary of pipeline names
     and corresponding supported versions in the Nipoppy namespace.
     """
-    in_arr = file_utils.load_json(PROCESSING_PIPELINE_PATH / "processing_pipelines.json")
+    in_arr = get_pipeline_catalog()
     output_dict = {}
     for pipeline in in_arr:
         output_dict[pipeline["name"]] = pipeline["versions"]

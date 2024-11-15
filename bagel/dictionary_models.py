@@ -4,7 +4,6 @@ from pydantic import AfterValidator, BaseModel, ConfigDict, Field, RootModel
 from typing_extensions import Annotated
 
 
-# TODO: Test this function?
 def validate_unique_list(values: List[str]) -> List[str]:
     """
     Check that provided list only has unique elements.

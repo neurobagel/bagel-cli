@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, RootModel
 from typing_extensions import Annotated
@@ -97,8 +97,9 @@ class IdentifierNeurobagel(Neurobagel):
 class ToolNeurobagel(Neurobagel):
     """A Neurobagel annotation for an assessment tool column"""
 
-    # TODO: Why is this optional again?
-    isPartOf: Optional[Identifier] = Field(
+    # NOTE: Optional[Identifier] was removed as part of https://github.com/neurobagel/bagel-cli/pull/389
+    # because we couldn't tell what the Optional was doing
+    isPartOf: Identifier = Field(
         ...,
         description="If the column is a subscale or item of an assessment tool "
         "then the assessment tool should be specified here.",

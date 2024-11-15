@@ -1,5 +1,5 @@
-from collections import namedtuple
 import json
+from collections import namedtuple
 from pathlib import Path
 
 import requests
@@ -42,9 +42,7 @@ NEUROBAGEL = {
 }
 
 # TODO: Use importlib.resources.files(bagel) to get the path to the pipeline-catalog instead?
-PROCESSING_PIPELINE_PATH = (
-    Path(__file__).parent / "local_vocab_backup"
-)
+PROCESSING_PIPELINE_PATH = Path(__file__).parent / "local_vocab_backup"
 PROCESSING_PIPELINE_URL = "https://raw.githubusercontent.com/nipoppy/pipeline-catalog/refs/heads/main/processing/processing.json"
 
 
@@ -58,7 +56,9 @@ def get_pipeline_catalog() -> dict:
         response.raise_for_status()
         return response.json()
     except (requests.RequestException, json.JSONDecodeError):
-        return file_utils.load_json(PROCESSING_PIPELINE_PATH / "processing_pipelines.json")
+        return file_utils.load_json(
+            PROCESSING_PIPELINE_PATH / "processing_pipelines.json"
+        )
 
 
 def get_pipeline_uris() -> dict:
@@ -98,7 +98,7 @@ def parse_pipeline_catalog():
     for pipeline in in_arr:
         version_dict[pipeline["name"]] = pipeline["versions"]
         uri_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
-        
+
     return uri_dict, version_dict
 
 

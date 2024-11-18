@@ -2,7 +2,7 @@ import json
 from collections import namedtuple
 from pathlib import Path
 
-import requests
+import httpx
 
 from .utilities import file_utils
 
@@ -52,10 +52,10 @@ def get_pipeline_catalog(get_url: str, get_path: Path) -> dict:
     from the local backup.
     """
     try:
-        response = requests.get(get_url)
+        response = httpx.get(get_url)
         response.raise_for_status()
         return response.json()
-    except (requests.RequestException, json.JSONDecodeError):
+    except (httpx.HTTPStatusError, json.JSONDecodeError):
         return file_utils.load_json(get_path)
 
 

@@ -6,6 +6,8 @@
 #
 annotated-types==0.7.0
     # via pydantic
+anyio==4.6.2.post1
+    # via httpx
 astor==0.8.1
     # via formulaic
 attrs==24.2.0
@@ -17,9 +19,9 @@ bids-validator==1.14.7.post0
 bidsschematools==0.11.3.post2
     # via bids-validator
 certifi==2024.8.30
-    # via requests
-charset-normalizer==3.4.0
-    # via requests
+    # via
+    #   httpcore
+    #   httpx
 click==8.1.7
     # via
     #   bidsschematools
@@ -33,8 +35,16 @@ fsspec==2024.10.0
     # via universal-pathlib
 greenlet==3.1.1
     # via sqlalchemy
+h11==0.14.0
+    # via httpcore
+httpcore==1.0.7
+    # via httpx
+httpx==0.27.2
+    # via bagel (setup.py)
 idna==3.10
-    # via requests
+    # via
+    #   anyio
+    #   httpx
 importlib-resources==6.4.5
     # via nibabel
 interface-meta==1.3.0
@@ -86,8 +96,6 @@ referencing==0.35.1
     # via
     #   jsonschema
     #   jsonschema-specifications
-requests==2.32.3
-    # via bagel (setup.py)
 rich==13.9.4
     # via
     #   bagel (setup.py)
@@ -104,6 +112,10 @@ shellingham==1.5.4
     # via typer
 six==1.16.0
     # via python-dateutil
+sniffio==1.3.1
+    # via
+    #   anyio
+    #   httpx
 sqlalchemy==2.0.36
     # via pybids
 typer==0.13.0
@@ -120,7 +132,5 @@ tzdata==2024.2
     # via pandas
 universal-pathlib==0.2.5
     # via pybids
-urllib3==2.2.3
-    # via requests
 wrapt==1.16.0
     # via formulaic

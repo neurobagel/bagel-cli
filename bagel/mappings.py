@@ -63,7 +63,13 @@ def get_pipeline_catalog(get_url: str, get_path: Path) -> dict:
             f"Unable to load pipeline catalog from {get_url}.\n"
             f"Will revert to loading backup from {get_path}."
         )
-        return file_utils.load_json(get_path)
+        try:
+            catalog = file_utils.load_json(get_path)
+            return catalog
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                f"Unable to find a local pipeline-catalog backup. Have you correctly initialized the submodules? {e}"
+            ) from e
 
 
 def get_pipeline_uris(in_arr: list) -> dict:

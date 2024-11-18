@@ -1,4 +1,5 @@
 import json
+import warnings
 from collections import namedtuple
 from pathlib import Path
 
@@ -55,7 +56,11 @@ def get_pipeline_catalog(get_url: str, get_path: Path) -> dict:
         response = httpx.get(get_url)
         response.raise_for_status()
         return response.json()
-    except (httpx.HTTPStatusError, json.JSONDecodeError):
+    except (httpx.HTTPStatusError, httpx.ConnectError, json.JSONDecodeError):
+        warnings.warn(
+            f"Unable to load pipeline catalog from {get_url}.\n"
+            f"Will revert to loading backup from {get_path}."
+        )
         return file_utils.load_json(get_path)
 
 

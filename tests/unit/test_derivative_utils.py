@@ -1,3 +1,4 @@
+import httpx
 import pandas as pd
 import pytest
 
@@ -11,13 +12,56 @@ def test_get_pipeline_uses_backup_on_fail(monkeypatch):
     """
     # TODO: Make a proper mock for the requests.get function
     # or switch to httpx for better testing capabilities
+    nonsense_url = "https://does.not.exist.url"
+
+    def mock_httpx_get(*args, **kwargs):
+        response = httpx.Response(status_code=400, json={"key": "value"})
+        # This slightly odd construction is necessary to create a Response object
+        # that has the correct URL already baked in (I think), because otherwise we get the following
+        # RuntimeError: Cannot call `raise_for_status` as the request instance has not been set on this response.
+        # TODO: find a better solution or understand the problem better
+        response._request = httpx.Request("GET", nonsense_url)
+        return response
+
+    monkeypatch.setattr(httpx, "get", mock_httpx_get)
+
+    with pytest.warns(UserWarning) as w:
+        result = mappings.get_pipeline_catalog(
+            get_url=nonsense_url,
+            get_path=mappings.PROCESSING_PIPELINE_PATH
+            / "processing_pipelines.json",
+        )
+
+    assert all(isinstance(item, dict) for item in result)
+    assert "Unable to load pipeline catalog" in w[0].message.args[0]
+
+
+def test_get_pipeline_loads_from_url(monkeypatch):
+    nonsense_url = "https://made.up.url/pipeline_catalog.json"
+    mock_pipeline_catalog = [
+        {"name": "sillypipe", "versions": ["1", "2"]},
+        {"name": "funpipe", "versions": ["10", "11"]},
+    ]
+
+    def mock_httpx_get(*args, **kwargs):
+        response = httpx.Response(status_code=200, json=mock_pipeline_catalog)
+        # This slightly odd construction is necessary to create a Response object
+        # that has the correct URL already baked in (I think), because otherwise we get the following
+        # RuntimeError: Cannot call `raise_for_status` as the request instance has not been set on this response.
+        # TODO: find a better solution or understand the problem better
+        response._request = httpx.Request("GET", nonsense_url)
+        return response
+
+    monkeypatch.setattr(httpx, "get", mock_httpx_get)
+
     result = mappings.get_pipeline_catalog(
-        get_url="https://example.org/processing.json",
+        get_url=nonsense_url,
         get_path=mappings.PROCESSING_PIPELINE_PATH
         / "processing_pipelines.json",
     )
 
     assert all(isinstance(item, dict) for item in result)
+    assert result == mock_pipeline_catalog
 
 
 def test_pipeline_uris_are_loaded():

@@ -27,9 +27,7 @@ def test_get_pipeline_uses_backup_on_fail(monkeypatch):
 
     with pytest.warns(UserWarning) as w:
         result = mappings.get_pipeline_catalog(
-            get_url=nonsense_url,
-            get_path=mappings.PROCESSING_PIPELINE_PATH
-            / "processing_pipelines.json",
+            get_url=nonsense_url, get_path=mappings.PROCESSING_PIPELINE_PATH
         )
 
     assert all(isinstance(item, dict) for item in result)
@@ -55,9 +53,7 @@ def test_get_pipeline_loads_from_url(monkeypatch):
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
     result = mappings.get_pipeline_catalog(
-        get_url=nonsense_url,
-        get_path=mappings.PROCESSING_PIPELINE_PATH
-        / "processing_pipelines.json",
+        get_url=nonsense_url, get_path=mappings.PROCESSING_PIPELINE_PATH
     )
 
     assert all(isinstance(item, dict) for item in result)

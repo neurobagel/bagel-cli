@@ -43,7 +43,9 @@ NEUROBAGEL = {
 }
 
 # TODO: Use importlib.resources.files(bagel) to get the path to the pipeline-catalog instead?
-PROCESSING_PIPELINE_PATH = Path(__file__).parent / "local_vocab_backup"
+PROCESSING_PIPELINE_PATH = (
+    Path(__file__).parent / "pipeline-catalog/processing/processing.json"
+)
 PROCESSING_PIPELINE_URL = "https://raw.githubusercontent.com/nipoppy/pipeline-catalog/refs/heads/main/processing/processing.json"
 
 
@@ -95,7 +97,7 @@ def parse_pipeline_catalog():
     """
     in_arr = get_pipeline_catalog(
         get_url=PROCESSING_PIPELINE_URL,
-        get_path=PROCESSING_PIPELINE_PATH / "processing_pipelines.json",
+        get_path=PROCESSING_PIPELINE_PATH,
     )
     # version_dict = {}
     # uri_dict = {}

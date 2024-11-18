@@ -46,27 +46,24 @@ PROCESSING_PIPELINE_PATH = Path(__file__).parent / "local_vocab_backup"
 PROCESSING_PIPELINE_URL = "https://raw.githubusercontent.com/nipoppy/pipeline-catalog/refs/heads/main/processing/processing.json"
 
 
-def get_pipeline_catalog() -> dict:
+def get_pipeline_catalog(get_url: str, get_path: Path) -> dict:
     """
     Load the pipeline catalog from the remote location or, if that fails,
     from the local backup.
     """
     try:
-        response = requests.get(PROCESSING_PIPELINE_URL)
+        response = requests.get(get_url)
         response.raise_for_status()
         return response.json()
     except (requests.RequestException, json.JSONDecodeError):
-        return file_utils.load_json(
-            PROCESSING_PIPELINE_PATH / "processing_pipelines.json"
-        )
+        return file_utils.load_json(get_path)
 
 
-def get_pipeline_uris() -> dict:
+def get_pipeline_uris(in_arr: list) -> dict:
     """
     Load files from the pipeline-catalog and return a dictionary of pipeline names
     and their URIs in the Nipoppy namespace.
     """
-    in_arr = get_pipeline_catalog()
     output_dict = {}
     for pipeline in in_arr:
         output_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
@@ -74,12 +71,11 @@ def get_pipeline_uris() -> dict:
     return output_dict
 
 
-def get_pipeline_versions() -> dict:
+def get_pipeline_versions(in_arr: list) -> dict:
     """
     Load files from the pipeline-catalog and return a dictionary of pipeline names
     and corresponding supported versions in the Nipoppy namespace.
     """
-    in_arr = get_pipeline_catalog()
     output_dict = {}
     for pipeline in in_arr:
         output_dict[pipeline["name"]] = pipeline["versions"]
@@ -92,14 +88,19 @@ def parse_pipeline_catalog():
     Load the pipeline catalog and return a dictionary of pipeline names and their URIs
     and a dictionary of pipeline names and their versions.
     """
-    in_arr = get_pipeline_catalog()
-    version_dict = {}
-    uri_dict = {}
-    for pipeline in in_arr:
-        version_dict[pipeline["name"]] = pipeline["versions"]
-        uri_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
+    in_arr = get_pipeline_catalog(
+        get_url=PROCESSING_PIPELINE_URL,
+        get_path=PROCESSING_PIPELINE_PATH / "processing_pipelines.json",
+    )
+    # version_dict = {}
+    # uri_dict = {}
+    # for pipeline in in_arr:
+    #     version_dict[pipeline["name"]] = pipeline["versions"]
+    #     uri_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
 
-    return uri_dict, version_dict
+    return get_pipeline_uris(in_arr), get_pipeline_versions(in_arr)
 
 
+# TODO: consider refactoring this into a Mappings class that also
+# handles lazy loading of the remote content, i.e. only when accessed
 KNOWN_PIPELINE_URIS, KNOWN_PIPELINE_VERSIONS = parse_pipeline_catalog()

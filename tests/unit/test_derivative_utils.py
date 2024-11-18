@@ -5,6 +5,21 @@ from bagel import mappings
 from bagel.utilities import derivative_utils
 
 
+def test_get_pipeline_uses_backup_on_fail(monkeypatch):
+    """
+    Test that the pipeline catalog is loaded from the local backup if the remote location is unreachable.
+    """
+    # TODO: Make a proper mock for the requests.get function
+    # or switch to httpx for better testing capabilities
+    result = mappings.get_pipeline_catalog(
+        get_url="https://example.org/processing.json",
+        get_path=mappings.PROCESSING_PIPELINE_PATH
+        / "processing_pipelines.json",
+    )
+
+    assert all(isinstance(item, dict) for item in result)
+
+
 def test_pipeline_uris_are_loaded():
     """Test that pipeline URIs are loaded from the pipeline-catalog submodule."""
 

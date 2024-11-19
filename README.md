@@ -5,6 +5,7 @@
 [![Tests](https://github.com/neurobagel/bagel-cli/actions/workflows/test.yml/badge.svg)](https://github.com/neurobagel/bagel-cli/actions/workflows/test.yml)
 [![Docker Image Version](https://img.shields.io/docker/v/neurobagel/bagelcli?label=docker)](https://hub.docker.com/r/neurobagel/bagelcli/tags)
 [![Python versions](https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue?style=flat)](https://www.python.org)
+[![License](https://img.shields.io/github/license/neurobagel/bagelcli?color=CD5C5C&style=flat)](LICENSE)
 
 </div>
 

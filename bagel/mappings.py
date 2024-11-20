@@ -72,48 +72,23 @@ def get_pipeline_catalog(url: str, path: Path) -> list[dict]:
             ) from e
 
 
-def get_pipeline_uris(pipeline_catalog_arr: list[dict]) -> dict:
-    """
-    Load files from the pipeline-catalog and return a dictionary of pipeline names
-    and their URIs in the Nipoppy namespace.
-    """
-    output_dict = {}
-    for pipeline in pipeline_catalog_arr:
-        output_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
-
-    return output_dict
-
-
-def get_pipeline_versions(pipeline_catalog_arr: list[dict]) -> dict:
-    """
-    Load files from the pipeline-catalog and return a dictionary of pipeline names
-    and corresponding supported versions in the Nipoppy namespace.
-    """
-    output_dict = {}
-    for pipeline in pipeline_catalog_arr:
-        output_dict[pipeline["name"]] = pipeline["versions"]
-
-    return output_dict
-
-
 def parse_pipeline_catalog():
     """
-    Load the pipeline catalog and return a dictionary of pipeline names and their URIs
-    and a dictionary of pipeline names and their versions.
+    Load the pipeline catalog and return a dictionary of pipeline names and their URIs in the Nipoppy namespace,
+    and a dictionary of pipeline names and their supported versions in Nipoppy.
     """
     pipeline_catalog_arr = get_pipeline_catalog(
         url=PROCESSING_PIPELINE_URL,
         path=PROCESSING_PIPELINE_PATH,
     )
-    # version_dict = {}
-    # uri_dict = {}
-    # for pipeline in in_arr:
-    #     version_dict[pipeline["name"]] = pipeline["versions"]
-    #     uri_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
 
-    return get_pipeline_uris(pipeline_catalog_arr), get_pipeline_versions(
-        pipeline_catalog_arr
-    )
+    version_dict = {}
+    uri_dict = {}
+    for pipeline in pipeline_catalog_arr:
+        version_dict[pipeline["name"]] = pipeline["versions"]
+        uri_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
+
+    return uri_dict, version_dict
 
 
 # TODO: consider refactoring this into a Mappings class that also

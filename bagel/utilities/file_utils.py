@@ -51,13 +51,13 @@ def load_tabular(
         raise ValueError(
             f"Your {input_type} input file {input_p} has only one column "
             f"and is therefore not valid as a Neurobagel {input_type} file. "
-            f" Please provide a valid .tsv {input_type} file!"
+            f"Please provide a valid .tsv {input_type} file!"
             f"\n\n{note_misnamed_csv if len(tabular_df.columns[0].split(',')) > 1 else ''}"
         )
 
     raise ValueError(
-        f"Your ({input_p}) is not a .tsv file."
-        f" Please provide a valid .tsv {input_type} file!"
+        f"Your ({input_p}) is not a .tsv file. "
+        f"Please provide a valid .tsv {input_type} file!"
     )
 
 
@@ -76,7 +76,7 @@ def load_json(input_p: Path) -> dict:
     except json.JSONDecodeError as e:
         typer.echo(
             typer.style(
-                f"The provided data dictionary {input_p} is not valid JSON. "
+                f"The provided file is not valid JSON: {input_p}\n"
                 "Please provide a valid JSON file.",
                 fg=typer.colors.RED,
             ),

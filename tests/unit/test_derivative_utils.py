@@ -9,18 +9,21 @@ from bagel.utilities import derivative_utils
 def test_get_pipeline_from_backup_if_remote_fails(monkeypatch):
     """
     Test that the pipeline catalog is loaded from the local backup if the remote location is unreachable.
+
+    NOTE: This test will fail if the submodule has not been correctly initialized.
     """
-    # TODO: Make a proper mock for the requests.get function
-    # or switch to httpx for better testing capabilities
     nonsense_url = "https://does.not.exist.url"
 
     def mock_httpx_get(*args, **kwargs):
-        response = httpx.Response(status_code=400, json={"key": "value"})
+        response = httpx.Response(
+            status_code=400,
+            json={},
+            text="Some error",
+            request=httpx.Request("GET", nonsense_url),
+        )
         # This slightly odd construction is necessary to create a Response object
         # that has the correct URL already baked in (I think), because otherwise we get the following
         # RuntimeError: Cannot call `raise_for_status` as the request instance has not been set on this response.
-        # TODO: find a better solution or understand the problem better
-        response._request = httpx.Request("GET", nonsense_url)
         return response
 
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
@@ -31,7 +34,7 @@ def test_get_pipeline_from_backup_if_remote_fails(monkeypatch):
         )
 
     assert all(isinstance(item, dict) for item in result)
-    assert "Unable to load pipeline catalog" in w[0].message.args[0]
+    assert "Unable to download pipeline catalog" in w[0].message.args[0]
 
 
 def test_raises_exception_if_remote_and_local_pipeline_catalog_fails(
@@ -40,16 +43,18 @@ def test_raises_exception_if_remote_and_local_pipeline_catalog_fails(
     """
     If I cannot get the pipeline catalog from the remote location and the local backup, I should raise an exception.
     """
-    # or switch to httpx for better testing capabilities
     nonsense_url = "https://does.not.exist.url"
 
     def mock_httpx_get(*args, **kwargs):
-        response = httpx.Response(status_code=400, json={"key": "value"})
+        response = httpx.Response(
+            status_code=400,
+            json={},
+            text="Some error",
+            request=httpx.Request("GET", nonsense_url),
+        )
         # This slightly odd construction is necessary to create a Response object
         # that has the correct URL already baked in (I think), because otherwise we get the following
         # RuntimeError: Cannot call `raise_for_status` as the request instance has not been set on this response.
-        # TODO: find a better solution or understand the problem better
-        response._request = httpx.Request("GET", nonsense_url)
         return response
 
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
@@ -70,12 +75,14 @@ def test_get_pipeline_from_remote_succeeds(monkeypatch):
     ]
 
     def mock_httpx_get(*args, **kwargs):
-        response = httpx.Response(status_code=200, json=mock_pipeline_catalog)
+        response = httpx.Response(
+            status_code=200,
+            json=mock_pipeline_catalog,
+            request=httpx.Request("GET", nonsense_url),
+        )
         # This slightly odd construction is necessary to create a Response object
         # that has the correct URL already baked in (I think), because otherwise we get the following
         # RuntimeError: Cannot call `raise_for_status` as the request instance has not been set on this response.
-        # TODO: find a better solution or understand the problem better
-        response._request = httpx.Request("GET", nonsense_url)
         return response
 
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
@@ -84,7 +91,6 @@ def test_get_pipeline_from_remote_succeeds(monkeypatch):
         url=nonsense_url, path=mappings.PROCESSING_PIPELINE_PATH
     )
 
-    assert all(isinstance(item, dict) for item in result)
     assert result == mock_pipeline_catalog
 
 

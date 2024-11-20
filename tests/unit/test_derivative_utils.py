@@ -27,7 +27,7 @@ def test_get_pipeline_from_backup_if_remote_fails(monkeypatch):
 
     with pytest.warns(UserWarning) as w:
         result = mappings.get_pipeline_catalog(
-            get_url=nonsense_url, get_path=mappings.PROCESSING_PIPELINE_PATH
+            url=nonsense_url, path=mappings.PROCESSING_PIPELINE_PATH
         )
 
     assert all(isinstance(item, dict) for item in result)
@@ -56,7 +56,7 @@ def test_raises_exception_if_remote_and_local_pipeline_catalog_fails(
 
     with pytest.raises(FileNotFoundError) as e:
         mappings.get_pipeline_catalog(
-            get_url=nonsense_url, get_path=tmp_path / "does_not_exist.json"
+            url=nonsense_url, path=tmp_path / "does_not_exist.json"
         )
 
     assert "Have you correctly initialized the submodules" in str(e.value)
@@ -81,7 +81,7 @@ def test_get_pipeline_from_remote_succeeds(monkeypatch):
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
     result = mappings.get_pipeline_catalog(
-        get_url=nonsense_url, get_path=mappings.PROCESSING_PIPELINE_PATH
+        url=nonsense_url, path=mappings.PROCESSING_PIPELINE_PATH
     )
 
     assert all(isinstance(item, dict) for item in result)

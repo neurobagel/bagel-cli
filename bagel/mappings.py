@@ -49,22 +49,22 @@ PROCESSING_PIPELINE_PATH = (
 PROCESSING_PIPELINE_URL = "https://raw.githubusercontent.com/nipoppy/pipeline-catalog/refs/heads/main/processing/processing.json"
 
 
-def get_pipeline_catalog(get_url: str, get_path: Path) -> dict:
+def get_pipeline_catalog(url: str, path: Path) -> list[dict]:
     """
     Load the pipeline catalog from the remote location or, if that fails,
     from the local backup.
     """
     try:
-        response = httpx.get(get_url)
+        response = httpx.get(url)
         response.raise_for_status()
         return response.json()
-    except (httpx.HTTPStatusError, httpx.ConnectError, json.JSONDecodeError):
+    except (httpx.HTTPError, json.JSONDecodeError):
         warnings.warn(
-            f"Unable to load pipeline catalog from {get_url}.\n"
-            f"Will revert to loading backup from {get_path}."
+            f"Unable to download pipeline catalog from {url}.\n"
+            f"Will revert to loading backup from {path}."
         )
         try:
-            catalog = file_utils.load_json(get_path)
+            catalog = file_utils.load_json(path)
             return catalog
         except FileNotFoundError as e:
             raise FileNotFoundError(
@@ -72,25 +72,25 @@ def get_pipeline_catalog(get_url: str, get_path: Path) -> dict:
             ) from e
 
 
-def get_pipeline_uris(in_arr: list) -> dict:
+def get_pipeline_uris(pipeline_catalog_arr: list[dict]) -> dict:
     """
     Load files from the pipeline-catalog and return a dictionary of pipeline names
     and their URIs in the Nipoppy namespace.
     """
     output_dict = {}
-    for pipeline in in_arr:
+    for pipeline in pipeline_catalog_arr:
         output_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
 
     return output_dict
 
 
-def get_pipeline_versions(in_arr: list) -> dict:
+def get_pipeline_versions(pipeline_catalog_arr: list[dict]) -> dict:
     """
     Load files from the pipeline-catalog and return a dictionary of pipeline names
     and corresponding supported versions in the Nipoppy namespace.
     """
     output_dict = {}
-    for pipeline in in_arr:
+    for pipeline in pipeline_catalog_arr:
         output_dict[pipeline["name"]] = pipeline["versions"]
 
     return output_dict
@@ -101,9 +101,9 @@ def parse_pipeline_catalog():
     Load the pipeline catalog and return a dictionary of pipeline names and their URIs
     and a dictionary of pipeline names and their versions.
     """
-    in_arr = get_pipeline_catalog(
-        get_url=PROCESSING_PIPELINE_URL,
-        get_path=PROCESSING_PIPELINE_PATH,
+    pipeline_catalog_arr = get_pipeline_catalog(
+        url=PROCESSING_PIPELINE_URL,
+        path=PROCESSING_PIPELINE_PATH,
     )
     # version_dict = {}
     # uri_dict = {}
@@ -111,7 +111,9 @@ def parse_pipeline_catalog():
     #     version_dict[pipeline["name"]] = pipeline["versions"]
     #     uri_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
 
-    return get_pipeline_uris(in_arr), get_pipeline_versions(in_arr)
+    return get_pipeline_uris(pipeline_catalog_arr), get_pipeline_versions(
+        pipeline_catalog_arr
+    )
 
 
 # TODO: consider refactoring this into a Mappings class that also

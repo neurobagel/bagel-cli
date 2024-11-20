@@ -58,12 +58,14 @@ def get_pipeline_catalog(url: str, path: Path) -> list[dict]:
         response = httpx.get(url)
         response.raise_for_status()
         return response.json()
+    # The JSONDecodeError should catch the case where the file is empty
     except (httpx.HTTPError, json.JSONDecodeError):
         warnings.warn(
             f"Unable to download pipeline catalog from {url}.\n"
             f"Will revert to loading backup from {path}."
         )
         try:
+            # load_json() will catch JSONDecodeError which should catch when the file is empty
             return file_utils.load_json(path)
         except FileNotFoundError as e:
             raise FileNotFoundError(

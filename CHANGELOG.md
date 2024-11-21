@@ -1,3 +1,24 @@
+# v0.3.4 (Wed Nov 20 2024)
+
+#### 🚀 Enhancements
+
+- [ENH] Load pipeline catalog dynamically and error out when it is empty/not found [#391](https://github.com/neurobagel/bagel-cli/pull/391) ([@surchs](https://github.com/surchs) [@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [REF] Refactor utilities [#385](https://github.com/neurobagel/bagel-cli/pull/385) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🔩 Dependency Updates
+
+- [REF] Upgrade codebase to Pydantic>2 [#389](https://github.com/neurobagel/bagel-cli/pull/389) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
 # v0.3.3 (Thu Nov 07 2024)
 
 #### 🚀 Enhancements

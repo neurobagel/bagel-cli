@@ -1,10 +1,11 @@
 <div align="center">
 
 # `bagel-cli`
-[![Coverage Status](https://coveralls.io/repos/github/neurobagel/bagel-cli/badge.svg?branch=main)](https://coveralls.io/github/neurobagel/bagel-cli?branch=main)
+[![codecov](https://codecov.io/gh/neurobagel/bagel-cli/graph/badge.svg?token=R1KI9KIP8D)](https://codecov.io/gh/neurobagel/bagel-cli)
 [![Tests](https://github.com/neurobagel/bagel-cli/actions/workflows/test.yml/badge.svg)](https://github.com/neurobagel/bagel-cli/actions/workflows/test.yml)
 [![Docker Image Version](https://img.shields.io/docker/v/neurobagel/bagelcli?label=docker)](https://hub.docker.com/r/neurobagel/bagelcli/tags)
 [![Python versions](https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue?style=flat)](https://www.python.org)
+[![License](https://img.shields.io/github/license/neurobagel/bagel-cli?color=CD5C5C&style=flat)](LICENSE)
 
 </div>
 

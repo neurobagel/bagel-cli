@@ -25,7 +25,7 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
     """
     allowed_pipelines_message = (
         f"Allowed pipeline names are the following pipelines supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog):\n"
-        f"{mappings.KNOWN_PIPELINE_URIS}"
+        f"{mappings.KNOWN_PIPELINE_URIS.keys()}"
     )
     recognized_pipelines = list(
         set(pipelines).intersection(mappings.KNOWN_PIPELINE_URIS)

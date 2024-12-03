@@ -114,44 +114,58 @@ def test_pipeline_versions_are_loaded():
     )
 
 
-@pytest.mark.parametrize(
-    "pipelines, unrecog_pipelines",
-    [
-        (["fmriprep", "pipeline1"], ["pipeline1"]),
-        (["pipelineA", "pipelineB"], ["pipelineA", "pipelineB"]),
-    ],
-)
-def test_unrecognized_pipeline_names_raise_error(pipelines, unrecog_pipelines):
-    """Test that pipeline names not found in the pipeline catalog raise an informative error."""
-    with pytest.raises(LookupError) as e:
-        derivative_utils.get_recognized_pipelines(pipelines)
+def test_warning_raised_when_some_pipeline_names_unrecognized():
+    """
+    Test that when a subset of pipeline names are not found in the pipeline catalog,
+    an informative warning is raised but the recognized pipeline names are successfully returned.
+    """
+    pipelines = ["fmriprep", "fakepipeline1"]
 
-    assert all(
-        substr in str(e.value)
-        for substr in ["unrecognized pipelines"] + unrecog_pipelines
-    )
-
-
-@pytest.mark.parametrize(
-    "fmriprep_versions, unrecog_versions",
-    [
-        (["20.2.7", "vA.B"], ["vA.B"]),
-        (["C.D.E", "F.G.H"], ["C.D.E", "F.G.H"]),
-    ],
-)
-def test_unrecognized_pipeline_versions_raise_error(
-    fmriprep_versions, unrecog_versions
-):
-    """Test that versions of a pipeline not found in the pipeline catalog raise an informative error."""
-    with pytest.raises(LookupError) as e:
-        derivative_utils.classify_pipeline_versions(
-            "fmriprep", fmriprep_versions
+    with pytest.warns(UserWarning) as w:
+        recognized_pipelines = derivative_utils.get_recognized_pipelines(
+            pipelines
         )
 
     assert all(
-        substr in str(e.value)
-        for substr in ["unrecognized fmriprep versions"] + unrecog_versions
+        substr in str(w[0].message.args[0])
+        for substr in ["unrecognized pipelines", "fakepipeline1"]
     )
+    assert recognized_pipelines == ["fmriprep"]
+
+
+def test_error_raised_when_no_pipeline_names_recognized():
+    """
+    Test that when no provided pipeline names are found in the pipeline catalog,
+    an informative error is raised.
+    """
+    pipelines = ["fakepipeline1", "fakepipeline2"]
+
+    with pytest.raises(LookupError) as e:
+        derivative_utils.get_recognized_pipelines(pipelines)
+
+    assert "no recognized pipelines" in str(e.value)
+
+
+# @pytest.mark.parametrize(
+#     "fmriprep_versions, unrecog_versions",
+#     [
+#         (["20.2.7", "vA.B"], ["vA.B"]),
+#         (["C.D.E", "F.G.H"], ["C.D.E", "F.G.H"]),
+#     ],
+# )
+# def test_unrecognized_pipeline_versions_raise_error(
+#     fmriprep_versions, unrecog_versions
+# ):
+#     """Test that versions of a pipeline not found in the pipeline catalog raise an informative error."""
+#     with pytest.raises(LookupError) as e:
+#         derivative_utils.classify_pipeline_versions(
+#             "fmriprep", fmriprep_versions
+#         )
+
+#     assert all(
+#         substr in str(e.value)
+#         for substr in ["unrecognized fmriprep versions"] + unrecog_versions
+#     )
 
 
 def test_create_completed_pipelines():

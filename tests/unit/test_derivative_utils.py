@@ -146,26 +146,24 @@ def test_error_raised_when_no_pipeline_names_recognized():
     assert "no recognized pipelines" in str(e.value)
 
 
-# @pytest.mark.parametrize(
-#     "fmriprep_versions, unrecog_versions",
-#     [
-#         (["20.2.7", "vA.B"], ["vA.B"]),
-#         (["C.D.E", "F.G.H"], ["C.D.E", "F.G.H"]),
-#     ],
-# )
-# def test_unrecognized_pipeline_versions_raise_error(
-#     fmriprep_versions, unrecog_versions
-# ):
-#     """Test that versions of a pipeline not found in the pipeline catalog raise an informative error."""
-#     with pytest.raises(LookupError) as e:
-#         derivative_utils.classify_pipeline_versions(
-#             "fmriprep", fmriprep_versions
-#         )
-
-#     assert all(
-#         substr in str(e.value)
-#         for substr in ["unrecognized fmriprep versions"] + unrecog_versions
-#     )
+@pytest.mark.parametrize(
+    "fmriprep_versions, expctd_recog_versions, expctd_unrecog_versions",
+    [
+        (["20.2.7", "vA.B"], ["20.2.7"], ["vA.B"]),
+        (["C.D.E", "F.G.H"], [], ["C.D.E", "F.G.H"]),
+    ],
+)
+def test_pipeline_versions_classified_correctly(
+    fmriprep_versions, expctd_recog_versions, expctd_unrecog_versions
+):
+    """Test that versions of a pipeline are correctly classified as recognized or unrecognized according to the pipeline catalog."""
+    recog_versions, unrecog_versions = (
+        derivative_utils.classify_pipeline_versions(
+            "fmriprep", fmriprep_versions
+        )
+    )
+    assert recog_versions == expctd_recog_versions
+    assert unrecog_versions == expctd_unrecog_versions
 
 
 def test_create_completed_pipelines():

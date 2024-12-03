@@ -53,7 +53,7 @@ def classify_pipeline_versions(
 ) -> tuple[list, list]:
     """
     For a given pipeline, return the recognized and unrecognized pipeline versions in the processing status file
-    based on the Nipoppy pipeline-catalog, and return both as lists.
+    based on the Nipoppy pipeline catalog, and return both as lists.
     """
     recognized_versions = list(
         set(versions).intersection(mappings.KNOWN_PIPELINE_VERSIONS[pipeline])

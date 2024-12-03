@@ -124,7 +124,7 @@ def test_pipeline_versions_are_loaded():
 def test_unrecognized_pipeline_names_raise_error(pipelines, unrecog_pipelines):
     """Test that pipeline names not found in the pipeline catalog raise an informative error."""
     with pytest.raises(LookupError) as e:
-        derivative_utils.check_pipelines_are_recognized(pipelines)
+        derivative_utils.get_recognized_pipelines(pipelines)
 
     assert all(
         substr in str(e.value)
@@ -144,7 +144,7 @@ def test_unrecognized_pipeline_versions_raise_error(
 ):
     """Test that versions of a pipeline not found in the pipeline catalog raise an informative error."""
     with pytest.raises(LookupError) as e:
-        derivative_utils.check_pipeline_versions_are_recognized(
+        derivative_utils.classify_pipeline_versions(
             "fmriprep", fmriprep_versions
         )
 

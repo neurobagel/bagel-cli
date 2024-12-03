@@ -414,7 +414,6 @@ def derivatives(
             f"We found missing values in the following rows (first row is zero): {row_indices}."
         )
 
-    # TODO: Do we need to check all versions across all pipelines first, and report all unrecognized versions together?
     derivative_utils.check_at_least_one_pipeline_version_is_recognized(
         status_df=status_df
     )

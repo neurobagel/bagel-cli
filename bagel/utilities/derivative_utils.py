@@ -18,8 +18,7 @@ PROC_STATUS_COLS = {
 }
 
 
-# TODO: Rename
-def check_pipelines_are_recognized(pipelines: Iterable[str]) -> list:
+def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
     """Check that all pipelines in the processing status file are supported by Nipoppy."""
     allowed_pipelines_message = (
         f"Allowed pipeline names are the following pipelines supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog):\n"
@@ -46,8 +45,7 @@ def check_pipelines_are_recognized(pipelines: Iterable[str]) -> list:
     return recognized_pipelines
 
 
-# TODO: Rename
-def check_pipeline_versions_are_recognized(
+def classify_pipeline_versions(
     pipeline: str, versions: Iterable[str]
 ) -> tuple[list, list]:
     """
@@ -65,17 +63,20 @@ def check_pipeline_versions_are_recognized(
 
 
 def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
+    """
+    Check that at least one pipeline name and version combination found in the processing status file is supported by Nipoppy.
+    """
     more_info_message = (
         "Allowed processing pipelines and versions are those supported natively in Nipoppy. "
         "For a full list, see https://github.com/nipoppy/pipeline-catalog."
     )
 
     # TODO: Handle error in this func here as well?
-    recognized_pipelines = check_pipelines_are_recognized(
+    recognized_pipelines = get_recognized_pipelines(
         status_df[PROC_STATUS_COLS["pipeline_name"]].unique()
     )
 
-    total_num_recognized_versions = 0
+    total_recognized_versions = 0
     unrecognized_pipeline_versions = {}
     for pipeline in recognized_pipelines:
         versions = status_df[
@@ -83,14 +84,14 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
         ][PROC_STATUS_COLS["pipeline_version"]].unique()
 
         recognized_versions, unrecognized_versions = (
-            check_pipeline_versions_are_recognized(pipeline, versions)
+            classify_pipeline_versions(pipeline, versions)
         )
 
-        total_num_recognized_versions += len(recognized_versions)
+        total_recognized_versions += len(recognized_versions)
         if len(unrecognized_versions) > 0:
             unrecognized_pipeline_versions[pipeline] = unrecognized_versions
 
-    if total_num_recognized_versions == 0:
+    if total_recognized_versions == 0:
         # TODO: Consider simply exiting with a message and no output instead?
         raise LookupError(
             f"The processing status file contains no recognized versions of any pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}'.\n"

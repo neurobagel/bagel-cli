@@ -19,7 +19,10 @@ PROC_STATUS_COLS = {
 
 
 def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
-    """Check that all pipelines in the processing status file are supported by Nipoppy."""
+    """
+    Check that all pipelines in the processing status file are supported by Nipoppy.
+    Raise an error if all pipelines are unrecognized, otherwise warn about unrecognized pipelines.
+    """
     allowed_pipelines_message = (
         f"Allowed pipeline names are the following pipelines supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog):\n"
         f"{mappings.KNOWN_PIPELINE_URIS}"
@@ -49,8 +52,8 @@ def classify_pipeline_versions(
     pipeline: str, versions: Iterable[str]
 ) -> tuple[list, list]:
     """
-    Check that all pipeline versions in the processing status file are supported by Nipoppy.
-    Assumes that the input pipeline name is recognized.
+    For a given pipeline, return the recognized and unrecognized pipeline versions in the processing status file
+    based on the Nipoppy pipeline-catalog, and return both as lists.
     """
     recognized_versions = list(
         set(versions).intersection(mappings.KNOWN_PIPELINE_VERSIONS[pipeline])

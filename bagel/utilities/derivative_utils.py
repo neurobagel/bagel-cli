@@ -39,7 +39,7 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
             f"The processing status file contains no recognized pipelines in the column '{PROC_STATUS_COLS['pipeline_name']}'.\n"
             f"{allowed_pipelines_message}"
         )
-    if len(unrecognized_pipelines) > 0:
+    if unrecognized_pipelines:
         warnings.warn(
             f"The processing status file contains unrecognized pipelines in the column '{PROC_STATUS_COLS['pipeline_name']}': "
             f"{unrecognized_pipelines}. These will be ignored.\n"
@@ -99,7 +99,7 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
             f"The processing status file contains no recognized versions of {recognized_pipelines} in the column '{PROC_STATUS_COLS['pipeline_version']}'.\n"
             f"{more_info_message}"
         )
-    if len(unrecognized_pipeline_versions) > 0:
+    if unrecognized_pipeline_versions:
         warnings.warn(
             f"The processing status file contains unrecognized versions of the following pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}': "
             f"{unrecognized_pipeline_versions}. These will be ignored.\n"

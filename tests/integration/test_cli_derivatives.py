@@ -208,7 +208,7 @@ def test_custom_imaging_sessions_created_for_missing_session_labels(
     assert custom_ses_completed_pipes == completed_pipes_for_missing_ses_sub
 
 
-def test_unrecognized_pipelines_excluded_from_output(
+def test_unrecognized_pipelines_and_versions_excluded_from_output(
     runner,
     test_data,
     test_data_upload_path,
@@ -269,3 +269,35 @@ def test_unrecognized_pipelines_excluded_from_output(
         == f"{mappings.NP.pf}:freesurfer"
     )
     assert ses01_completed_pipes[0]["hasPipelineVersion"] == "7.3.2"
+
+
+def test_error_when_no_pipeline_version_combos_recognized(
+    runner,
+    test_data,
+    test_data_upload_path,
+    default_derivatives_output_path,
+    load_test_json,
+):
+    """
+    Test that when there is no recognized pipeline-version combination in the processing status file,
+    an error is raised and no output JSONLD is created.
+    """
+    with pytest.raises(LookupError) as e:
+        runner.invoke(
+            bagel,
+            [
+                "derivatives",
+                "-t",
+                test_data / "proc_status_no_recognized_pipelines.tsv",
+                "-p",
+                test_data_upload_path / "example_synthetic.jsonld",
+                "-o",
+                default_derivatives_output_path,
+            ],
+            catch_exceptions=False,
+        )
+
+    assert "no recognized versions" in str(e.value)
+    assert (
+        not default_derivatives_output_path.exists()
+    ), "A JSONLD was created despite inputs being invalid."

@@ -162,8 +162,9 @@ def test_pipeline_versions_classified_correctly(
             "fmriprep", fmriprep_versions
         )
     )
-    assert recog_versions == expctd_recog_versions
-    assert unrecog_versions == expctd_unrecog_versions
+    # The order of the versions in the lists is not guaranteed
+    assert set(recog_versions) == set(expctd_recog_versions)
+    assert set(unrecog_versions) == set(expctd_unrecog_versions)
 
 
 def test_create_completed_pipelines():

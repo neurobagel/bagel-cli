@@ -122,18 +122,16 @@ def create_completed_pipelines(session_proc_df: pd.DataFrame) -> list:
         if (
             pipeline in mappings.KNOWN_PIPELINE_URIS
             and version in mappings.KNOWN_PIPELINE_VERSIONS[pipeline]
-        ):
-            # Check that all pipeline steps have succeeded
-            if (
-                session_pipe_df[PROC_STATUS_COLS["status"]].str.lower()
-                == "success"
-            ).all():
-                completed_pipeline = models.CompletedPipeline(
-                    hasPipelineName=models.Pipeline(
-                        identifier=mappings.KNOWN_PIPELINE_URIS[pipeline]
-                    ),
-                    hasPipelineVersion=version,
-                )
-                completed_pipelines.append(completed_pipeline)
+        ) and (
+            session_pipe_df[PROC_STATUS_COLS["status"]].str.lower()
+            == "success"
+        ).all():
+            completed_pipeline = models.CompletedPipeline(
+                hasPipelineName=models.Pipeline(
+                    identifier=mappings.KNOWN_PIPELINE_URIS[pipeline]
+                ),
+                hasPipelineVersion=version,
+            )
+            completed_pipelines.append(completed_pipeline)
 
     return completed_pipelines

@@ -153,8 +153,9 @@ def transform_age(value: str, heuristic: str) -> float:
             is_recognized_heuristic = False
     except (ValueError, isodate.isoerror.ISO8601Error) as e:
         raise ValueError(
-            f"There was a problem with applying the age transformation: {heuristic}. "
-            "Check that the specified transformation is correct for the age values in your data dictionary."
+            f"There was a problem with applying the age transformation: {heuristic}. Error: {str(e)}\n"
+            f"Check that the transformation specified in the data dictionary ({heuristic}) is correct for the age values in your phenotypic file, "
+            "and that you correctly annotated any missing values in your age column."
         ) from e
     if not is_recognized_heuristic:
         raise ValueError(

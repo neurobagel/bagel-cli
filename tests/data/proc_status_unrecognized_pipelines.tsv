@@ -1,0 +1,6 @@
+participant_id	bids_participant_id	session_id	bids_session_id	pipeline_name	pipeline_version	pipeline_step	status
+01	sub-01	01	ses-01	fmriprep	unknown.version	step1	FAIL
+01	sub-01	01	ses-01	fmriprep	unknown.version	step2	INCOMPLETE
+01	sub-01	01	ses-01	unknown-pipeline	1.0.0	default	SUCCESS
+01	sub-01	01	ses-01	freesurfer	7.3.2	default	SUCCESS
+01	sub-01	02	ses-02	freesurfer	7.3.2	default	UNAVAILABLE

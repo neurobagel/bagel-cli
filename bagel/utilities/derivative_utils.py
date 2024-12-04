@@ -74,7 +74,6 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
         "For a full list, see https://github.com/nipoppy/pipeline-catalog."
     )
 
-    # TODO: Handle error in this func here as well?
     recognized_pipelines = get_recognized_pipelines(
         status_df[PROC_STATUS_COLS["pipeline_name"]].unique()
     )

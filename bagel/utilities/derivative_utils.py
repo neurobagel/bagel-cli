@@ -25,7 +25,7 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
     """
     allowed_pipelines_message = (
         f"Allowed pipeline names are the following pipelines supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog):\n"
-        f"{mappings.KNOWN_PIPELINE_URIS.keys()}"
+        f"{list(mappings.KNOWN_PIPELINE_URIS.keys())}"
     )
     recognized_pipelines = list(
         set(pipelines).intersection(mappings.KNOWN_PIPELINE_URIS)
@@ -97,7 +97,7 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
     if total_recognized_versions == 0:
         # TODO: Consider simply exiting with a message and no output instead?
         raise LookupError(
-            f"The processing status file contains no recognized versions of any pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}'.\n"
+            f"The processing status file contains no recognized versions of {recognized_pipelines} in the column '{PROC_STATUS_COLS['pipeline_version']}'.\n"
             f"{more_info_message}"
         )
     if len(unrecognized_pipeline_versions) > 0:

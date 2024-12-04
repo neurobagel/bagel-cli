@@ -34,7 +34,7 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
         set(pipelines).difference(mappings.KNOWN_PIPELINE_URIS)
     )
 
-    if len(recognized_pipelines) == 0:
+    if not recognized_pipelines:
         raise LookupError(
             f"The processing status file contains no recognized pipelines in the column '{PROC_STATUS_COLS['pipeline_name']}'.\n"
             f"{allowed_pipelines_message}"
@@ -78,7 +78,7 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
         status_df[PROC_STATUS_COLS["pipeline_name"]].unique()
     )
 
-    total_recognized_versions = 0
+    any_recognized_versions = 0
     unrecognized_pipeline_versions = {}
     for pipeline in recognized_pipelines:
         versions = status_df[
@@ -89,11 +89,11 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
             classify_pipeline_versions(pipeline, versions)
         )
 
-        total_recognized_versions += len(recognized_versions)
+        any_recognized_versions += len(recognized_versions)
         if len(unrecognized_versions) > 0:
             unrecognized_pipeline_versions[pipeline] = unrecognized_versions
 
-    if total_recognized_versions == 0:
+    if not any_recognized_versions:
         # TODO: Consider simply exiting with a message and no output instead?
         raise LookupError(
             f"The processing status file contains no recognized versions of {recognized_pipelines} in the column '{PROC_STATUS_COLS['pipeline_version']}'.\n"

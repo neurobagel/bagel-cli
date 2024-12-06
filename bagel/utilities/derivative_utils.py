@@ -23,10 +23,6 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
     Check that all pipelines in the processing status file are supported by Nipoppy.
     Raise an error if all pipelines are unrecognized, otherwise warn about unrecognized pipelines.
     """
-    allowed_pipelines_message = (
-        f"Allowed pipeline names are the following pipelines supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog):\n"
-        f"{list(mappings.KNOWN_PIPELINE_URIS.keys())}"
-    )
     recognized_pipelines = list(
         set(pipelines).intersection(mappings.KNOWN_PIPELINE_URIS)
     )
@@ -34,16 +30,20 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
         set(pipelines).difference(mappings.KNOWN_PIPELINE_URIS)
     )
 
+    unrecognized_pipelines_template = (
+        f"Unrecognized processing pipelines: {unrecognized_pipelines}\n"
+        f"Supported pipelines are those in the Nipoppy pipeline catalog (https://github.com/nipoppy/pipeline-catalog):\n"
+        f"{list(mappings.KNOWN_PIPELINE_URIS.keys())}"
+    )
     if not recognized_pipelines:
         raise LookupError(
-            f"The processing status file contains no recognized pipelines in the column '{PROC_STATUS_COLS['pipeline_name']}'.\n"
-            f"{allowed_pipelines_message}"
+            f"The processing status file contains no recognized pipelines in the column: '{PROC_STATUS_COLS['pipeline_name']}'.\n"
+            f"{unrecognized_pipelines_template}"
         )
     if unrecognized_pipelines:
         warnings.warn(
-            f"The processing status file contains unrecognized pipelines in the column '{PROC_STATUS_COLS['pipeline_name']}': "
-            f"{unrecognized_pipelines}. These will be ignored.\n"
-            f"{allowed_pipelines_message}"
+            f"The processing status file contains unrecognized pipelines in the column: '{PROC_STATUS_COLS['pipeline_name']}'. These will be ignored.\n"
+            f"{unrecognized_pipelines_template}"
         )
     return recognized_pipelines
 

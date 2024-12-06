@@ -30,7 +30,7 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
         set(pipelines).difference(mappings.KNOWN_PIPELINE_URIS)
     )
 
-    unrecognized_pipelines_template = (
+    unrecognized_pipelines_details = (
         f"Unrecognized processing pipelines: {unrecognized_pipelines}\n"
         f"Supported pipelines are those in the Nipoppy pipeline catalog (https://github.com/nipoppy/pipeline-catalog):\n"
         f"{list(mappings.KNOWN_PIPELINE_URIS.keys())}"
@@ -38,12 +38,12 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
     if not recognized_pipelines:
         raise LookupError(
             f"The processing status file contains no recognized pipelines in the column: '{PROC_STATUS_COLS['pipeline_name']}'.\n"
-            f"{unrecognized_pipelines_template}"
+            f"{unrecognized_pipelines_details}"
         )
     if unrecognized_pipelines:
         warnings.warn(
             f"The processing status file contains unrecognized pipelines in the column: '{PROC_STATUS_COLS['pipeline_name']}'. These will be ignored.\n"
-            f"{unrecognized_pipelines_template}"
+            f"{unrecognized_pipelines_details}"
         )
     return recognized_pipelines
 
@@ -69,12 +69,6 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
     """
     Check that at least one pipeline name and version combination found in the processing status file is supported by Nipoppy.
     """
-
-    more_info_message = (
-        "Allowed processing pipelines and versions are those supported natively in Nipoppy. "
-        "For a full list, see https://github.com/nipoppy/pipeline-catalog."
-    )
-
     recognized_pipelines = get_recognized_pipelines(
         status_df[PROC_STATUS_COLS["pipeline_name"]].unique()
     )
@@ -89,24 +83,27 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
         recognized_versions, unrecognized_versions = (
             validate_pipeline_versions(pipeline, versions)
         )
-
         if recognized_versions:
             any_recognized_versions = True
-
         if unrecognized_versions:
             unrecognized_pipeline_versions[pipeline] = unrecognized_versions
 
+    unrecognized_versions_details = (
+        f"Unrecognized processing pipeline versions: {unrecognized_pipeline_versions}\n"
+        "Supported pipeline versions are those in the Nipoppy pipeline catalog. "
+        "For a full list, see https://github.com/nipoppy/pipeline-catalog."
+    )
     if not any_recognized_versions:
         # TODO: Consider simply exiting with a message and no output instead?
         raise LookupError(
-            f"The processing status file contains no recognized versions of {recognized_pipelines} in the column '{PROC_STATUS_COLS['pipeline_version']}'.\n"
-            f"{more_info_message}"
+            f"The processing status file contains no recognized versions of any pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}'.\n"
+            f"{unrecognized_versions_details}"
         )
     if unrecognized_pipeline_versions:
         warnings.warn(
-            f"The processing status file contains unrecognized versions of the following pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}': "
-            f"{unrecognized_pipeline_versions}. These will be ignored.\n"
-            f"{more_info_message}"
+            f"The processing status file contains unrecognized versions of pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}'. "
+            "These will be ignored.\n"
+            f"{unrecognized_versions_details}"
         )
 
 

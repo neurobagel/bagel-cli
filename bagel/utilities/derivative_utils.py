@@ -69,6 +69,7 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
     """
     Check that at least one pipeline name and version combination found in the processing status file is supported by Nipoppy.
     """
+
     more_info_message = (
         "Allowed processing pipelines and versions are those supported natively in Nipoppy. "
         "For a full list, see https://github.com/nipoppy/pipeline-catalog."
@@ -78,7 +79,7 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
         status_df[PROC_STATUS_COLS["pipeline_name"]].unique()
     )
 
-    any_recognized_versions = 0
+    any_recognized_versions = False
     unrecognized_pipeline_versions = {}
     for pipeline in recognized_pipelines:
         versions = status_df[
@@ -89,8 +90,10 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
             validate_pipeline_versions(pipeline, versions)
         )
 
-        any_recognized_versions += len(recognized_versions)
-        if len(unrecognized_versions) > 0:
+        if recognized_versions:
+            any_recognized_versions = True
+
+        if unrecognized_versions:
             unrecognized_pipeline_versions[pipeline] = unrecognized_versions
 
     if not any_recognized_versions:

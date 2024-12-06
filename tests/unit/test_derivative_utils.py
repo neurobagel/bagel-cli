@@ -158,7 +158,7 @@ def test_pipeline_versions_classified_correctly(
 ):
     """Test that versions of a pipeline are correctly classified as recognized or unrecognized according to the pipeline catalog."""
     recog_versions, unrecog_versions = (
-        derivative_utils.classify_pipeline_versions(
+        derivative_utils.validate_pipeline_versions(
             "fmriprep", fmriprep_versions
         )
     )

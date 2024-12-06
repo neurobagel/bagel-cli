@@ -48,7 +48,7 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
     return recognized_pipelines
 
 
-def classify_pipeline_versions(
+def validate_pipeline_versions(
     pipeline: str, versions: Iterable[str]
 ) -> tuple[list, list]:
     """
@@ -86,7 +86,7 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
         ][PROC_STATUS_COLS["pipeline_version"]].unique()
 
         recognized_versions, unrecognized_versions = (
-            classify_pipeline_versions(pipeline, versions)
+            validate_pipeline_versions(pipeline, versions)
         )
 
         any_recognized_versions += len(recognized_versions)

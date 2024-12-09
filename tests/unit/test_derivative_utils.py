@@ -147,14 +147,14 @@ def test_error_raised_when_no_pipeline_names_recognized():
 
 
 @pytest.mark.parametrize(
-    "fmriprep_versions, expctd_recog_versions, expctd_unrecog_versions",
+    "fmriprep_versions, expected_recog_versions, expected_unrecog_versions",
     [
         (["20.2.7", "vA.B"], ["20.2.7"], ["vA.B"]),
         (["C.D.E", "F.G.H"], [], ["C.D.E", "F.G.H"]),
     ],
 )
 def test_pipeline_versions_classified_correctly(
-    fmriprep_versions, expctd_recog_versions, expctd_unrecog_versions
+    fmriprep_versions, expected_recog_versions, expected_unrecog_versions
 ):
     """Test that versions of a pipeline are correctly classified as recognized or unrecognized according to the pipeline catalog."""
     recog_versions, unrecog_versions = (
@@ -163,8 +163,8 @@ def test_pipeline_versions_classified_correctly(
         )
     )
     # The order of the versions in the lists is not guaranteed
-    assert set(recog_versions) == set(expctd_recog_versions)
-    assert set(unrecog_versions) == set(expctd_unrecog_versions)
+    assert set(recog_versions) == set(expected_recog_versions)
+    assert set(unrecog_versions) == set(expected_unrecog_versions)
 
 
 def test_create_completed_pipelines():

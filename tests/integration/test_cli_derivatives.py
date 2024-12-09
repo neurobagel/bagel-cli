@@ -238,13 +238,13 @@ def test_unrecognized_pipelines_and_versions_excluded_from_output(
 
     assert len(w) == 2
     warnings = [warning.message.args[0] for warning in w]
-    for warn_substrings in [
-        ("unrecognized pipelines", "unknown-pipeline"),
-        ("unrecognized versions", "{'fmriprep': ['unknown.version']}"),
-    ]:
-        assert any(
-            all(substr in warning for substr in warn_substrings)
-            for warning in warnings
+    for warning in warnings:
+        assert (
+            "unrecognized pipelines" in warning
+            and "unknown-pipeline" in warning
+        ) or (
+            "unrecognized versions" in warning
+            and "{'fmriprep': ['unknown.version']}" in warning
         )
 
     output = load_test_json(default_derivatives_output_path)

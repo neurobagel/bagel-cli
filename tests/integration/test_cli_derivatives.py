@@ -261,8 +261,8 @@ def test_unrecognized_pipelines_and_versions_excluded_from_output(
                         "hasCompletedPipeline"
                     ]
 
+    ses01_completed_pipes = sessions_with_completed_pipes.get("ses-01")
     assert sessions_with_completed_pipes.keys() == {"ses-01"}
-    ses01_completed_pipes = sessions_with_completed_pipes["ses-01"]
     assert len(ses01_completed_pipes) == 1
     assert (
         ses01_completed_pipes[0]["hasPipelineName"]["identifier"]

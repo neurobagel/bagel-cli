@@ -414,18 +414,9 @@ def derivatives(
             f"We found missing values in the following rows (first row is zero): {row_indices}."
         )
 
-    pipelines = status_df[PROC_STATUS_COLS["pipeline_name"]].unique()
-    derivative_utils.check_pipelines_are_recognized(pipelines)
-
-    # TODO: Do we need to check all versions across all pipelines first, and report all unrecognized versions together?
-    for pipeline in pipelines:
-        versions = status_df[
-            status_df[PROC_STATUS_COLS["pipeline_name"]] == pipeline
-        ][PROC_STATUS_COLS["pipeline_version"]].unique()
-
-        derivative_utils.check_pipeline_versions_are_recognized(
-            pipeline, versions
-        )
+    derivative_utils.check_at_least_one_pipeline_version_is_recognized(
+        status_df=status_df
+    )
 
     jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
         jsonld_path

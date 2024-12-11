@@ -4,11 +4,11 @@
 
 ![GitHub branch check runs](https://img.shields.io/github/check-runs/neurobagel/bagel-cli/main?style=flat-square)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/neurobagel/bagel-cli/test.yml?branch=main&style=flat-square&label=tests)
-![Codecov](https://img.shields.io/codecov/c/github/neurobagel/bagel-cli?style=flat-square&logo=codecov)
+![Codecov](https://img.shields.io/codecov/c/github/neurobagel/bagel-cli?token=R1KI9KIP8D&style=flat-square&logo=codecov&link=https%3A%2F%2Fcodecov.io%2Fgh%2Fneurobagel%2Fbagel-cli)
 ![Static Badge](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue?style=flat-square&logo=python)
-![GitHub License](https://img.shields.io/github/license/neurobagel/bagel-cli?style=flat-square)
-![Docker Image Version (tag)](https://img.shields.io/docker/v/neurobagel/bagelcli/latest?style=flat-square&logo=docker)
-![Docker Pulls](https://img.shields.io/docker/pulls/neurobagel/bagelcli?style=flat-square&logo=docker)
+![GitHub License](https://img.shields.io/github/license/neurobagel/bagel-cli?style=flat-square&link=LICENSE)
+![Docker Image Version (tag)](https://img.shields.io/docker/v/neurobagel/bagelcli/latest?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Fbagelcli%2Ftags)
+![Docker Pulls](https://img.shields.io/docker/pulls/neurobagel/bagelcli?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Fbagelcli%2Ftags)
 
 </div>
 

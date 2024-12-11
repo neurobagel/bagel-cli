@@ -1,3 +1,16 @@
+# v0.3.5 (Wed Dec 11 2024)
+
+#### 🚀 Enhancements
+
+- [ENH] Allow unrecognized pipeline names and versions in processing status file [#401](https://github.com/neurobagel/bagel-cli/pull/401) ([@alyssadai](https://github.com/alyssadai))
+- [MNT] Remind about missing value annotation in age parsing error [#402](https://github.com/neurobagel/bagel-cli/pull/402) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.3.4 (Wed Nov 20 2024)
 
 #### 🚀 Enhancements

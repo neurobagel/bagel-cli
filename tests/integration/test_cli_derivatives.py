@@ -2,6 +2,7 @@ from collections import defaultdict
 
 import pytest
 
+from bagel import mappings
 from bagel.cli import bagel
 
 
@@ -205,3 +206,98 @@ def test_custom_imaging_sessions_created_for_missing_session_labels(
 
     # Note: order of items does not matter for dict comparison
     assert custom_ses_completed_pipes == completed_pipes_for_missing_ses_sub
+
+
+def test_unrecognized_pipelines_and_versions_excluded_from_output(
+    runner,
+    test_data,
+    test_data_upload_path,
+    default_derivatives_output_path,
+    load_test_json,
+):
+    """
+    Test that when a subset of pipelines or versions from a processing status file are unrecognized,
+    they are excluded from the output JSONLD with informative warnings, without causing the derivatives command to fail.
+    """
+    with pytest.warns(UserWarning) as w:
+        result = runner.invoke(
+            bagel,
+            [
+                "derivatives",
+                "-t",
+                test_data / "proc_status_unrecognized_pipelines.tsv",
+                "-p",
+                test_data_upload_path / "example_synthetic.jsonld",
+                "-o",
+                default_derivatives_output_path,
+            ],
+            catch_exceptions=False,
+        )
+
+    assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
+
+    assert len(w) == 2
+    warnings = [warning.message.args[0] for warning in w]
+    for warning in warnings:
+        assert (
+            "unrecognized pipelines" in warning
+            and "unknown-pipeline" in warning
+        ) or (
+            "unrecognized versions" in warning
+            and "{'fmriprep': ['unknown.version']}" in warning
+        )
+
+    output = load_test_json(default_derivatives_output_path)
+
+    sessions_with_completed_pipes = {}
+    for sub in output["hasSamples"]:
+        if sub["hasLabel"] == "sub-01":
+            for ses in sub["hasSession"]:
+                if (
+                    ses["schemaKey"] == "ImagingSession"
+                    and "hasCompletedPipeline" in ses
+                ):
+                    sessions_with_completed_pipes[ses["hasLabel"]] = ses[
+                        "hasCompletedPipeline"
+                    ]
+
+    ses01_completed_pipes = sessions_with_completed_pipes.get("ses-01")
+    assert sessions_with_completed_pipes.keys() == {"ses-01"}
+    assert len(ses01_completed_pipes) == 1
+    assert (
+        ses01_completed_pipes[0]["hasPipelineName"]["identifier"]
+        == f"{mappings.NP.pf}:freesurfer"
+    )
+    assert ses01_completed_pipes[0]["hasPipelineVersion"] == "7.3.2"
+
+
+def test_error_when_no_pipeline_version_combos_recognized(
+    runner,
+    test_data,
+    test_data_upload_path,
+    default_derivatives_output_path,
+    load_test_json,
+):
+    """
+    Test that when there is no recognized pipeline-version combination in the processing status file,
+    an error is raised and no output JSONLD is created.
+    """
+    with pytest.raises(LookupError) as e:
+        runner.invoke(
+            bagel,
+            [
+                "derivatives",
+                "-t",
+                test_data / "proc_status_no_recognized_pipelines.tsv",
+                "-p",
+                test_data_upload_path / "example_synthetic.jsonld",
+                "-o",
+                default_derivatives_output_path,
+            ],
+            catch_exceptions=False,
+        )
+
+    assert "no recognized versions" in str(e.value)
+    assert (
+        not default_derivatives_output_path.exists()
+    ), "A JSONLD was created despite inputs being invalid."

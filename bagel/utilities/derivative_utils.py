@@ -1,3 +1,4 @@
+import warnings
 from typing import Iterable
 
 import pandas as pd
@@ -17,35 +18,92 @@ PROC_STATUS_COLS = {
 }
 
 
-def check_pipelines_are_recognized(pipelines: Iterable[str]):
-    """Check that all pipelines in the processing status file are supported by Nipoppy."""
+def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
+    """
+    Check that all pipelines in the processing status file are supported by Nipoppy.
+    Raise an error if all pipelines are unrecognized, otherwise warn about unrecognized pipelines.
+    """
+    recognized_pipelines = list(
+        set(pipelines).intersection(mappings.KNOWN_PIPELINE_URIS)
+    )
     unrecognized_pipelines = list(
         set(pipelines).difference(mappings.KNOWN_PIPELINE_URIS)
     )
-    if len(unrecognized_pipelines) > 0:
+
+    unrecognized_pipelines_details = (
+        f"Unrecognized processing pipelines: {unrecognized_pipelines}\n"
+        f"Supported pipelines are those in the Nipoppy pipeline catalog (https://github.com/nipoppy/pipeline-catalog):\n"
+        f"{list(mappings.KNOWN_PIPELINE_URIS.keys())}"
+    )
+    if not recognized_pipelines:
         raise LookupError(
-            f"The processing status file contains unrecognized pipelines in the column '{PROC_STATUS_COLS['pipeline_name']}': "
-            f"{unrecognized_pipelines}. "
-            f"Allowed pipeline names are the following pipelines supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog): \n"
-            f"{mappings.KNOWN_PIPELINE_URIS}"
+            f"The processing status file contains no recognized pipelines in the column: '{PROC_STATUS_COLS['pipeline_name']}'.\n"
+            f"{unrecognized_pipelines_details}"
         )
+    if unrecognized_pipelines:
+        warnings.warn(
+            f"The processing status file contains unrecognized pipelines in the column: '{PROC_STATUS_COLS['pipeline_name']}'. These will be ignored.\n"
+            f"{unrecognized_pipelines_details}"
+        )
+    return recognized_pipelines
 
 
-def check_pipeline_versions_are_recognized(
+def validate_pipeline_versions(
     pipeline: str, versions: Iterable[str]
-):
+) -> tuple[list, list]:
     """
-    Check that all pipeline versions in the processing status file are supported by Nipoppy.
-    Assumes that the input pipeline name is recognized.
+    For a given pipeline, return the recognized and unrecognized pipeline versions in the processing status file
+    based on the Nipoppy pipeline catalog, and return both as lists.
     """
+    recognized_versions = list(
+        set(versions).intersection(mappings.KNOWN_PIPELINE_VERSIONS[pipeline])
+    )
     unrecognized_versions = list(
         set(versions).difference(mappings.KNOWN_PIPELINE_VERSIONS[pipeline])
     )
-    if len(unrecognized_versions) > 0:
+
+    return recognized_versions, unrecognized_versions
+
+
+def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
+    """
+    Check that at least one pipeline name and version combination found in the processing status file is supported by Nipoppy.
+    """
+    recognized_pipelines = get_recognized_pipelines(
+        status_df[PROC_STATUS_COLS["pipeline_name"]].unique()
+    )
+
+    any_recognized_versions = False
+    unrecognized_pipeline_versions = {}
+    for pipeline in recognized_pipelines:
+        versions = status_df[
+            status_df[PROC_STATUS_COLS["pipeline_name"]] == pipeline
+        ][PROC_STATUS_COLS["pipeline_version"]].unique()
+
+        recognized_versions, unrecognized_versions = (
+            validate_pipeline_versions(pipeline, versions)
+        )
+        if recognized_versions:
+            any_recognized_versions = True
+        if unrecognized_versions:
+            unrecognized_pipeline_versions[pipeline] = unrecognized_versions
+
+    unrecognized_versions_details = (
+        f"Unrecognized processing pipeline versions: {unrecognized_pipeline_versions}\n"
+        "Supported pipeline versions are those in the Nipoppy pipeline catalog. "
+        "For a full list, see https://github.com/nipoppy/pipeline-catalog."
+    )
+    if not any_recognized_versions:
+        # TODO: Consider simply exiting with a message and no output instead?
         raise LookupError(
-            f"The processing status file contains unrecognized {pipeline} versions in the column '{PROC_STATUS_COLS['pipeline_version']}': {unrecognized_versions}. "
-            f"Allowed {pipeline} versions are the following versions supported natively in Nipoppy (https://github.com/nipoppy/pipeline-catalog): \n"
-            f"{mappings.KNOWN_PIPELINE_VERSIONS[pipeline]}"
+            f"The processing status file contains no recognized versions of any pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}'.\n"
+            f"{unrecognized_versions_details}"
+        )
+    if unrecognized_pipeline_versions:
+        warnings.warn(
+            f"The processing status file contains unrecognized versions of pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}'. "
+            "These will be ignored.\n"
+            f"{unrecognized_versions_details}"
         )
 
 
@@ -61,8 +119,10 @@ def create_completed_pipelines(session_proc_df: pd.DataFrame) -> list:
             PROC_STATUS_COLS["pipeline_version"],
         ]
     ):
-        # Check that all pipeline steps have succeeded
         if (
+            pipeline in mappings.KNOWN_PIPELINE_URIS
+            and version in mappings.KNOWN_PIPELINE_VERSIONS[pipeline]
+        ) and (
             session_pipe_df[PROC_STATUS_COLS["status"]].str.lower()
             == "success"
         ).all():

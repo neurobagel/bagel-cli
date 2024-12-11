@@ -73,7 +73,7 @@ def get_pipeline_catalog(url: str, path: Path) -> list[dict]:
             ) from e
 
 
-def parse_pipeline_catalog():
+def parse_pipeline_catalog() -> tuple[dict, dict]:
     """
     Load the pipeline catalog and return a dictionary of pipeline names and their URIs in the Nipoppy namespace,
     and a dictionary of pipeline names and their supported versions in Nipoppy.

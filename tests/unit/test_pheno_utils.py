@@ -163,6 +163,22 @@ def test_find_unsupported_namespaces_and_term_urls():
     )
 
 
+@pytest.mark.parametrize(
+    "namespaces,deprecated_namespaces",
+    [
+        (["fakevocab", "unknownvocab"], []),
+        (["cogatlas", "unknownvocab"], ["cogatlas"]),
+        (["snomed", "cogatlas"], ["cogatlas"]),
+    ],
+)
+def test_find_deprecated_namespaces(namespaces, deprecated_namespaces):
+    """Test that vocabulary namespace prefixes deprecated by Neurobagel are correctly identified."""
+    assert (
+        pheno_utils.find_deprecated_namespaces(namespaces)
+        == deprecated_namespaces
+    )
+
+
 def test_map_categories_to_columns(test_data, load_test_json):
     """Test that inverse mapping of concepts to columns is correctly created"""
     data_dict = load_test_json(test_data / "example2.json")

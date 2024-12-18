@@ -116,6 +116,11 @@ def test_pheno_valid_inputs_run_successfully(
             LookupError,
             ["do not have unique combinations of participant and session IDs"],
         ),
+        (
+            "example22",
+            LookupError,
+            ["unrecognized vocabulary namespace prefixes"],
+        ),
     ],
 )
 def test_invalid_inputs_are_handled_gracefully(

@@ -194,8 +194,8 @@ def test_map_categories_to_columns(test_data, load_test_json):
 @pytest.mark.parametrize(
     "tool, columns",
     [
-        ("cogatlas:1234", ["tool_item1", "tool_item2"]),
-        ("cogatlas:4321", ["other_tool_item1"]),
+        ("snomed:1234", ["tool_item1", "tool_item2"]),
+        ("snomed:4321", ["other_tool_item1"]),
     ],
 )
 def test_map_tools_to_columns(test_data, load_test_json, tool, columns):

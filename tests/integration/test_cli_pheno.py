@@ -499,14 +499,14 @@ def test_controlled_term_classes_have_uri_type(
     "assessment, subject_idx",
     [
         (
-            [{"identifier": "cogatlas:1234", "schemaKey": "Assessment"}],
+            [{"identifier": "snomed:1234", "schemaKey": "Assessment"}],
             0,
         ),
         (None, 1),
         (
             [
-                {"identifier": "cogatlas:1234", "schemaKey": "Assessment"},
-                {"identifier": "cogatlas:4321", "schemaKey": "Assessment"},
+                {"identifier": "snomed:1234", "schemaKey": "Assessment"},
+                {"identifier": "snomed:4321", "schemaKey": "Assessment"},
             ],
             2,
         ),

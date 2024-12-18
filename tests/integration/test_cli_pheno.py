@@ -119,7 +119,10 @@ def test_pheno_valid_inputs_run_successfully(
         (
             "example22",
             LookupError,
-            ["unrecognized vocabulary namespace prefixes"],
+            [
+                "unsupported vocabulary namespace prefixes",
+                "vocabularies have been deprecated",
+            ],
         ),
     ],
 )

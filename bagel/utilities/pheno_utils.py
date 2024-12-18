@@ -11,7 +11,7 @@ import pydantic
 from typer import BadParameter
 
 from bagel import dictionary_models, mappings
-from bagel.mappings import ALL_NAMESPACES, NB
+from bagel.mappings import DEPRECATED_NAMESPACES, NB, SUPPORTED_NAMESPACES
 
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()
 
@@ -96,15 +96,15 @@ def recursive_find_values_for_key(data: dict, target: str) -> list:
     return target_values
 
 
-def find_unrecognized_namespaces_and_term_urls(
+def find_unsupported_namespaces_and_term_urls(
     data_dict: dict,
 ) -> tuple[list, dict]:
     """
-    From a provided data dictionary, find all term URLs that contain an unrecognized namespace prefix.
-    Return a tuple of unrecognized prefixes and a dictionary of the offending column names and their unrecognized term URLs.
+    From a provided data dictionary, find all term URLs that contain an unsupported namespace prefix.
+    Return a tuple of unsupported prefixes and a dictionary of the offending column names and their unrecognized term URLs.
     """
-    known_namespace_prefixes = [ns.pf for ns in ALL_NAMESPACES]
-    unrecognized_prefixes = set()
+    known_namespace_prefixes = [ns.pf for ns in SUPPORTED_NAMESPACES]
+    unsupported_prefixes = set()
     unrecognized_term_urls = {}
 
     for col, content in get_annotated_columns(data_dict):
@@ -113,11 +113,16 @@ def find_unrecognized_namespaces_and_term_urls(
         ):
             prefix = col_term_url.split(":")[0]
             if prefix not in known_namespace_prefixes:
-                unrecognized_prefixes.add(prefix)
+                unsupported_prefixes.add(prefix)
                 unrecognized_term_urls[col] = col_term_url
 
     # sort the prefixes for a predictable order in the error message
-    return sorted(unrecognized_prefixes), unrecognized_term_urls
+    return sorted(unsupported_prefixes), unrecognized_term_urls
+
+
+def find_deprecated_namespaces(namespaces: list) -> list:
+    """Return the deprecated vocabulary namespaces found in a list of namespace prefixes."""
+    return [ns for ns in namespaces if ns in DEPRECATED_NAMESPACES]
 
 
 def map_categories_to_columns(data_dict: dict) -> dict:
@@ -466,15 +471,24 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
             "and phenotypic file."
         )
 
-    unrecognized_namespaces, unrecognized_term_urls = (
-        find_unrecognized_namespaces_and_term_urls(data_dict)
+    unsupported_namespaces, unrecognized_term_urls = (
+        find_unsupported_namespaces_and_term_urls(data_dict)
     )
-    if unrecognized_namespaces:
+    namespace_deprecation_msg = ""
+    if unsupported_namespaces:
+        if deprecated_namespaces := find_deprecated_namespaces(
+            unsupported_namespaces
+        ):
+            namespace_deprecation_msg = (
+                f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
+                "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
+            )
         raise LookupError(
-            f"The provided data dictionary contains unrecognized vocabulary namespace prefixes: {unrecognized_namespaces}\n"
-            f"The unrecognized vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
+            f"The provided data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
+            f"Unsupported vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
             "Please ensure that the data dictionary only includes terms from Neurobagel recognized vocabularies. "
-            "(For more info, see https://neurobagel.org/data_models/dictionaries/.)"
+            "(See https://neurobagel.org/data_models/dictionaries/.)"
+            f"{namespace_deprecation_msg}"
         )
 
     # TODO: see if we can save ourselves the call to map_categories_to_columns here.

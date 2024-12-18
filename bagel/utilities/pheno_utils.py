@@ -64,7 +64,7 @@ def get_columns_about(data_dict: dict, concept: str) -> list:
     ]
 
 
-def get_annotated_columns(data_dict: dict) -> list(tuple[str, dict]):
+def get_annotated_columns(data_dict: dict) -> list[tuple[str, dict]]:
     """
     Return a list of all columns that have Neurobagel 'Annotations' in a data dictionary,
     where each column is represented as a tuple of the column name (dictionary key from the data dictionary) and

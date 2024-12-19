@@ -1,5 +1,7 @@
-participant_id	session_id	group
-sub-01	ses-01	PAT
-sub-01	ses-02	PAT
-sub-02	ses-01	OTHER
-sub-02	ses-02	CTRL
+participant_id	session_id	group	tool_item1	tool_item2	other_tool_item1
+sub-01	ses-01	PAT	11.0	"missing"	"none"
+sub-01	ses-02	PAT	"missing"	12.0	"none"
+sub-02	ses-01	OTHER	"missing"	"missing"	"none"
+sub-02	ses-02	OTHER	"missing"	"missing"	"none"
+sub-03	ses-01	CTRL	10.0	8.0	"ok"
+sub-03	ses-02	CTRL	10.0	8.0	"bad"

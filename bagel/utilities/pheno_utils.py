@@ -11,7 +11,11 @@ import pydantic
 from typer import BadParameter
 
 from bagel import dictionary_models, mappings
-from bagel.mappings import NB
+from bagel.mappings import (
+    DEPRECATED_NAMESPACE_PREFIXES,
+    NB,
+    SUPPORTED_NAMESPACE_PREFIXES,
+)
 
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()
 
@@ -64,7 +68,7 @@ def get_columns_about(data_dict: dict, concept: str) -> list:
     ]
 
 
-def get_annotated_columns(data_dict: dict) -> list(tuple[str, dict]):
+def get_annotated_columns(data_dict: dict) -> list[tuple[str, dict]]:
     """
     Return a list of all columns that have Neurobagel 'Annotations' in a data dictionary,
     where each column is represented as a tuple of the column name (dictionary key from the data dictionary) and
@@ -75,6 +79,53 @@ def get_annotated_columns(data_dict: dict) -> list(tuple[str, dict]):
         for col, content in data_dict.items()
         if "Annotations" in content
     ]
+
+
+def recursive_find_values_for_key(data: dict, target: str) -> list:
+    """
+    Recursively search for a key in a possibly nested dictionary and return a list of all values found for that key.
+
+    TODO: This function currently only considers nested dicts, and would need to be expanded if Neurobagel
+    data dictionaries grow to have controlled terms inside list objects.
+    """
+    target_values = []
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if key == target:
+                target_values.append(value)
+            else:
+                target_values.extend(
+                    recursive_find_values_for_key(data=value, target=target)
+                )
+    return target_values
+
+
+def find_unsupported_namespaces_and_term_urls(
+    data_dict: dict,
+) -> tuple[list, dict]:
+    """
+    From a provided data dictionary, find all term URLs that contain an unsupported namespace prefix.
+    Return a tuple of unsupported prefixes and a dictionary of the offending column names and their unrecognized term URLs.
+    """
+    unsupported_prefixes = set()
+    unrecognized_term_urls = {}
+
+    for col, content in get_annotated_columns(data_dict):
+        for col_term_url in recursive_find_values_for_key(
+            content["Annotations"], "TermURL"
+        ):
+            prefix = col_term_url.split(":")[0]
+            if prefix not in SUPPORTED_NAMESPACE_PREFIXES:
+                unsupported_prefixes.add(prefix)
+                unrecognized_term_urls[col] = col_term_url
+
+    # sort the prefixes for a predictable order in the error message
+    return sorted(unsupported_prefixes), unrecognized_term_urls
+
+
+def find_deprecated_namespaces(namespaces: list) -> list:
+    """Return the deprecated vocabulary namespace prefixes found in a list of namespace prefixes."""
+    return [ns for ns in namespaces if ns in DEPRECATED_NAMESPACE_PREFIXES]
 
 
 def map_categories_to_columns(data_dict: dict) -> dict:
@@ -313,6 +364,26 @@ def validate_data_dict(data_dict: dict) -> None:
     if get_annotated_columns(data_dict) == []:
         raise LookupError(
             "The provided data dictionary must contain at least one column with Neurobagel annotations."
+        )
+
+    unsupported_namespaces, unrecognized_term_urls = (
+        find_unsupported_namespaces_and_term_urls(data_dict)
+    )
+    if unsupported_namespaces:
+        namespace_deprecation_msg = ""
+        if deprecated_namespaces := find_deprecated_namespaces(
+            unsupported_namespaces
+        ):
+            namespace_deprecation_msg = (
+                f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
+                "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
+            )
+        raise LookupError(
+            f"The provided data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
+            f"Unsupported vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
+            "Please ensure that the data dictionary only includes terms from Neurobagel recognized vocabularies. "
+            "(See https://neurobagel.org/data_models/dictionaries/.)"
+            f"{namespace_deprecation_msg}"
         )
 
     if (

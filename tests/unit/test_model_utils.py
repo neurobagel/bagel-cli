@@ -209,7 +209,7 @@ def test_used_namespaces_in_context(test_data_upload_path, load_test_json):
             "@context"
         ]
 
-        for ns in mappings.ALL_NAMESPACES:
+        for ns in mappings.SUPPORTED_NAMESPACES:
             assert (
                 ns.pf in jsonld_context.keys()
             ), f"The namespace '{ns.pf}' was not found in the @context of {jsonld}."

@@ -121,7 +121,9 @@ def test_pheno_valid_inputs_run_successfully(
             LookupError,
             [
                 "unsupported vocabulary namespace prefixes",
+                "['cogatlas', 'unknownvocab']",
                 "vocabularies have been deprecated",
+                "['cogatlas']",
             ],
         ),
     ],

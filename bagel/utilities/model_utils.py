@@ -7,7 +7,7 @@ import typer
 from pydantic import ValidationError
 
 from bagel import models
-from bagel.mappings import ALL_NAMESPACES, NB
+from bagel.mappings import NB, SUPPORTED_NAMESPACES
 from bagel.utilities import file_utils
 
 
@@ -15,7 +15,7 @@ def generate_context():
     # Adapted from the dandi-schema context generation function
     # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
     field_preamble = {
-        namespace.pf: namespace.url for namespace in ALL_NAMESPACES
+        namespace.pf: namespace.url for namespace in SUPPORTED_NAMESPACES
     }
     fields = {}
     for klass_name, klass in inspect.getmembers(models):

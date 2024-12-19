@@ -116,6 +116,16 @@ def test_pheno_valid_inputs_run_successfully(
             LookupError,
             ["do not have unique combinations of participant and session IDs"],
         ),
+        (
+            "example5",
+            LookupError,
+            [
+                "unsupported vocabulary namespace prefixes",
+                "['cogatlas', 'unknownvocab']",
+                "vocabularies have been deprecated",
+                "['cogatlas']",
+            ],
+        ),
     ],
 )
 def test_invalid_inputs_are_handled_gracefully(
@@ -491,14 +501,14 @@ def test_controlled_term_classes_have_uri_type(
     "assessment, subject_idx",
     [
         (
-            [{"identifier": "cogatlas:1234", "schemaKey": "Assessment"}],
+            [{"identifier": "snomed:1234", "schemaKey": "Assessment"}],
             0,
         ),
         (None, 1),
         (
             [
-                {"identifier": "cogatlas:1234", "schemaKey": "Assessment"},
-                {"identifier": "cogatlas:4321", "schemaKey": "Assessment"},
+                {"identifier": "snomed:1234", "schemaKey": "Assessment"},
+                {"identifier": "snomed:4321", "schemaKey": "Assessment"},
             ],
             2,
         ),

@@ -107,6 +107,78 @@ def test_get_columns_with_annotations():
     assert result[1] == example["participant_id"]
 
 
+def test_find_unsupported_namespaces_and_term_urls():
+    """Test that term URLs with unsupported namespaces are correctly identified in a data dictionary."""
+    data_dict = {
+        "participant_id": {
+            "Description": "Participant ID",
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "nb:ParticipantID",
+                    "Label": "Unique participant identifier",
+                },
+                "Identifies": "participant",
+            },
+        },
+        "group": {
+            "Description": "Experimental group",
+            "Levels": {"PAT": "Patient", "HC": "Healthy control"},
+            "Annotations": {
+                "IsAbout": {"TermURL": "nb:Diagnosis", "Label": "Diagnosis"},
+                "Levels": {
+                    "PAT": {
+                        "TermURL": "snomed:49049000",
+                        "Label": "Parkinson's disease",
+                    },
+                    "HC": {
+                        "TermURL": "unknownvocab:1234",
+                        "Label": "Healthy control",
+                    },
+                },
+            },
+        },
+        "updrs_total": {
+            "Description": "Total UPDRS scores",
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "nb:Assessment",
+                    "Label": "Assessment tool",
+                },
+                "IsPartOf": {
+                    "TermURL": "deprecatedvocab:1234",
+                    "Label": "Unified Parkinson's Disease Rating Scale",
+                },
+            },
+        },
+    }
+
+    assert pheno_utils.find_unsupported_namespaces_and_term_urls(
+        data_dict
+    ) == (
+        ["deprecatedvocab", "unknownvocab"],
+        {
+            "group": "unknownvocab:1234",
+            "updrs_total": "deprecatedvocab:1234",
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    "namespaces,deprecated_namespaces",
+    [
+        (["fakevocab", "unknownvocab"], []),
+        (["cogatlas", "unknownvocab"], ["cogatlas"]),
+        (["snomed", "cogatlas"], ["cogatlas"]),
+    ],
+)
+def test_find_deprecated_namespaces(namespaces, deprecated_namespaces):
+    """Test that vocabulary namespace prefixes deprecated by Neurobagel are correctly identified."""
+    assert (
+        pheno_utils.find_deprecated_namespaces(namespaces)
+        == deprecated_namespaces
+    )
+
+
 def test_map_categories_to_columns(test_data, load_test_json):
     """Test that inverse mapping of concepts to columns is correctly created"""
     data_dict = load_test_json(test_data / "example2.json")
@@ -122,8 +194,8 @@ def test_map_categories_to_columns(test_data, load_test_json):
 @pytest.mark.parametrize(
     "tool, columns",
     [
-        ("cogatlas:1234", ["tool_item1", "tool_item2"]),
-        ("cogatlas:4321", ["other_tool_item1"]),
+        ("snomed:1234", ["tool_item1", "tool_item2"]),
+        ("snomed:4321", ["other_tool_item1"]),
     ],
 )
 def test_map_tools_to_columns(test_data, load_test_json, tool, columns):

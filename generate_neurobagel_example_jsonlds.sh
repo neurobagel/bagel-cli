@@ -1,5 +1,10 @@
 #!/bin/bash
-# Run from repository root
+
+# Steps to use:
+# 1. cd into tests/neurobagel_examples and create a new branch for the submodule update
+# 2. Run this script from the bagel-cli repository root to regenerate the example synthetic JSONLD files 
+# in neurobagel_examples.
+# 3. In tests/neurobagel_examples, commit the changes, push, and open a PR in the submodule origin repository.
 
 docker build -t bagel .
 cd tests

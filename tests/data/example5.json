@@ -39,7 +39,50 @@
                     "TermURL": "ncit:C94342",
                     "Label": "Healthy Control"
                 }
-            }
+            },
+            "MissingValues": ["OTHER"]
+        }
+    },
+    "tool_item1": {
+        "Description": "item 1 scores for an imaginary tool",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:Assessment",
+                "Label": "Assessment tool"
+            },
+            "IsPartOf": {
+                "TermURL": "unknownvocab:1234",
+                "Label": "Imaginary tool"
+            },
+            "MissingValues": ["missing"]
+        }
+    },
+    "tool_item2": {
+        "Description": "item 2 scores for an imaginary tool",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:Assessment",
+                "Label": "Assessment tool"
+            },
+            "IsPartOf": {
+                "TermURL": "unknownvocab:1234",
+                "Label": "Imaginary tool"
+            },
+            "MissingValues": ["missing"]
+        }
+    },
+    "other_tool_item1": {
+        "Description": "item 1 scores for a different imaginary tool",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:Assessment",
+                "Label": "Assessment tool"
+            },
+            "IsPartOf": {
+                "TermURL": "cogatlas:4321",
+                "Label": "A different imaginary tool"
+            },
+            "MissingValues": ["none"]
         }
     }
 }

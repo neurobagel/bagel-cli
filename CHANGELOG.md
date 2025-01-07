@@ -1,3 +1,15 @@
+# v0.4.0 (Tue Jan 07 2025)
+
+#### 💥 Breaking Changes
+
+- [MNT] Deprecate Cognitive Atlas vocab namespace & add check for unsupported namespaces [#410](https://github.com/neurobagel/bagel-cli/pull/410) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.3.5 (Wed Dec 11 2024)
 
 #### 🚀 Enhancements

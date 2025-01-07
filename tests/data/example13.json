@@ -93,7 +93,7 @@
                 "Label": "Assessment tool"
             },
             "IsPartOf": {
-                "TermURL": "cogatlas:1234",
+                "TermURL": "snomed:1234",
                 "Label": "Imaginary tool"
             },
             "MissingValues": ["missing"]
@@ -107,7 +107,7 @@
                 "Label": "Assessment tool"
             },
             "IsPartOf": {
-                "TermURL": "cogatlas:1234",
+                "TermURL": "snomed:1234",
                 "Label": "Imaginary tool"
             },
             "MissingValues": ["missing"]
@@ -121,7 +121,7 @@
                 "Label": "Assessment tool"
             },
             "IsPartOf": {
-                "TermURL": "cogatlas:4321",
+                "TermURL": "snomed:4321",
                 "Label": "A different imaginary tool"
             },
             "MissingValues": ["not completed"]

@@ -111,7 +111,7 @@ def pheno(
     tool_mapping = pheno_utils.map_tools_to_columns(data_dictionary)
 
     # TODO: needs refactoring once we handle multiple participant IDs
-    participants = column_mapping.get("participant")[0]
+    participants = column_mapping["participant"][0]
 
     # Note that `session_column will be None if there is no session column in the pheno.tsv
     session_column = column_mapping.get("session")
@@ -273,12 +273,14 @@ def bids(
     print("Initial checks of inputs passed.\n")
 
     print("Parsing and validating BIDS dataset. This may take a while...")
+    # NOTE: If there are no subjects in the BIDS dataset, the validation should fail.
+    # The rest of this workflow assumes there's at least one subject in the BIDS dataset.
     layout = BIDSLayout(bids_dir, validate=True)
     print("BIDS parsing completed.\n")
 
     print("Merging BIDS metadata with existing subject annotations...\n")
     for bids_sub_id in layout.get_subjects():
-        existing_subject = existing_subs_dict.get(f"sub-{bids_sub_id}")
+        existing_subject = existing_subs_dict[f"sub-{bids_sub_id}"]
         existing_sessions_dict = model_utils.get_imaging_session_instances(
             existing_subject
         )
@@ -323,9 +325,7 @@ def bids(
             # If a custom Neurobagel-created session already exists (if `bagel derivatives` was run first),
             # we add to that session when there is no session layer in the BIDS directory
             if session_label in existing_sessions_dict:
-                existing_img_session = existing_sessions_dict.get(
-                    session_label
-                )
+                existing_img_session = existing_sessions_dict[session_label]
                 existing_img_session.hasAcquisition = image_list
                 existing_img_session.hasFilePath = session_path
             else:
@@ -434,7 +434,7 @@ def derivatives(
     for subject, sub_proc_df in status_df.groupby(
         PROC_STATUS_COLS["participant"]
     ):
-        existing_subject = existing_subs_dict.get(subject)
+        existing_subject = existing_subs_dict[subject]
 
         # Note: Dictionary of existing imaging sessions can be empty if only bagel pheno was run
         existing_sessions_dict = model_utils.get_imaging_session_instances(
@@ -455,9 +455,7 @@ def derivatives(
                 CUSTOM_SESSION_LABEL if session_label == "" else session_label
             )
             if session_label in existing_sessions_dict:
-                existing_img_session = existing_sessions_dict.get(
-                    session_label
-                )
+                existing_img_session = existing_sessions_dict[session_label]
                 existing_img_session.hasCompletedPipeline = completed_pipelines
             else:
                 new_img_session = models.ImagingSession(

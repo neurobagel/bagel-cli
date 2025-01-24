@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 import typer
@@ -18,7 +18,7 @@ def file_encoding_error_message(input_p: Path) -> str:
 
 def load_tabular(
     input_p: Path, input_type: str = "phenotypic"
-) -> Optional[pd.DataFrame]:
+) -> pd.DataFrame:
     """Load a .tsv pheno file and do some basic validation of the file type."""
     if input_p.suffix == ".tsv":
         try:

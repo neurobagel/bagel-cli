@@ -41,7 +41,7 @@ def test_raises_exception_if_remote_and_local_pipeline_catalog_fails(
     monkeypatch, tmp_path
 ):
     """
-    If I cannot get the pipeline catalog from the remote location and the local backup, I should raise an exception.
+    If I cannot get the pipeline catalog from both the remote location and the local backup, I should raise an exception.
     """
     nonsense_url = "https://does.not.exist.url"
 
@@ -59,11 +59,15 @@ def test_raises_exception_if_remote_and_local_pipeline_catalog_fails(
 
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
-    with pytest.raises(FileNotFoundError) as e:
-        mappings.get_pipeline_catalog(
-            url=nonsense_url, path=tmp_path / "does_not_exist.json"
-        )
+    with pytest.warns(
+        UserWarning, match="Unable to download pipeline catalog"
+    ) as w:
+        with pytest.raises(FileNotFoundError) as e:
+            mappings.get_pipeline_catalog(
+                url=nonsense_url, path=tmp_path / "does_not_exist.json"
+            )
 
+    assert len(w) == 1
     assert "Have you correctly initialized the submodules" in str(e.value)
 
 

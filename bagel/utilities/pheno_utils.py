@@ -128,7 +128,7 @@ def find_deprecated_namespaces(namespaces: list) -> list:
     return [ns for ns in namespaces if ns in DEPRECATED_NAMESPACE_PREFIXES]
 
 
-def map_categories_to_columns(data_dict: dict) -> dict:
+def map_categories_to_columns(data_dict: dict) -> dict[str, list]:
     """
     Maps all pre-defined Neurobagel categories (e.g. "Sex") to a list containing all column names (if any) that
     have been linked to this category.
@@ -142,7 +142,7 @@ def map_categories_to_columns(data_dict: dict) -> dict:
     }
 
 
-def map_tools_to_columns(data_dict: dict) -> dict:
+def map_tools_to_columns(data_dict: dict) -> dict[str, list]:
     """
     Return a mapping of all assessment tools described in the data dictionary to the columns that
     are mapped to it.
@@ -286,7 +286,7 @@ def are_inputs_compatible(data_dict: dict, pheno_df: pd.DataFrame) -> bool:
 
 def find_undefined_cat_col_values(
     data_dict: dict, pheno_df: pd.DataFrame
-) -> dict:
+) -> dict[str, list]:
     """
     Checks that all categorical column values have annotations. Returns a dictionary containing
     any categorical column names and specific column values not defined in the corresponding data
@@ -310,7 +310,7 @@ def find_undefined_cat_col_values(
 
 def find_unused_missing_values(
     data_dict: dict, pheno_df: pd.DataFrame
-) -> dict:
+) -> dict[str, list]:
     """
     Checks if missing values annotated in the data dictionary appear at least once in the phenotypic file.
     Returns a dictionary containing any column names and annotated missing values not found in the phenotypic

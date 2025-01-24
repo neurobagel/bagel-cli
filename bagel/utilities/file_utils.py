@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import pandas as pd
 import typer
@@ -61,7 +61,7 @@ def load_tabular(
     )
 
 
-def load_json(input_p: Path) -> dict:
+def load_json(input_p: Path) -> Any:
     """Load a user-specified json type file."""
     try:
         with open(input_p, "r", encoding="utf-8") as f:

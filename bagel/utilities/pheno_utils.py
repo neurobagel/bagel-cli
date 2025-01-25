@@ -128,7 +128,7 @@ def find_deprecated_namespaces(namespaces: list) -> list:
     return [ns for ns in namespaces if ns in DEPRECATED_NAMESPACE_PREFIXES]
 
 
-def map_categories_to_columns(data_dict: dict) -> dict:
+def map_categories_to_columns(data_dict: dict) -> dict[str, list]:
     """
     Maps all pre-defined Neurobagel categories (e.g. "Sex") to a list containing all column names (if any) that
     have been linked to this category.
@@ -142,7 +142,7 @@ def map_categories_to_columns(data_dict: dict) -> dict:
     }
 
 
-def map_tools_to_columns(data_dict: dict) -> dict:
+def map_tools_to_columns(data_dict: dict) -> dict[str, list]:
     """
     Return a mapping of all assessment tools described in the data dictionary to the columns that
     are mapped to it.
@@ -184,7 +184,6 @@ def get_age_heuristic(column: str, data_dict: dict) -> str:
 
 
 def transform_age(value: str, heuristic: str) -> float:
-    is_recognized_heuristic = True
     try:
         if heuristic in [
             AGE_HEURISTICS["float"],
@@ -200,26 +199,23 @@ def transform_age(value: str, heuristic: str) -> float:
                 value = "P" + value
             duration = isodate.parse_duration(value)
             return float(duration.years + duration.months / 12)
-        else:
-            is_recognized_heuristic = False
+        raise ValueError(
+            f"The provided data dictionary contains an unrecognized age transformation: {heuristic}. "
+            f"Ensure that the transformation TermURL is one of {list(AGE_HEURISTICS.values())}."
+        )
     except (ValueError, isodate.isoerror.ISO8601Error) as e:
         raise ValueError(
             f"There was a problem with applying the age transformation: {heuristic}. Error: {str(e)}\n"
             f"Check that the transformation specified in the data dictionary ({heuristic}) is correct for the age values in your phenotypic file, "
             "and that you correctly annotated any missing values in your age column."
         ) from e
-    if not is_recognized_heuristic:
-        raise ValueError(
-            f"The provided data dictionary contains an unrecognized age transformation: {heuristic}. "
-            f"Ensure that the transformation TermURL is one of {list(AGE_HEURISTICS.values())}."
-        )
 
 
 def get_transformed_values(
     columns: list, row: pd.Series, data_dict: dict
 ) -> list:
     """Convert a list of raw phenotypic values to the corresponding controlled terms, from columns that have not been annotated as being about an assessment tool."""
-    transf_vals = []
+    transf_vals: list[float | str] = []
     for col in columns:
         value = row[col]
         if is_missing_value(value, col, data_dict):
@@ -290,7 +286,7 @@ def are_inputs_compatible(data_dict: dict, pheno_df: pd.DataFrame) -> bool:
 
 def find_undefined_cat_col_values(
     data_dict: dict, pheno_df: pd.DataFrame
-) -> dict:
+) -> dict[str, list]:
     """
     Checks that all categorical column values have annotations. Returns a dictionary containing
     any categorical column names and specific column values not defined in the corresponding data
@@ -314,7 +310,7 @@ def find_undefined_cat_col_values(
 
 def find_unused_missing_values(
     data_dict: dict, pheno_df: pd.DataFrame
-) -> dict:
+) -> dict[str, list]:
     """
     Checks if missing values annotated in the data dictionary appear at least once in the phenotypic file.
     Returns a dictionary containing any column names and annotated missing values not found in the phenotypic

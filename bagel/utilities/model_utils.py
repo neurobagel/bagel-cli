@@ -97,7 +97,9 @@ def extract_and_validate_jsonld_dataset(file_path: Path) -> models.Dataset:
     return jsonld_dataset
 
 
-def get_subject_instances(dataset: models.Dataset) -> dict:
+def get_subject_instances(
+    dataset: models.Dataset,
+) -> dict[str, models.Subject]:
     """
     Return a dictionary of subjects for a given Neurobagel dataset from JSONLD data,
     where keys are subject labels and values are the subject objects.
@@ -109,7 +111,7 @@ def get_subject_instances(dataset: models.Dataset) -> dict:
 
 def get_imaging_session_instances(
     jsonld_subject: models.Subject,
-) -> dict:
+) -> dict[str, models.ImagingSession]:
     """
     Return a dictionary of imaging sessions for a given subject from JSONLD data,
     where the keys are the session labels and values are the session objects.

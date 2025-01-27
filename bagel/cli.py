@@ -55,9 +55,10 @@ def pheno(
         "--name",
         "-n",
         callback=pheno_utils.validate_dataset_name,
-        help="A descriptive name for the dataset the input belongs to. "
-        "This name is expected to match the name field in the BIDS dataset_description.json file. "
-        'Should be enclosed in quotes, e.g.: --name "my dataset name"',
+        help="The full name of the dataset. "
+        "This name will be displayed when the dataset matches a Neurobagel query. "
+        "For a dataset with BIDS data, should ideally match the dataset_description.json 'name' field. "
+        'Enclose in quotes, e.g.: --name "my dataset name"',
     ),
     portal: str = typer.Option(
         None,

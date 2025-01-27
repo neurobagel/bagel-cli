@@ -880,3 +880,38 @@ def test_pheno_command_succeeds_with_short_option_names(
     assert (
         default_pheno_output_path
     ).exists(), "The pheno.jsonld output was not created."
+
+
+@pytest.mark.parametrize(
+    "invalid_dataset_name",
+    [
+        "",
+        "    ",
+        "\n\t",
+    ],
+)
+def test_empty_string_dataset_name_raises_error(
+    runner,
+    test_data_upload_path,
+    default_pheno_output_path,
+    invalid_dataset_name,
+):
+    """Ensure that provided dataset names cannot be empty strings or only contain whitespace."""
+    result = runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data_upload_path / "example_synthetic.tsv",
+            "--dictionary",
+            test_data_upload_path / "example_synthetic.json",
+            "--output",
+            default_pheno_output_path,
+            "--name",
+            invalid_dataset_name,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code != 0
+    assert "cannot be an empty string" in result.output

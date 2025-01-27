@@ -54,6 +54,7 @@ def pheno(
         ...,
         "--name",
         "-n",
+        callback=pheno_utils.validate_dataset_name,
         help="A descriptive name for the dataset the input belongs to. "
         "This name is expected to match the name field in the BIDS dataset_description.json file. "
         'Should be enclosed in quotes, e.g.: --name "my dataset name"',

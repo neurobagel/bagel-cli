@@ -28,6 +28,13 @@ AGE_HEURISTICS = {
 }
 
 
+def validate_dataset_name(name: str) -> str:
+    """Custom validation that dataset name is not an empty string or just whitespace."""
+    if name.isspace() or name == "":
+        raise BadParameter("Dataset name cannot be an empty string.")
+    return name
+
+
 def validate_portal_uri(portal: Optional[str]) -> Optional[str]:
     """Custom validation that portal is a valid HttpUrl"""
     # NOTE: We need Optional in the validation type below to account for --portal being an optional argument in the pheno command

@@ -1,3 +1,19 @@
+# v0.4.1 (Wed Jan 29 2025)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Disallow empty string/whitespace-only `pheno --name` values [#426](https://github.com/neurobagel/bagel-cli/pull/426) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [MNT] Configure mypy in pre-commit for type checking [#423](https://github.com/neurobagel/bagel-cli/pull/423) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.4.0 (Tue Jan 07 2025)
 
 #### 💥 Breaking Changes

@@ -1,6 +1,3 @@
-# NOTE: A custom version of this template workflow is used in neurobagel/query-tool.
-# Any changes to this template must be applied manually to query-tool/.github/workflows/build_docker_nightly.yml
-
 name: build docker nightly
 
 on:
@@ -31,7 +28,14 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
+          platforms: linux/arm64, linux/amd64
           context: .
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPO }}:nightly
+
+      # Verify that build was successful
+      # TODO: replace this with an actual test
+      - name: Run cli help
+        run: |
+          docker run --rm ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPO }}:nightly --help

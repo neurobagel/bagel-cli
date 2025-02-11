@@ -35,6 +35,7 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPO }}:nightly
 
       # Verify that build was successful
+      # TODO: replace this with an actual test
       - name: Run cli help
         run: |
           docker run --rm ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPO }}:nightly --help

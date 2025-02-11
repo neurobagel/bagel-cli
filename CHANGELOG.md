@@ -1,3 +1,16 @@
+# v0.4.2 (Tue Feb 11 2025)
+
+#### 🏠 Internal
+
+- [ENH] Add docker image build for arm64 architecture [#429](https://github.com/neurobagel/bagel-cli/pull/429) ([@rmanaem](https://github.com/rmanaem) [@surchs](https://github.com/surchs))
+
+#### Authors: 2
+
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
 # v0.4.1 (Wed Jan 29 2025)
 
 #### 🐛 Bug Fixes

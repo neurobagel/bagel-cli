@@ -329,7 +329,7 @@ def test_missing_ids_in_columns(test_data, columns, expected_indices):
 
 
 @pytest.mark.parametrize(
-    "raw_age,expected_age,heuristic",
+    "raw_age,expected_age,value_format",
     [
         ("11.0", 11.0, "nb:FromFloat"),
         ("11", 11.0, "nb:FromInt"),
@@ -342,12 +342,12 @@ def test_missing_ids_in_columns(test_data, columns, expected_indices):
         ("20.00-25.00", 22.5, "nb:FromRange"),
     ],
 )
-def test_age_gets_converted(raw_age, expected_age, heuristic):
-    assert expected_age == pheno_utils.transform_age(raw_age, heuristic)
+def test_age_gets_converted(raw_age, expected_age, value_format):
+    assert expected_age == pheno_utils.transform_age(raw_age, value_format)
 
 
 @pytest.mark.parametrize(
-    "raw_age, incorrect_heuristic",
+    "raw_age, incorrect_format",
     [
         ("11,0", "nb:FromFloat"),
         ("11.0", "nb:FromISO8601"),
@@ -355,18 +355,18 @@ def test_age_gets_converted(raw_age, expected_age, heuristic):
         ("20+", "nb:FromRange"),
     ],
 )
-def test_incorrect_age_heuristic(raw_age, incorrect_heuristic):
+def test_incorrect_age_format(raw_age, incorrect_format):
     """Given an age transformation that does not match the type of age value provided, returns an informative error."""
     with pytest.raises(ValueError) as e:
-        pheno_utils.transform_age(raw_age, incorrect_heuristic)
+        pheno_utils.transform_age(raw_age, incorrect_format)
 
     assert (
-        f"problem with applying the age transformation: {incorrect_heuristic}."
+        f"problem with applying the age transformation: {incorrect_format}."
         in str(e.value)
     )
 
 
-def test_invalid_age_heuristic():
+def test_invalid_age_format():
     """Given an age transformation that is not recognized, returns an informative ValueError."""
     with pytest.raises(ValueError) as e:
         pheno_utils.transform_age("11,0", "nb:birthyear")

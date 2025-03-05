@@ -217,7 +217,8 @@ def transform_age(value: str, heuristic: str) -> float:
         raise ValueError(
             f"There was a problem with applying the age transformation: {heuristic}. Error: {str(e)}\n"
             f"Check that the transformation specified in the data dictionary ({heuristic}) is correct for the age values in your phenotypic file, "
-            "and that you correctly annotated any missing values in your age column."
+            "and that you correctly annotated any missing values in your age column. "
+            "For examples of acceptable values for specific age transformations, see https://neurobagel.org/data_models/dictionaries/#age."
         ) from e
 
 

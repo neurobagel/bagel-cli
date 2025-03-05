@@ -338,6 +338,7 @@ def test_missing_ids_in_columns(test_data, columns, expected_indices):
         ("20Y6M", 20.5, "nb:FromISO8601"),
         ("P20Y6M", 20.5, "nb:FromISO8601"),
         ("20Y9M", 20.75, "nb:FromISO8601"),
+        ("20-25", 22.5, "nb:FromRange"),
     ],
 )
 def test_age_gets_converted(raw_age, expected_age, heuristic):
@@ -350,6 +351,7 @@ def test_age_gets_converted(raw_age, expected_age, heuristic):
         ("11,0", "nb:FromFloat"),
         ("11.0", "nb:FromISO8601"),
         ("20-30", "nb:FromBounded"),
+        ("20+", "nb:FromRange"),
     ],
 )
 def test_incorrect_age_heuristic(raw_age, incorrect_heuristic):

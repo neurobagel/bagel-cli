@@ -25,6 +25,7 @@ AGE_HEURISTICS = {
     "euro": NB.pf + ":FromEuro",
     "bounded": NB.pf + ":FromBounded",
     "iso8601": NB.pf + ":FromISO8601",
+    "range": NB.pf + ":FromRange",
 }
 
 
@@ -206,6 +207,8 @@ def transform_age(value: str, heuristic: str) -> float:
                 value = "P" + value
             duration = isodate.parse_duration(value)
             return float(duration.years + duration.months / 12)
+        if heuristic == AGE_HEURISTICS["range"]:
+            return sum(map(float, value.split("-"))) / 2
         raise ValueError(
             f"The provided data dictionary contains an unrecognized age transformation: {heuristic}. "
             f"Ensure that the transformation TermURL is one of {list(AGE_HEURISTICS.values())}."

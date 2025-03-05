@@ -339,7 +339,7 @@ def test_missing_ids_in_columns(test_data, columns, expected_indices):
         ("P20Y6M", 20.5, "nb:FromISO8601"),
         ("20Y9M", 20.75, "nb:FromISO8601"),
         ("20-25", 22.5, "nb:FromRange"),
-        ("20.5-25.5", 23.0, "nb:FromRange"),
+        ("20.00-25.00", 22.5, "nb:FromRange"),
     ],
 )
 def test_age_gets_converted(raw_age, expected_age, heuristic):

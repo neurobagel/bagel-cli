@@ -19,12 +19,13 @@ from bagel.mappings import (
 
 DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()
 
-AGE_HEURISTICS = {
+AGE_FORMATS = {
     "float": NB.pf + ":FromFloat",
     "int": NB.pf + ":FromInt",
     "euro": NB.pf + ":FromEuro",
     "bounded": NB.pf + ":FromBounded",
     "iso8601": NB.pf + ":FromISO8601",
+    "range": NB.pf + ":FromRange",
 }
 
 
@@ -186,35 +187,41 @@ def map_cat_val_to_term(
     return data_dict[column]["Annotations"]["Levels"][value]["TermURL"]
 
 
-def get_age_heuristic(column: str, data_dict: dict) -> str:
+def get_age_format(column: str, data_dict: dict) -> str:
     return data_dict[column]["Annotations"]["Transformation"]["TermURL"]
 
 
-def transform_age(value: str, heuristic: str) -> float:
+def transform_age(value: str, value_format: str) -> float:
     try:
-        if heuristic in [
-            AGE_HEURISTICS["float"],
-            AGE_HEURISTICS["int"],
+        if value_format in [
+            AGE_FORMATS["float"],
+            AGE_FORMATS["int"],
         ]:
             return float(value)
-        if heuristic == AGE_HEURISTICS["euro"]:
+        if value_format == AGE_FORMATS["euro"]:
             return float(value.replace(",", "."))
-        if heuristic == AGE_HEURISTICS["bounded"]:
+        if value_format == AGE_FORMATS["bounded"]:
             return float(value.strip("+"))
-        if heuristic == AGE_HEURISTICS["iso8601"]:
+        if value_format == AGE_FORMATS["iso8601"]:
             if not value.startswith("P"):
-                value = "P" + value
-            duration = isodate.parse_duration(value)
+                pvalue = "P" + value
+            else:
+                pvalue = value
+            duration = isodate.parse_duration(pvalue)
             return float(duration.years + duration.months / 12)
+        if value_format == AGE_FORMATS["range"]:
+            a_min, a_max = value.split("-")
+            return sum(map(float, [a_min, a_max])) / 2
         raise ValueError(
-            f"The provided data dictionary contains an unrecognized age transformation: {heuristic}. "
-            f"Ensure that the transformation TermURL is one of {list(AGE_HEURISTICS.values())}."
+            f"The provided data dictionary contains an unrecognized age transformation: {value_format}. "
+            f"Ensure that the transformation TermURL is one of {list(AGE_FORMATS.values())}."
         )
     except (ValueError, isodate.isoerror.ISO8601Error) as e:
         raise ValueError(
-            f"There was a problem with applying the age transformation: {heuristic}. Error: {str(e)}\n"
-            f"Check that the transformation specified in the data dictionary ({heuristic}) is correct for the age values in your phenotypic file, "
-            "and that you correctly annotated any missing values in your age column."
+            f"There was a problem with applying the transformation {value_format} to the age: {value}. Error: {str(e)}\n"
+            f"Check that the transformation specified in the data dictionary ({value_format}) is correct for the age values in your phenotypic file, "
+            "and that you correctly annotated any missing values in your age column. "
+            "For examples of acceptable values for specific age transformations, see https://neurobagel.org/data_models/dictionaries/#age."
         ) from e
 
 
@@ -233,7 +240,7 @@ def get_transformed_values(
             # TODO: replace with more flexible solution when we have more
             # continuous variables than just age
             transf_vals.append(
-                transform_age(str(value), get_age_heuristic(col, data_dict))
+                transform_age(str(value), get_age_format(col, data_dict))
             )
 
     return transf_vals

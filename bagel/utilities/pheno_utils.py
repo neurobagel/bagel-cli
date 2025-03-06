@@ -204,18 +204,21 @@ def transform_age(value: str, value_format: str) -> float:
             return float(value.strip("+"))
         if value_format == AGE_FORMATS["iso8601"]:
             if not value.startswith("P"):
-                value = "P" + value
-            duration = isodate.parse_duration(value)
+                pvalue = "P" + value
+            else:
+                pvalue = value
+            duration = isodate.parse_duration(pvalue)
             return float(duration.years + duration.months / 12)
         if value_format == AGE_FORMATS["range"]:
-            return sum(map(float, value.split("-"))) / 2
+            a_min, a_max = value.split("-")
+            return sum(map(float, [a_min, a_max])) / 2
         raise ValueError(
             f"The provided data dictionary contains an unrecognized age transformation: {value_format}. "
             f"Ensure that the transformation TermURL is one of {list(AGE_FORMATS.values())}."
         )
     except (ValueError, isodate.isoerror.ISO8601Error) as e:
         raise ValueError(
-            f"There was a problem with applying the age transformation: {value_format}. Error: {str(e)}\n"
+            f"There was a problem with applying the transformation {value_format} to the age: {value}. Error: {str(e)}\n"
             f"Check that the transformation specified in the data dictionary ({value_format}) is correct for the age values in your phenotypic file, "
             "and that you correctly annotated any missing values in your age column. "
             "For examples of acceptable values for specific age transformations, see https://neurobagel.org/data_models/dictionaries/#age."

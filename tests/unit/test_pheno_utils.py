@@ -352,7 +352,9 @@ def test_age_gets_converted(raw_age, expected_age, value_format):
         ("11,0", "nb:FromFloat"),
         ("11.0", "nb:FromISO8601"),
         ("20-30", "nb:FromBounded"),
-        ("20+", "nb:FromRange"),
+        ("20", "nb:FromRange"),
+        ("20-", "nb:FromRange"),
+        ("-30", "nb:FromRange"),
     ],
 )
 def test_incorrect_age_format(raw_age, incorrect_format):
@@ -361,7 +363,7 @@ def test_incorrect_age_format(raw_age, incorrect_format):
         pheno_utils.transform_age(raw_age, incorrect_format)
 
     assert (
-        f"problem with applying the age transformation: {incorrect_format}."
+        f"problem with applying the transformation {incorrect_format} to the age: {raw_age}"
         in str(e.value)
     )
 

@@ -1,3 +1,15 @@
+# v0.4.3 (Fri Mar 07 2025)
+
+#### 🚀 Enhancements
+
+- [ENH] Support ranged ages with `nb:FromRange` [#437](https://github.com/neurobagel/bagel-cli/pull/437) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.4.2 (Tue Feb 11 2025)
 
 #### 🏠 Internal

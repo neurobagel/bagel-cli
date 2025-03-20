@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
 from typing import Optional, Union
 
@@ -11,6 +10,7 @@ import pydantic
 from typer import BadParameter
 
 from bagel import dictionary_models, mappings
+from bagel.logger import logger
 from bagel.mappings import (
     DEPRECATED_NAMESPACE_PREFIXES,
     NB,
@@ -433,7 +433,7 @@ def validate_data_dict(data_dict: dict) -> None:
         len(get_columns_about(data_dict, concept=mappings.NEUROBAGEL["sex"]))
         > 1
     ):
-        warnings.warn(
+        logger.warning(
             "The provided data dictionary indicates more than one column about sex. "
             "Neurobagel cannot resolve multiple sex values per subject-session, and so will only consider the first of these columns for sex data."
         )
@@ -442,18 +442,18 @@ def validate_data_dict(data_dict: dict) -> None:
         len(get_columns_about(data_dict, concept=mappings.NEUROBAGEL["age"]))
         > 1
     ):
-        warnings.warn(
+        logger.warning(
             "The provided data dictionary indicates more than one column about age. "
             "Neurobagel cannot resolve multiple sex values per subject-session, so will only consider the first of these columns for age data."
         )
 
     if not categorical_cols_have_bids_levels(data_dict):
-        warnings.warn(
+        logger.warning(
             "The data dictionary contains at least one column that looks categorical but lacks a BIDS 'Levels' attribute."
         )
 
     if mismatched_cols := get_mismatched_categorical_levels(data_dict):
-        warnings.warn(
+        logger.warning(
             f"The data dictionary contains columns with mismatched levels between the BIDS and Neurobagel annotations: {mismatched_cols}"
         )
 
@@ -497,7 +497,7 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
 
     unused_missing_values = find_unused_missing_values(data_dict, pheno_df)
     if unused_missing_values:
-        warnings.warn(
+        logger.warning(
             "The following values annotated as missing values in the data dictionary were not found "
             "in the corresponding phenotypic file column(s) (<column_name>: [<unused missing values>]): "
             f"{unused_missing_values}. If this is not intentional, please check your data dictionary "

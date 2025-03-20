@@ -1,9 +1,9 @@
-import warnings
 from typing import Iterable
 
 import pandas as pd
 
 from bagel import mappings, models
+from bagel.logger import logger
 
 # Shorthands for expected column names in a Nipoppy processing status file
 # TODO: While there are multiple session ID columns in a Nipoppy processing status file,
@@ -41,7 +41,7 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
             f"{unrecognized_pipelines_details}"
         )
     if unrecognized_pipelines:
-        warnings.warn(
+        logger.warning(
             f"The processing status file contains unrecognized pipelines in the column: '{PROC_STATUS_COLS['pipeline_name']}'. These will be ignored.\n"
             f"{unrecognized_pipelines_details}"
         )
@@ -100,7 +100,7 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
             f"{unrecognized_versions_details}"
         )
     if unrecognized_pipeline_versions:
-        warnings.warn(
+        logger.warning(
             f"The processing status file contains unrecognized versions of pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}'. "
             "These will be ignored.\n"
             f"{unrecognized_versions_details}"

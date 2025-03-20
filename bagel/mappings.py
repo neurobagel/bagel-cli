@@ -1,10 +1,10 @@
 import json
-import warnings
 from collections import namedtuple
 from pathlib import Path
 
 import httpx
 
+from .logger import logger
 from .utilities import file_utils
 
 Namespace = namedtuple("Namespace", ["pf", "url"])
@@ -65,7 +65,7 @@ def get_pipeline_catalog(url: str, path: Path) -> list[dict]:
         return response.json()
     # The JSONDecodeError should catch the case where the file is empty
     except (httpx.HTTPError, json.JSONDecodeError):
-        warnings.warn(
+        logger.warning(
             f"Unable to download pipeline catalog from {url}.\n"
             f"Will revert to loading backup from {path}."
         )

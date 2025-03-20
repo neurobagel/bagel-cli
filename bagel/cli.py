@@ -5,6 +5,7 @@ from bids import BIDSLayout
 
 from bagel import mappings, models
 
+from .logger import logger
 from .utilities import (
     bids_utils,
     derivative_utils,
@@ -101,7 +102,7 @@ def pheno(
     # NOTE: `space` determines the amount of padding (in num. characters) before the file paths in the print statement.
     # It is currently calculated as = (length of the longer string, including the 3 leading spaces) + (2 extra spaces)
     space = 25
-    print(
+    logger.info(
         "Processing phenotypic annotations:\n"
         f"   {'Tabular file (.tsv):' : <{space}} {pheno}\n"
         f"   {'Data dictionary (.json):' : <{space}} {dictionary}\n"
@@ -253,7 +254,7 @@ def bids(
     file_utils.check_overwrite(output, overwrite)
 
     space = 51
-    print(
+    logger.info(
         "Running initial checks of inputs...\n"
         f"   {'Existing subject graph data to augment (.jsonld):' : <{space}} {jsonld_path}\n"
         f"   {'BIDS dataset directory:' : <{space}} {bids_dir}"
@@ -272,15 +273,17 @@ def bids(
         pheno_subjects=existing_subs_dict.keys(),
     )
 
-    print("Initial checks of inputs passed.\n")
+    logger.info("Initial checks of inputs passed.\n")
 
-    print("Parsing and validating BIDS dataset. This may take a while...")
+    logger.info(
+        "Parsing and validating BIDS dataset. This may take a while..."
+    )
     # NOTE: If there are no subjects in the BIDS dataset, the validation should fail.
     # The rest of this workflow assumes there's at least one subject in the BIDS dataset.
     layout = BIDSLayout(bids_dir, validate=True)
-    print("BIDS parsing completed.\n")
+    logger.info("BIDS parsing completed.\n")
 
-    print("Merging BIDS metadata with existing subject annotations...\n")
+    logger.info("Merging BIDS metadata with existing subject annotations...\n")
     for bids_sub_id in layout.get_subjects():
         existing_subject = existing_subs_dict[f"sub-{bids_sub_id}"]
         existing_sessions_dict = model_utils.get_imaging_session_instances(
@@ -396,7 +399,7 @@ def derivatives(
     file_utils.check_overwrite(output, overwrite)
 
     space = 51
-    print(
+    logger.info(
         "Processing subject-level derivative metadata...\n"
         f"   {'Existing subject graph data to augment (.jsonld):' : <{space}}{jsonld_path}\n"
         f"   {'Processing status file (.tsv):' : <{space}}{tabular}"

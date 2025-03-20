@@ -5,6 +5,8 @@ from typing import Any
 import pandas as pd
 import typer
 
+from ..logger import logger
+
 
 def file_encoding_error_message(input_p: Path) -> str:
     """Return a message for when a file cannot be read due to encoding issues."""
@@ -99,4 +101,4 @@ def check_overwrite(output: Path, overwrite: bool):
 def save_jsonld(data: dict, filename: Path):
     with open(filename, "w") as f:
         f.write(json.dumps(data, indent=2))
-    print(f"Saved output to:  {filename}")
+    logger.info(f"Saved output to:  {filename}")

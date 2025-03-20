@@ -105,7 +105,7 @@ def pheno(
     logger.info(
         "Processing phenotypic annotations:\n"
         f"   {'Tabular file (.tsv):' : <{space}} {pheno}\n"
-        f"   {'Data dictionary (.json):' : <{space}} {dictionary}\n"
+        f"   {'Data dictionary (.json):' : <{space}} {dictionary}"
     )
 
     subject_list = []

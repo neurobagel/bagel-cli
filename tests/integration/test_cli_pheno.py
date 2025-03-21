@@ -204,59 +204,60 @@ def test_multiple_age_or_sex_columns_raises_warning(
     runner,
     test_data,
     default_pheno_output_path,
+    caplog,
+    propagate_warnings,
 ):
     """Test that an informative warning is raised when multiple columns in the phenotypic file have been annotated as being about age or sex."""
-    with pytest.warns(UserWarning) as w:
-        runner.invoke(
-            bagel,
-            [
-                "pheno",
-                "--pheno",
-                test_data / "example20.tsv",
-                "--dictionary",
-                test_data / "example20.json",
-                "--output",
-                default_pheno_output_path,
-                "--name",
-                "Multiple age/sex columns dataset",
-            ],
-            catch_exceptions=False,
-        )
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example20.tsv",
+            "--dictionary",
+            test_data / "example20.json",
+            "--output",
+            default_pheno_output_path,
+            "--name",
+            "Multiple age/sex columns dataset",
+        ],
+        catch_exceptions=False,
+    )
 
-    assert len(w) == 2
-    warnings = [warning.message.args[0] for warning in w]
+    assert len(caplog.records) == 2
     for warn_substring in [
         "more than one column about age",
         "more than one column about sex",
     ]:
-        assert [any(warn_substring in warning_str for warning_str in warnings)]
+        assert warn_substring in caplog.text
 
 
 def test_missing_bids_levels_raises_warning(
     runner,
     test_data,
     default_pheno_output_path,
+    caplog,
+    propagate_warnings,
 ):
-    with pytest.warns(UserWarning) as w:
-        runner.invoke(
-            bagel,
-            [
-                "pheno",
-                "--pheno",
-                test_data / "example12.tsv",
-                "--dictionary",
-                test_data / "example12.json",
-                "--output",
-                default_pheno_output_path,
-                "--name",
-                "testing dataset",
-            ],
-            catch_exceptions=False,
-        )
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example12.tsv",
+            "--dictionary",
+            test_data / "example12.json",
+            "--output",
+            default_pheno_output_path,
+            "--name",
+            "testing dataset",
+        ],
+        catch_exceptions=False,
+    )
 
-    assert len(w) == 1
-    assert "looks categorical but lacks a BIDS 'Levels' attribute" in str(
-        w[0].message.args[0]
+    assert len(caplog.records) == 1
+    assert (
+        "looks categorical but lacks a BIDS 'Levels' attribute" in caplog.text
     )
 
 
@@ -264,27 +265,28 @@ def test_bids_neurobagel_levels_mismatch_raises_warning(
     runner,
     test_data,
     default_pheno_output_path,
+    caplog,
+    propagate_warnings,
 ):
-    with pytest.warns(UserWarning) as w:
-        runner.invoke(
-            bagel,
-            [
-                "pheno",
-                "--pheno",
-                test_data / "example13.tsv",
-                "--dictionary",
-                test_data / "example13.json",
-                "--output",
-                default_pheno_output_path,
-                "--name",
-                "testing dataset",
-            ],
-            catch_exceptions=False,
-        )
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example13.tsv",
+            "--dictionary",
+            test_data / "example13.json",
+            "--output",
+            default_pheno_output_path,
+            "--name",
+            "testing dataset",
+        ],
+        catch_exceptions=False,
+    )
 
-    assert len(w) == 1
+    assert len(caplog.records) == 1
     assert all(
-        warn_substring in str(w[0].message.args[0])
+        warn_substring in caplog.text
         for warn_substring in [
             "columns with mismatched levels",
             "['pheno_sex']",
@@ -296,36 +298,37 @@ def test_unused_missing_values_raises_warning(
     runner,
     test_data,
     default_pheno_output_path,
+    caplog,
+    propagate_warnings,
 ):
     """
     Tests that an informative warning is raised when annotated missing values are not found in the
     phenotypic file.
     """
-    with pytest.warns(UserWarning) as w:
-        runner.invoke(
-            bagel,
-            [
-                "pheno",
-                "--pheno",
-                test_data / "example10.tsv",
-                "--dictionary",
-                test_data / "example10.json",
-                "--output",
-                default_pheno_output_path,
-                "--name",
-                "testing dataset",
-            ],
-            catch_exceptions=False,
-        )
+    runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example10.tsv",
+            "--dictionary",
+            test_data / "example10.json",
+            "--output",
+            default_pheno_output_path,
+            "--name",
+            "testing dataset",
+        ],
+        catch_exceptions=False,
+    )
 
-    assert len(w) == 1
+    assert len(caplog.records) == 1
     for warn_substring in [
         "missing values in the data dictionary were not found",
         "'group': ['NOT IN TSV']",
         "'tool_item1': ['NOT IN TSV 1', 'NOT IN TSV 2']",
         "'tool_item2': ['NOT IN TSV 1', 'NOT IN TSV 2']",
     ]:
-        assert warn_substring in str(w[0].message.args[0])
+        assert warn_substring in caplog.text
 
 
 @pytest.mark.parametrize(
@@ -670,14 +673,21 @@ def test_default_output_filename(runner, test_data_upload_path, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "overwrite_flag, expected_stdout",
+    "overwrite_flag, output_exists_message_shown, output_saved_message_shown",
     [
-        ([], "already exists"),
-        (["--overwrite"], "Saved output to"),
+        ([], True, False),
+        (["--overwrite"], False, True),
     ],
 )
 def test_overwrite_flag_behaviour(
-    runner, test_data_upload_path, tmp_path, overwrite_flag, expected_stdout
+    runner,
+    test_data_upload_path,
+    tmp_path,
+    overwrite_flag,
+    output_exists_message_shown,
+    output_saved_message_shown,
+    caplog,
+    propagate_info,
 ):
     """Tests that an existing output file is only overwritten if --overwrite is used."""
     runner.invoke(
@@ -694,6 +704,7 @@ def test_overwrite_flag_behaviour(
             tmp_path / "synthetic_dataset.jsonld",
         ],
     )
+    caplog.clear()
 
     overwrite_result = runner.invoke(
         bagel,
@@ -711,7 +722,10 @@ def test_overwrite_flag_behaviour(
         + overwrite_flag,
     )
 
-    assert expected_stdout in overwrite_result.output
+    assert (
+        "already exists" in overwrite_result.output
+    ) == output_exists_message_shown
+    assert ("Saved output to" in caplog.text) == output_saved_message_shown
 
 
 def test_pheno_sessions_have_correct_labels(

@@ -214,37 +214,37 @@ def test_unrecognized_pipelines_and_versions_excluded_from_output(
     test_data_upload_path,
     default_derivatives_output_path,
     load_test_json,
+    caplog,
+    propagate_warnings,
 ):
     """
     Test that when a subset of pipelines or versions from a processing status file are unrecognized,
     they are excluded from the output JSONLD with informative warnings, without causing the derivatives command to fail.
     """
-    with pytest.warns(UserWarning) as w:
-        result = runner.invoke(
-            bagel,
-            [
-                "derivatives",
-                "-t",
-                test_data / "proc_status_unrecognized_pipelines.tsv",
-                "-p",
-                test_data_upload_path / "example_synthetic.jsonld",
-                "-o",
-                default_derivatives_output_path,
-            ],
-            catch_exceptions=False,
-        )
+    result = runner.invoke(
+        bagel,
+        [
+            "derivatives",
+            "-t",
+            test_data / "proc_status_unrecognized_pipelines.tsv",
+            "-p",
+            test_data_upload_path / "example_synthetic.jsonld",
+            "-o",
+            default_derivatives_output_path,
+        ],
+        catch_exceptions=False,
+    )
 
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
 
-    assert len(w) == 2
-    warnings = [warning.message.args[0] for warning in w]
-    for warning in warnings:
+    assert len(caplog.records) == 2
+    for warning in caplog.records:
         assert (
-            "unrecognized pipelines" in warning
-            and "unknown-pipeline" in warning
+            "unrecognized pipelines" in warning.message
+            and "unknown-pipeline" in warning.message
         ) or (
-            "unrecognized versions" in warning
-            and "{'fmriprep': ['unknown.version']}" in warning
+            "unrecognized versions" in warning.message
+            and "{'fmriprep': ['unknown.version']}" in warning.message
         )
 
     output = load_test_json(default_derivatives_output_path)

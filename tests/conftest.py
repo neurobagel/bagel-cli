@@ -1,14 +1,33 @@
 import json
+import logging
 import shutil
 from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
 
+from bagel.logger import logger
+
 
 @pytest.fixture(scope="session")
 def runner():
     return CliRunner()
+
+
+@pytest.fixture(scope="function")
+def propagate_logs(monkeypatch):
+    """Ensure that Pytest captures the logs."""
+    monkeypatch.setattr(logger, "propagate", True)
+
+
+@pytest.fixture(scope="function")
+def propagate_warnings(propagate_logs, caplog):
+    caplog.set_level(logging.WARNING)
+
+
+@pytest.fixture(scope="function")
+def propagate_info(propagate_logs, caplog):
+    caplog.set_level(logging.INFO)
 
 
 @pytest.fixture(scope="session")

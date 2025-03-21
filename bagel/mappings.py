@@ -66,8 +66,7 @@ def get_pipeline_catalog(url: str, path: Path) -> list[dict]:
     # The JSONDecodeError should catch the case where the file is empty
     except (httpx.HTTPError, json.JSONDecodeError):
         logger.warning(
-            f"Unable to download pipeline catalog from {url}.\n"
-            f"Will revert to loading backup from {path}."
+            f"Unable to download pipeline catalog from {url}. Will revert to loading backup from {path}."
         )
         try:
             # load_json() will catch JSONDecodeError which should catch when the file is empty

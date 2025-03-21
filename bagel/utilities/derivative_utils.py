@@ -31,8 +31,8 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
     )
 
     unrecognized_pipelines_details = (
-        f"Unrecognized processing pipelines: {unrecognized_pipelines}\n"
-        f"Supported pipelines are those in the Nipoppy pipeline catalog (https://github.com/nipoppy/pipeline-catalog):\n"
+        f"Unrecognized processing pipelines: {unrecognized_pipelines}. "
+        f"Supported pipelines are found in the Nipoppy pipeline catalog (https://github.com/nipoppy/pipeline-catalog): "
         f"{list(mappings.KNOWN_PIPELINE_URIS.keys())}"
     )
     if not recognized_pipelines:
@@ -42,7 +42,8 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
         )
     if unrecognized_pipelines:
         logger.warning(
-            f"The processing status file contains unrecognized pipelines in the column: '{PROC_STATUS_COLS['pipeline_name']}'. These will be ignored.\n"
+            f"The processing status file contains unrecognized pipelines in the column: '{PROC_STATUS_COLS['pipeline_name']}' - "
+            "these will be ignored. "
             f"{unrecognized_pipelines_details}"
         )
     return recognized_pipelines
@@ -89,9 +90,8 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
             unrecognized_pipeline_versions[pipeline] = unrecognized_versions
 
     unrecognized_versions_details = (
-        f"Unrecognized processing pipeline versions: {unrecognized_pipeline_versions}\n"
-        "Supported pipeline versions are those in the Nipoppy pipeline catalog. "
-        "For a full list, see https://github.com/nipoppy/pipeline-catalog."
+        f"Unrecognized processing pipeline versions: {unrecognized_pipeline_versions}. "
+        "Supported pipeline versions are found in the Nipoppy pipeline catalog (https://github.com/nipoppy/pipeline-catalog)."
     )
     if not any_recognized_versions:
         # TODO: Consider simply exiting with a message and no output instead?
@@ -101,8 +101,8 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
         )
     if unrecognized_pipeline_versions:
         logger.warning(
-            f"The processing status file contains unrecognized versions of pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}'. "
-            "These will be ignored.\n"
+            f"The processing status file contains unrecognized versions of pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}' - "
+            "these will be ignored. "
             f"{unrecognized_versions_details}"
         )
 

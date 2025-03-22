@@ -16,17 +16,19 @@ def runner():
 
 @pytest.fixture(scope="function")
 def propagate_logs(monkeypatch):
-    """Ensure that Pytest captures the logs."""
+    """Ensure that Pytest captures the logs from the CLI."""
     monkeypatch.setattr(logger, "propagate", True)
 
 
 @pytest.fixture(scope="function")
 def propagate_warnings(propagate_logs, caplog):
+    """Only capture WARNING logs and above from the CLI."""
     caplog.set_level(logging.WARNING)
 
 
 @pytest.fixture(scope="function")
 def propagate_info(propagate_logs, caplog):
+    """Only capture INFO logs and above from the CLI."""
     caplog.set_level(logging.INFO)
 
 

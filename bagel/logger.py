@@ -1,16 +1,21 @@
 import logging
 
-LOG_FMT = "%(asctime)s %(levelname)-7s %(message)s"
-DATETIME_FMT = "%Y-%m-%d %H:%M:%S"
+from rich.logging import RichHandler
+
+LOG_FMT = "%(message)s"
+DATETIME_FMT = "[%Y-%m-%d %X]"
 
 
+# TODO: Once we introduce CLI options for reducing or increasing verbosity,
+# we can use the "level" parameter to set the logging level
 def get_logger(level: int = logging.INFO) -> logging.Logger:
     """Create a logger with the specified logging level."""
 
-    logger = logging.getLogger(__name__)
-    handler = logging.StreamHandler()
+    logger = logging.getLogger("test")
+    handler = RichHandler(omit_repeated_times=False)
     formatter = logging.Formatter(fmt=LOG_FMT, datefmt=DATETIME_FMT)
     logger.setLevel(level)
+    handler.setLevel(level)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 

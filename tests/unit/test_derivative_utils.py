@@ -6,7 +6,9 @@ from bagel import mappings
 from bagel.utilities import derivative_utils
 
 
-def test_get_pipeline_from_backup_if_remote_fails(monkeypatch):
+def test_get_pipeline_from_backup_if_remote_fails(
+    monkeypatch, caplog, propagate_warnings
+):
     """
     Test that the pipeline catalog is loaded from the local backup if the remote location is unreachable.
 
@@ -28,17 +30,16 @@ def test_get_pipeline_from_backup_if_remote_fails(monkeypatch):
 
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
-    with pytest.warns(UserWarning) as w:
-        result = mappings.get_pipeline_catalog(
-            url=nonsense_url, path=mappings.PROCESSING_PIPELINE_PATH
-        )
+    result = mappings.get_pipeline_catalog(
+        url=nonsense_url, path=mappings.PROCESSING_PIPELINE_PATH
+    )
 
     assert all(isinstance(item, dict) for item in result)
-    assert "Unable to download pipeline catalog" in w[0].message.args[0]
+    assert "Unable to download pipeline catalog" in caplog.text
 
 
 def test_raises_exception_if_remote_and_local_pipeline_catalog_fails(
-    monkeypatch, tmp_path
+    monkeypatch, tmp_path, caplog, propagate_warnings
 ):
     """
     If I cannot get the pipeline catalog from both the remote location and the local backup, I should raise an exception.
@@ -59,15 +60,13 @@ def test_raises_exception_if_remote_and_local_pipeline_catalog_fails(
 
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
-    with pytest.warns(
-        UserWarning, match="Unable to download pipeline catalog"
-    ) as w:
-        with pytest.raises(FileNotFoundError) as e:
-            mappings.get_pipeline_catalog(
-                url=nonsense_url, path=tmp_path / "does_not_exist.json"
-            )
+    with pytest.raises(FileNotFoundError) as e:
+        mappings.get_pipeline_catalog(
+            url=nonsense_url, path=tmp_path / "does_not_exist.json"
+        )
 
-    assert len(w) == 1
+    assert len(caplog.records) == 1
+    assert "Unable to download pipeline catalog" in caplog.records[0].message
     assert "Have you correctly initialized the submodules" in str(e.value)
 
 
@@ -118,20 +117,19 @@ def test_pipeline_versions_are_loaded():
     )
 
 
-def test_warning_raised_when_some_pipeline_names_unrecognized():
+def test_warning_raised_when_some_pipeline_names_unrecognized(
+    caplog, propagate_warnings
+):
     """
     Test that when a subset of pipeline names are not found in the pipeline catalog,
     an informative warning is raised but the recognized pipeline names are successfully returned.
     """
     pipelines = ["fmriprep", "fakepipeline1"]
 
-    with pytest.warns(UserWarning) as w:
-        recognized_pipelines = derivative_utils.get_recognized_pipelines(
-            pipelines
-        )
+    recognized_pipelines = derivative_utils.get_recognized_pipelines(pipelines)
 
     assert all(
-        substr in str(w[0].message.args[0])
+        substr in caplog.text
         for substr in ["unrecognized pipelines", "fakepipeline1"]
     )
     assert recognized_pipelines == ["fmriprep"]

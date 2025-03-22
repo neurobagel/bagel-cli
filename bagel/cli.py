@@ -5,6 +5,7 @@ from bids import BIDSLayout
 
 from bagel import mappings, models
 
+from .logger import logger
 from .utilities import (
     bids_utils,
     derivative_utils,
@@ -98,14 +99,12 @@ def pheno(
     pheno_df = file_utils.load_tabular(pheno)
     pheno_utils.validate_inputs(data_dictionary, pheno_df)
 
-    # NOTE: `space` determines the amount of padding (in num. characters) before the file paths in the print statement.
-    # It is currently calculated as = (length of the longer string, including the 3 leading spaces) + (2 extra spaces)
-    space = 25
-    print(
-        "Processing phenotypic annotations:\n"
-        f"   {'Tabular file (.tsv):' : <{space}} {pheno}\n"
-        f"   {'Data dictionary (.json):' : <{space}} {dictionary}\n"
-    )
+    # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
+    # It is calculated as = length of the longer string + 2 extra spaces
+    width = 26
+    logger.info("Processing phenotypic annotations:")
+    logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
+    logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
 
     subject_list = []
 
@@ -252,12 +251,15 @@ def bids(
     """
     file_utils.check_overwrite(output, overwrite)
 
-    space = 51
-    print(
-        "Running initial checks of inputs...\n"
-        f"   {'Existing subject graph data to augment (.jsonld):' : <{space}} {jsonld_path}\n"
-        f"   {'BIDS dataset directory:' : <{space}} {bids_dir}"
+    width = 51
+    logger.info("Running initial checks of inputs...")
+    logger.info(
+        "%-*s%s",
+        width,
+        "Existing subject graph data to augment (.jsonld):",
+        jsonld_path,
     )
+    logger.info("%-*s%s", width, "BIDS dataset directory:", bids_dir)
 
     jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
         jsonld_path
@@ -272,15 +274,17 @@ def bids(
         pheno_subjects=existing_subs_dict.keys(),
     )
 
-    print("Initial checks of inputs passed.\n")
+    logger.info("Initial checks of inputs passed.")
 
-    print("Parsing and validating BIDS dataset. This may take a while...")
+    logger.info(
+        "Parsing and validating BIDS dataset. This may take a while..."
+    )
     # NOTE: If there are no subjects in the BIDS dataset, the validation should fail.
     # The rest of this workflow assumes there's at least one subject in the BIDS dataset.
     layout = BIDSLayout(bids_dir, validate=True)
-    print("BIDS parsing completed.\n")
+    logger.info("BIDS parsing completed.")
 
-    print("Merging BIDS metadata with existing subject annotations...\n")
+    logger.info("Merging BIDS metadata with existing subject annotations...")
     for bids_sub_id in layout.get_subjects():
         existing_subject = existing_subs_dict[f"sub-{bids_sub_id}"]
         existing_sessions_dict = model_utils.get_imaging_session_instances(
@@ -395,12 +399,15 @@ def derivatives(
     """
     file_utils.check_overwrite(output, overwrite)
 
-    space = 51
-    print(
-        "Processing subject-level derivative metadata...\n"
-        f"   {'Existing subject graph data to augment (.jsonld):' : <{space}}{jsonld_path}\n"
-        f"   {'Processing status file (.tsv):' : <{space}}{tabular}"
+    width = 51
+    logger.info("Processing subject-level derivative metadata...")
+    logger.info(
+        "%-*s%s",
+        width,
+        "Existing subject graph data to augment (.jsonld):",
+        jsonld_path,
     )
+    logger.info("%-*s%s", width, "Processing status file (.tsv):", tabular)
 
     status_df = file_utils.load_tabular(
         tabular, input_type="processing status"

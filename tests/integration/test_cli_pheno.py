@@ -673,7 +673,7 @@ def test_default_output_filename(runner, test_data_upload_path, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "overwrite_flag, output_exists_message_shown, output_saved_message_shown",
+    "overwrite_flag, should_show_output_exists_message, should_show_output_saved_message",
     [
         ([], True, False),
         (["--overwrite"], False, True),
@@ -684,8 +684,8 @@ def test_overwrite_flag_behaviour(
     test_data_upload_path,
     tmp_path,
     overwrite_flag,
-    output_exists_message_shown,
-    output_saved_message_shown,
+    should_show_output_exists_message,
+    should_show_output_saved_message,
     caplog,
     propagate_info,
 ):
@@ -723,10 +723,13 @@ def test_overwrite_flag_behaviour(
         + overwrite_flag,
     )
 
-    assert (
+    was_output_exists_message_shown = (
         "already exists" in overwrite_result.output
-    ) == output_exists_message_shown
-    assert ("Saved output to" in caplog.text) == output_saved_message_shown
+    )
+    was_output_saved_message_shown = "Saved output to" in caplog.text
+
+    assert was_output_exists_message_shown == should_show_output_exists_message
+    assert was_output_saved_message_shown == should_show_output_saved_message
 
 
 def test_pheno_sessions_have_correct_labels(

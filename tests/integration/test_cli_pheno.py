@@ -704,6 +704,7 @@ def test_overwrite_flag_behaviour(
             tmp_path / "synthetic_dataset.jsonld",
         ],
     )
+    # We need to clear the captured logs here so we can assert over only the logs produced by the following invocation
     caplog.clear()
 
     overwrite_result = runner.invoke(

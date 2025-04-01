@@ -1,8 +1,9 @@
 import logging
 import sys
-import traceback
 
 from rich.logging import RichHandler
+
+from bagel.config import CONFIG
 
 LOG_FMT = "%(message)s"
 DATETIME_FMT = "[%Y-%m-%d %X]"
@@ -14,7 +15,9 @@ def get_logger(level: int = logging.INFO) -> logging.Logger:
     """Create a logger with the specified logging level."""
 
     logger = logging.getLogger("test")
-    handler = RichHandler(omit_repeated_times=False, show_path=False)
+    handler = RichHandler(
+        omit_repeated_times=False, show_path=False, rich_tracebacks=True
+    )
     formatter = logging.Formatter(fmt=LOG_FMT, datefmt=DATETIME_FMT)
     logger.setLevel(level)
     handler.setLevel(level)
@@ -28,13 +31,13 @@ def get_logger(level: int = logging.INFO) -> logging.Logger:
 
 
 def log_error(
-    logger: logging.Logger, message: str, show_traceback: bool = False
+    logger: logging.Logger,
+    message: str,  # show_traceback: bool = False - TODO: remove
 ):
     """Log an exception with or without the full traceback."""
-    if show_traceback:
-        logger.error("%s\n%s", traceback.format_exc(), message)
-    else:
-        logger.error(message)
+    # when exc_info=True, the current exception information will be fetched
+    # and included in the log after the custom message
+    logger.error(message, exc_info=CONFIG["debug"])
     sys.exit(1)
 
 

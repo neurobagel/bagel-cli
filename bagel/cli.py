@@ -4,6 +4,7 @@ import typer
 from bids import BIDSLayout
 
 from bagel import mappings, models
+from bagel.config import CONFIG
 
 from .logger import logger
 from .utilities import (
@@ -27,6 +28,17 @@ bagel = typer.Typer(
     # From https://github.com/tiangolo/typer/issues/201#issuecomment-744151303
     context_settings={"help_option_names": ["--help", "-h"]},
 )
+
+
+# NOTE: We use a reusable option instead of a callback to avoid the complexity
+# of needing to specify --debug before the actual CLI command names
+def debug_option():
+    """Create a reusable debug option for commands."""
+    return typer.Option(
+        False,
+        "--debug",
+        help="Enable debug mode. This will show detailed tracebacks for errors.",
+    )
 
 
 @bagel.command()
@@ -83,6 +95,7 @@ def pheno(
         "-f",
         help="Overwrite output file if it already exists.",
     ),
+    debug: bool = debug_option(),
 ):
     """
     Process a tabular phenotypic file (.tsv) that has been successfully annotated
@@ -93,6 +106,9 @@ def pheno(
     graph data model for the provided phenotypic file in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
+    if debug:
+        CONFIG["debug"] = True
+
     file_utils.check_overwrite(output, overwrite)
 
     data_dictionary = file_utils.load_json(dictionary)
@@ -239,6 +255,7 @@ def bids(
         "-f",
         help="Overwrite output file if it already exists.",
     ),
+    debug: bool = debug_option(),
 ):
     """
     Extract imaging metadata from a valid BIDS dataset and integrate it with
@@ -250,6 +267,9 @@ def bids(
     graph data model for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
+    if debug:
+        CONFIG["debug"] = True
+
     file_utils.check_overwrite(output, overwrite)
 
     width = 51
@@ -387,6 +407,7 @@ def derivatives(
         "-f",
         help="Overwrite output file if it already exists.",
     ),
+    debug: bool = debug_option(),
 ):
     """
     Extract subject processing pipeline and derivative metadata from a tabular processing status file and
@@ -398,6 +419,9 @@ def derivatives(
     graph data model for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
+    if debug:
+        CONFIG["debug"] = True
+
     file_utils.check_overwrite(output, overwrite)
 
     width = 51

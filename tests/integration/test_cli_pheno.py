@@ -340,27 +340,30 @@ def test_providing_csv_file_raises_error(
     test_data,
     tmp_path,
     default_pheno_output_path,
+    caplog,
+    propagate_errors,
 ):
     """Providing a .csv file or a file with .tsv extension but incorrect encoding should be handled with an
     informative error."""
-    with pytest.raises(ValueError) as e:
-        runner.invoke(
-            bagel,
-            [
-                "pheno",
-                "--pheno",
-                test_data / pheno_file,
-                "--dictionary",
-                test_data / dictionary_file,
-                "--output",
-                default_pheno_output_path,
-                "--name",
-                "testing dataset",
-            ],
-            catch_exceptions=False,
-        )
+    result = runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / pheno_file,
+            "--dictionary",
+            test_data / dictionary_file,
+            "--output",
+            default_pheno_output_path,
+            "--name",
+            "testing dataset",
+        ],
+        catch_exceptions=False,
+    )
 
-    assert "Please provide a valid .tsv phenotypic file" in str(e.value)
+    assert result.exit_code != 0
+    assert len(caplog.records) == 1
+    assert "Please provide a valid .tsv phenotypic file" in caplog.text
 
 
 def test_output_file_contains_dataset_level_attributes(

@@ -6,7 +6,7 @@ from bids import BIDSLayout
 from bagel import mappings, models
 from bagel.config import CONFIG
 
-from .logger import logger
+from .logger import log_error, logger
 from .utilities import (
     bids_utils,
     derivative_utils,
@@ -437,10 +437,11 @@ def derivatives(
     if row_indices := pheno_utils.get_rows_with_empty_strings(
         status_df, [PROC_STATUS_COLS["participant"]]
     ):
-        raise LookupError(
+        log_error(
+            logger,
             f"Your processing status file contains missing values in the column '{PROC_STATUS_COLS['participant']}'. "
             "Please ensure that every row has a non-empty participant id. "
-            f"We found missing values in the following rows (first row is zero): {row_indices}."
+            f"We found missing values in the following rows (first row is zero): {row_indices}.",
         )
 
     derivative_utils.check_at_least_one_pipeline_version_is_recognized(

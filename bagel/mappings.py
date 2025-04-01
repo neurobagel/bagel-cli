@@ -4,7 +4,7 @@ from pathlib import Path
 
 import httpx
 
-from .logger import logger
+from .logger import log_error, logger
 from .utilities import file_utils
 
 Namespace = namedtuple("Namespace", ["pf", "url"])
@@ -72,9 +72,10 @@ def get_pipeline_catalog(url: str, path: Path) -> list[dict]:
             # load_json() will catch JSONDecodeError which should catch when the file is empty
             return file_utils.load_json(path)
         except FileNotFoundError as e:
-            raise FileNotFoundError(
-                f"Unable to find a local pipeline-catalog backup. Have you correctly initialized the submodules? {e}"
-            ) from e
+            log_error(
+                logger,
+                f"Unable to find a local pipeline-catalog backup. Have you correctly initialized the submodules? {e}",
+            )
 
 
 def parse_pipeline_catalog() -> tuple[dict, dict]:

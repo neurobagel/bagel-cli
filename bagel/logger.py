@@ -34,7 +34,7 @@ def log_error(
     logger: logging.Logger,
     message: str,
 ):
-    """Log an exception with or without the full traceback."""
+    """Log an exception with or without the full traceback, and exit the app."""
     # when exc_info=True, the current exception information will be fetched
     # and included in the log after the custom message
     logger.error(message, exc_info=CONFIG["debug"])

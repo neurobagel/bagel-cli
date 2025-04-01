@@ -72,23 +72,20 @@ def test_pheno_valid_inputs_run_successfully(
 
 
 @pytest.mark.parametrize(
-    "example,expected_exception,expected_message",
+    "example,expected_message",
     [
         (
             "example3",
-            LookupError,
             ["must contain at least one column with Neurobagel annotations"],
         ),
         (
             "example_invalid",
-            ValueError,
             ["not a valid Neurobagel data dictionary"],
         ),
-        ("example7", LookupError, ["not compatible"]),
-        ("example8", ValueError, ["more than one column"]),
+        ("example7", ["not compatible"]),
+        ("example8", ["more than one column"]),
         (
             "example9",
-            LookupError,
             [
                 "values not annotated in the data dictionary",
                 "'group': ['UNANNOTATED']",
@@ -96,29 +93,24 @@ def test_pheno_valid_inputs_run_successfully(
         ),
         (
             "example11",
-            LookupError,
             ["missing values in participant or session id"],
         ),
         (
             "example15",
-            LookupError,
             [
                 "must contain at least one column annotated as being about participant ID"
             ],
         ),
         (
             "example1",
-            LookupError,
             ["do not have unique combinations of participant and session IDs"],
         ),
         (
             "example18",
-            LookupError,
             ["do not have unique combinations of participant and session IDs"],
         ),
         (
             "example5",
-            LookupError,
             [
                 "unsupported vocabulary namespace prefixes",
                 "['cogatlas', 'unknownvocab']",
@@ -133,29 +125,31 @@ def test_invalid_inputs_are_handled_gracefully(
     test_data,
     default_pheno_output_path,
     example,
-    expected_exception,
     expected_message,
+    caplog,
+    propagate_errors,
 ):
     """Assures that we handle expected user errors in the input files gracefully"""
-    with pytest.raises(expected_exception) as e:
-        runner.invoke(
-            bagel,
-            [
-                "pheno",
-                "--pheno",
-                test_data / f"{example}.tsv",
-                "--dictionary",
-                test_data / f"{example}.json",
-                "--output",
-                default_pheno_output_path,
-                "--name",
-                "do not care name",
-            ],
-            catch_exceptions=False,
-        )
+    result = runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / f"{example}.tsv",
+            "--dictionary",
+            test_data / f"{example}.json",
+            "--output",
+            default_pheno_output_path,
+            "--name",
+            "do not care name",
+        ],
+        catch_exceptions=False,
+    )
 
+    assert result.exit_code != 0
+    assert len(caplog.records) == 1
     for substring in expected_message:
-        assert substring in str(e.value)
+        assert substring in caplog.text
 
 
 @pytest.mark.parametrize(
@@ -207,7 +201,7 @@ def test_multiple_age_or_sex_columns_raises_warning(
     caplog,
     propagate_warnings,
 ):
-    """Test that an informative warning is raised when multiple columns in the phenotypic file have been annotated as being about age or sex."""
+    """Test that an informative warning is logged when multiple columns in the phenotypic file have been annotated as being about age or sex."""
     runner.invoke(
         bagel,
         [
@@ -302,7 +296,7 @@ def test_unused_missing_values_raises_warning(
     propagate_warnings,
 ):
     """
-    Tests that an informative warning is raised when annotated missing values are not found in the
+    Tests that an informative warning is logged when annotated missing values are not found in the
     phenotypic file.
     """
     runner.invoke(

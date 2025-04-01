@@ -1,4 +1,5 @@
 import logging
+from typing import NoReturn
 
 import typer
 from rich.logging import RichHandler
@@ -33,7 +34,7 @@ def get_logger(level: int = logging.INFO) -> logging.Logger:
 def log_error(
     logger: logging.Logger,
     message: str,
-):
+) -> NoReturn:
     """Log an exception with or without the full traceback, and exit the app."""
     # when exc_info=True, the current exception information will be fetched
     # and included in the log after the custom message

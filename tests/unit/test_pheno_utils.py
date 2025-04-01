@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+import typer
 
 from bagel import mappings
 from bagel.utilities import pheno_utils
@@ -58,20 +59,20 @@ from bagel.utilities import pheno_utils
     ],
 )
 def test_schema_invalid_column_raises_error(
-    partial_data_dict, invalid_column_name
+    partial_data_dict, invalid_column_name, caplog, propagate_errors
 ):
     """
     Test that when an input data dictionary contains a schema invalid column annotation,
     an informative error is raised which includes the name of the offending column.
     """
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(typer.Exit):
         pheno_utils.validate_data_dict(partial_data_dict)
 
     for substring in [
         "not a valid Neurobagel data dictionary",
         invalid_column_name,
     ]:
-        assert substring in str(e.value)
+        assert substring in caplog.text
 
 
 def test_get_columns_that_are_about_concept(test_data, load_test_json):
@@ -357,20 +358,22 @@ def test_age_gets_converted(raw_age, expected_age, value_format):
         ("-30", "nb:FromRange"),
     ],
 )
-def test_incorrect_age_format(raw_age, incorrect_format):
+def test_incorrect_age_format(
+    raw_age, incorrect_format, caplog, propagate_errors
+):
     """Given an age transformation that does not match the type of age value provided, returns an informative error."""
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(typer.Exit):
         pheno_utils.transform_age(raw_age, incorrect_format)
 
     assert (
         f"problem with applying the transformation {incorrect_format} to the age: {raw_age}"
-        in str(e.value)
+        in caplog.text
     )
 
 
-def test_invalid_age_format():
+def test_invalid_age_format(caplog, propagate_errors):
     """Given an age transformation that is not recognized, returns an informative ValueError."""
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(typer.Exit):
         pheno_utils.transform_age("11,0", "nb:birthyear")
 
-    assert "unrecognized age transformation: nb:birthyear" in str(e.value)
+    assert "unrecognized age transformation: nb:birthyear" in caplog.text

@@ -41,6 +41,16 @@ def debug_option():
     )
 
 
+def overwrite_option():
+    """Create a reusable overwrite option for commands."""
+    return typer.Option(
+        False,
+        "--overwrite",
+        "-f",
+        help="Overwrite output file if it already exists.",
+    )
+
+
 @bagel.command()
 def pheno(
     pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
@@ -89,12 +99,7 @@ def pheno(
         dir_okay=False,
         resolve_path=True,
     ),
-    overwrite: bool = typer.Option(
-        False,
-        "--overwrite",
-        "-f",
-        help="Overwrite output file if it already exists.",
-    ),
+    overwrite: bool = overwrite_option(),
     debug: bool = debug_option(),
 ):
     """
@@ -249,12 +254,7 @@ def bids(
         dir_okay=False,
         resolve_path=True,
     ),
-    overwrite: bool = typer.Option(
-        False,
-        "--overwrite",
-        "-f",
-        help="Overwrite output file if it already exists.",
-    ),
+    overwrite: bool = overwrite_option(),
     debug: bool = debug_option(),
 ):
     """
@@ -401,12 +401,7 @@ def derivatives(
         dir_okay=False,
         resolve_path=True,
     ),
-    overwrite: bool = typer.Option(
-        False,
-        "--overwrite",
-        "-f",
-        help="Overwrite output file if it already exists.",
-    ),
+    overwrite: bool = overwrite_option(),
     debug: bool = debug_option(),
 ):
     """

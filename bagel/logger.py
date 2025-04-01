@@ -1,6 +1,6 @@
 import logging
-import sys
 
+import typer
 from rich.logging import RichHandler
 
 from bagel.config import CONFIG
@@ -32,13 +32,13 @@ def get_logger(level: int = logging.INFO) -> logging.Logger:
 
 def log_error(
     logger: logging.Logger,
-    message: str,  # show_traceback: bool = False - TODO: remove
+    message: str,
 ):
     """Log an exception with or without the full traceback."""
     # when exc_info=True, the current exception information will be fetched
     # and included in the log after the custom message
     logger.error(message, exc_info=CONFIG["debug"])
-    sys.exit(1)
+    raise typer.Exit(code=1)
 
 
 logger = get_logger()

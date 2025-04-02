@@ -103,22 +103,19 @@ def test_pipeline_info_added_to_existing_imaging_sessions(
 
 
 @pytest.mark.parametrize(
-    "example,expected_message,expected_error",
+    "example,expected_message",
     [
         (
             "proc_status_synthetic_incomplete.tsv",
             ["missing", "status"],
-            LookupError,
         ),
         (
             "proc_status_synthetic.csv",
             ["processing status", "not a .tsv file"],
-            ValueError,
         ),
         (
             "proc_status_unique_subs.tsv",
             ["processing status file", "subject IDs not found"],
-            LookupError,
         ),
     ],
 )
@@ -129,26 +126,28 @@ def test_derivatives_invalid_inputs_fail(
     default_derivatives_output_path,
     example,
     expected_message,
-    expected_error,
+    caplog,
+    propagate_errors,
 ):
     """Assure that we handle expected user errors in the input files for the bagel derivatives command gracefully."""
-    with pytest.raises(expected_error) as e:
-        runner.invoke(
-            bagel,
-            [
-                "derivatives",
-                "-t",
-                test_data / example,
-                "-p",
-                test_data_upload_path / "example_synthetic.jsonld",
-                "-o",
-                default_derivatives_output_path,
-            ],
-            catch_exceptions=False,
-        )
+    result = runner.invoke(
+        bagel,
+        [
+            "derivatives",
+            "-t",
+            test_data / example,
+            "-p",
+            test_data_upload_path / "example_synthetic.jsonld",
+            "-o",
+            default_derivatives_output_path,
+        ],
+        catch_exceptions=False,
+    )
 
+    assert result.exit_code != 0
+    assert len(caplog.records) == 1
     for substring in expected_message:
-        assert substring in str(e.value)
+        assert substring in caplog.text
 
     assert (
         not default_derivatives_output_path.exists()
@@ -277,27 +276,30 @@ def test_error_when_no_pipeline_version_combos_recognized(
     test_data_upload_path,
     default_derivatives_output_path,
     load_test_json,
+    caplog,
+    propagate_errors,
 ):
     """
     Test that when there is no recognized pipeline-version combination in the processing status file,
-    an error is raised and no output JSONLD is created.
+    the app exits with an error and no output JSONLD is created.
     """
-    with pytest.raises(LookupError) as e:
-        runner.invoke(
-            bagel,
-            [
-                "derivatives",
-                "-t",
-                test_data / "proc_status_no_recognized_pipelines.tsv",
-                "-p",
-                test_data_upload_path / "example_synthetic.jsonld",
-                "-o",
-                default_derivatives_output_path,
-            ],
-            catch_exceptions=False,
-        )
+    result = runner.invoke(
+        bagel,
+        [
+            "derivatives",
+            "-t",
+            test_data / "proc_status_no_recognized_pipelines.tsv",
+            "-p",
+            test_data_upload_path / "example_synthetic.jsonld",
+            "-o",
+            default_derivatives_output_path,
+        ],
+        catch_exceptions=False,
+    )
 
-    assert "no recognized versions" in str(e.value)
+    assert result.exit_code != 0
+    assert len(caplog.records) == 1
+    assert "no recognized versions" in caplog.text
     assert (
         not default_derivatives_output_path.exists()
     ), "A JSONLD was created despite inputs being invalid."

@@ -3,7 +3,7 @@ from typing import Iterable
 import pandas as pd
 
 from bagel import mappings, models
-from bagel.logger import logger
+from bagel.logger import log_error, logger
 
 # Shorthands for expected column names in a Nipoppy processing status file
 # TODO: While there are multiple session ID columns in a Nipoppy processing status file,
@@ -21,7 +21,7 @@ PROC_STATUS_COLS = {
 def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
     """
     Check that all pipelines in the processing status file are supported by Nipoppy.
-    Raise an error if all pipelines are unrecognized, otherwise warn about unrecognized pipelines.
+    Log an error if all pipelines are unrecognized, otherwise warn about unrecognized pipelines.
     """
     recognized_pipelines = list(
         set(pipelines).intersection(mappings.KNOWN_PIPELINE_URIS)
@@ -36,9 +36,10 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
         f"{list(mappings.KNOWN_PIPELINE_URIS.keys())}"
     )
     if not recognized_pipelines:
-        raise LookupError(
+        log_error(
+            logger,
             f"The processing status file contains no recognized pipelines in the column: '{PROC_STATUS_COLS['pipeline_name']}'.\n"
-            f"{unrecognized_pipelines_details}"
+            f"{unrecognized_pipelines_details}",
         )
     if unrecognized_pipelines:
         logger.warning(
@@ -94,10 +95,10 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
         "Supported pipeline versions are found in the Nipoppy pipeline catalog (https://github.com/nipoppy/pipeline-catalog)."
     )
     if not any_recognized_versions:
-        # TODO: Consider simply exiting with a message and no output instead?
-        raise LookupError(
+        log_error(
+            logger,
             f"The processing status file contains no recognized versions of any pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}'.\n"
-            f"{unrecognized_versions_details}"
+            f"{unrecognized_versions_details}",
         )
     if unrecognized_pipeline_versions:
         logger.warning(

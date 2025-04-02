@@ -37,7 +37,7 @@ Designed to work with `.jsonld` files from the [Neurobagel reference example dat
 Example file `proc_status`... | Description | Expected result
 ----- | ----- | -----
 _synthetic.tsv | Captures a subset of subject-sessions represented in the BIDS examples synthetic dataset | Pass
-_synthetic.csv | Same as proc_status_synthetic.csv, but is a CSV file | Fail
+_synthetic.csv | Same as proc_status_synthetic.tsv, but is a CSV file | Fail
 _unique_subs.tsv | Includes subjects not found in the phenotypic dataset | Fail
 _incomplete.tsv | Has a missing value in the `bids_participant_id` column | Fail
 _unique_sessions.csv | Includes a unique subject-session (`sub-01`, `ses-03`) not found in the synthetic dataset | Pass

@@ -1,6 +1,7 @@
 import httpx
 import pandas as pd
 import pytest
+import typer
 
 from bagel import mappings
 from bagel.utilities import derivative_utils
@@ -60,14 +61,17 @@ def test_raises_exception_if_remote_and_local_pipeline_catalog_fails(
 
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
-    with pytest.raises(FileNotFoundError) as e:
+    with pytest.raises(typer.Exit):
         mappings.get_pipeline_catalog(
             url=nonsense_url, path=tmp_path / "does_not_exist.json"
         )
 
-    assert len(caplog.records) == 1
+    assert len(caplog.records) == 2
     assert "Unable to download pipeline catalog" in caplog.records[0].message
-    assert "Have you correctly initialized the submodules" in str(e.value)
+    assert (
+        "Have you correctly initialized the submodules"
+        in caplog.records[1].message
+    )
 
 
 def test_get_pipeline_from_remote_succeeds(monkeypatch):
@@ -135,17 +139,19 @@ def test_warning_raised_when_some_pipeline_names_unrecognized(
     assert recognized_pipelines == ["fmriprep"]
 
 
-def test_error_raised_when_no_pipeline_names_recognized():
+def test_error_raised_when_no_pipeline_names_recognized(
+    caplog, propagate_errors
+):
     """
     Test that when no provided pipeline names are found in the pipeline catalog,
     an informative error is raised.
     """
     pipelines = ["fakepipeline1", "fakepipeline2"]
 
-    with pytest.raises(LookupError) as e:
+    with pytest.raises(typer.Exit):
         derivative_utils.get_recognized_pipelines(pipelines)
 
-    assert "no recognized pipelines" in str(e.value)
+    assert "no recognized pipelines" in caplog.text
 
 
 @pytest.mark.parametrize(

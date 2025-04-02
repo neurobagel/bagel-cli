@@ -32,6 +32,12 @@ def propagate_info(propagate_logs, caplog):
     caplog.set_level(logging.INFO)
 
 
+@pytest.fixture(scope="function")
+def propagate_errors(propagate_logs, caplog):
+    """Only capture ERROR logs and above from the CLI."""
+    caplog.set_level(logging.ERROR)
+
+
 @pytest.fixture(scope="session")
 def bids_path(tmp_path_factory):
     return Path(__file__).absolute().parent / "bids-examples"

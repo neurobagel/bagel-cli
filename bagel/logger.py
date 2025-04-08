@@ -1,4 +1,5 @@
 import logging
+import sys
 from enum import Enum
 from typing import NoReturn
 
@@ -8,6 +9,9 @@ from rich.logging import RichHandler
 LOG_FMT = "%(message)s"
 DATETIME_FMT = "[%Y-%m-%d %X]"
 
+# Check if code is currently running in a test environment
+IS_TESTING = "pytest" in sys.modules
+
 logger = logging.getLogger("bagel.logger")
 
 
@@ -16,6 +20,7 @@ class VerbosityLevel(str, Enum):
 
     ERROR = "0"
     INFO = "1"
+    # NOTE: We currently do not have any debug logs, but can add them in the future
     DEBUG = "2"
 
 
@@ -24,7 +29,7 @@ class VerbosityLevel(str, Enum):
 def configure_logger(level: int = logging.INFO):
     """Configure a logger with the specified logging level."""
 
-    # Prevent duplicate handlers
+    # Prevent duplicate handlers when updating the logger
     if not logger.handlers:
         handler = RichHandler(
             omit_repeated_times=False, show_path=False, rich_tracebacks=True
@@ -38,7 +43,9 @@ def configure_logger(level: int = logging.INFO):
         handler.setLevel(level)
 
     # propagate should be False to avoid duplicate messages from root logger
-    logger.propagate = False
+    # except when testing because otherwise Pytest does not capture the logs
+    if not IS_TESTING:
+        logger.propagate = False
 
 
 def log_error(

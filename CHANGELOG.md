@@ -1,3 +1,16 @@
+# v0.4.4 (Tue Apr 08 2025)
+
+#### 🚀 Enhancements
+
+- [REF] Switch to logging for errors and add `--verbosity` option for log level [#446](https://github.com/neurobagel/bagel-cli/pull/446) ([@alyssadai](https://github.com/alyssadai))
+- [REF] Switch to logging for warnings and info messages [#444](https://github.com/neurobagel/bagel-cli/pull/444) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.4.3 (Fri Mar 07 2025)
 
 #### 🚀 Enhancements

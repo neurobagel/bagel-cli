@@ -5,7 +5,7 @@ from bids import BIDSLayout
 
 from bagel import mappings, models
 
-from .logger import VerbosityLevel, log_error, logger, set_log_level
+from .logger import VerbosityLevel, configure_logger, log_error, logger
 from .utilities import (
     bids_utils,
     derivative_utils,
@@ -37,7 +37,7 @@ def verbosity_option():
         VerbosityLevel.INFO,
         "--verbosity",
         "-v",
-        callback=set_log_level,
+        callback=configure_logger,
         help="Set the verbosity level of the output. 0 = show errors only; 1 = show errors, warnings, and informational messages; 3 = show all logs, including debug messages.",
     )
 

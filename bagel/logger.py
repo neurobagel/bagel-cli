@@ -24,10 +24,16 @@ class VerbosityLevel(str, Enum):
     DEBUG = "2"
 
 
-# TODO: Once we introduce CLI options for reducing or increasing verbosity,
-# we can use the "level" parameter to set the logging level
-def configure_logger(level: int = logging.INFO):
+verbosity_log_levels = {
+    VerbosityLevel.ERROR: logging.ERROR,
+    VerbosityLevel.INFO: logging.INFO,
+    VerbosityLevel.DEBUG: logging.DEBUG,
+}
+
+
+def configure_logger(verbosity: VerbosityLevel = VerbosityLevel.INFO) -> None:
     """Configure a logger with the specified logging level."""
+    level = verbosity_log_levels[verbosity]
 
     # Prevent duplicate handlers when updating the logger
     if not logger.handlers:
@@ -55,13 +61,3 @@ def log_error(
     """Log an exception with an informative error message, and exit the app."""
     logger.error(message)
     raise typer.Exit(code=1)
-
-
-def set_log_level(verbosity: VerbosityLevel):
-    """Set the logging level based on the verbosity option."""
-    if verbosity == VerbosityLevel.ERROR:
-        configure_logger(logging.ERROR)
-    elif verbosity == VerbosityLevel.INFO:
-        configure_logger(logging.INFO)
-    elif verbosity == VerbosityLevel.DEBUG:
-        configure_logger(logging.DEBUG)

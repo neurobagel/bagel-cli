@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 from typing import NoReturn
 
 import typer
@@ -8,6 +9,14 @@ LOG_FMT = "%(message)s"
 DATETIME_FMT = "[%Y-%m-%d %X]"
 
 logger = logging.getLogger("bagel.logger")
+
+
+class VerbosityLevel(str, Enum):
+    """Enum for verbosity levels."""
+
+    ERROR = "0"
+    INFO = "1"
+    DEBUG = "2"
 
 
 # TODO: Once we introduce CLI options for reducing or increasing verbosity,
@@ -39,3 +48,13 @@ def log_error(
     """Log an exception with an informative error message, and exit the app."""
     logger.error(message)
     raise typer.Exit(code=1)
+
+
+def set_log_level(verbosity: VerbosityLevel):
+    """Set the logging level based on the verbosity option."""
+    if verbosity == VerbosityLevel.ERROR:
+        configure_logger(logging.ERROR)
+    elif verbosity == VerbosityLevel.INFO:
+        configure_logger(logging.INFO)
+    elif verbosity == VerbosityLevel.DEBUG:
+        configure_logger(logging.DEBUG)

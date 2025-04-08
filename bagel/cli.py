@@ -4,9 +4,8 @@ import typer
 from bids import BIDSLayout
 
 from bagel import mappings, models
-from bagel.config import CONFIG
 
-from .logger import log_error, logger
+from .logger import VerbosityLevel, log_error, logger, set_log_level
 from .utilities import (
     bids_utils,
     derivative_utils,
@@ -31,13 +30,15 @@ bagel = typer.Typer(
 
 
 # NOTE: We use a reusable option instead of a callback to avoid the complexity
-# of needing to specify --debug before the actual CLI command names
-def debug_option():
-    """Create a reusable debug option for commands."""
+# of needing to specify the flag before the actual CLI command names
+def verbosity_option():
+    """Create a reusable verbosity option for commands."""
     return typer.Option(
-        False,
-        "--debug",
-        help="Enable debug mode. This will show detailed tracebacks for errors.",
+        VerbosityLevel.INFO,
+        "--verbosity",
+        "-v",
+        callback=set_log_level,
+        help="Set the verbosity level of the output. 0 = show errors only; 1 = show errors, warnings, and informational messages; 3 = show all logs, including debug messages.",
     )
 
 
@@ -100,7 +101,7 @@ def pheno(
         resolve_path=True,
     ),
     overwrite: bool = overwrite_option(),
-    debug: bool = debug_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
 ):
     """
     Process a tabular phenotypic file (.tsv) that has been successfully annotated
@@ -111,14 +112,12 @@ def pheno(
     graph data model for the provided phenotypic file in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
-    if debug:
-        CONFIG["debug"] = True
-
     file_utils.check_overwrite(output, overwrite)
 
     data_dictionary = file_utils.load_json(dictionary)
     pheno_df = file_utils.load_tabular(pheno)
 
+    # TODO: Move before file loading?
     logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
     # It is calculated as = length of the longer string + 2 extra spaces
@@ -255,7 +254,7 @@ def bids(
         resolve_path=True,
     ),
     overwrite: bool = overwrite_option(),
-    debug: bool = debug_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
 ):
     """
     Extract imaging metadata from a valid BIDS dataset and integrate it with
@@ -267,8 +266,6 @@ def bids(
     graph data model for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
-    if debug:
-        CONFIG["debug"] = True
 
     file_utils.check_overwrite(output, overwrite)
 
@@ -402,7 +399,7 @@ def derivatives(
         resolve_path=True,
     ),
     overwrite: bool = overwrite_option(),
-    debug: bool = debug_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
 ):
     """
     Extract subject processing pipeline and derivative metadata from a tabular processing status file and
@@ -414,8 +411,6 @@ def derivatives(
     graph data model for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
-    if debug:
-        CONFIG["debug"] = True
 
     file_utils.check_overwrite(output, overwrite)
 

@@ -10,7 +10,7 @@ import pydantic
 from typer import BadParameter
 
 from bagel import dictionary_models, mappings
-from bagel.logger import logger
+from bagel.logger import log_error, logger
 from bagel.mappings import (
     DEPRECATED_NAMESPACE_PREFIXES,
     NB,
@@ -212,17 +212,19 @@ def transform_age(value: str, value_format: str) -> float:
         if value_format == AGE_FORMATS["range"]:
             a_min, a_max = value.split("-")
             return sum(map(float, [a_min, a_max])) / 2
-        raise ValueError(
+        log_error(
+            logger,
             f"The provided data dictionary contains an unrecognized age transformation: {value_format}. "
-            f"Ensure that the transformation TermURL is one of {list(AGE_FORMATS.values())}."
+            f"Ensure that the transformation TermURL is one of {list(AGE_FORMATS.values())}.",
         )
     except (ValueError, isodate.isoerror.ISO8601Error) as e:
-        raise ValueError(
+        log_error(
+            logger,
             f"There was a problem with applying the transformation {value_format} to the age: {value}. Error: {str(e)}\n"
             f"Check that the transformation specified in the data dictionary ({value_format}) is correct for the age values in your phenotypic file, "
             "and that you correctly annotated any missing values in your age column. "
-            "For examples of acceptable values for specific age transformations, see https://neurobagel.org/data_models/dictionaries/#age."
-        ) from e
+            "For examples of acceptable values for specific age transformations, see https://neurobagel.org/data_models/dictionaries/#age.",
+        )
 
 
 def get_transformed_values(
@@ -363,17 +365,18 @@ def validate_data_dict(data_dict: dict) -> None:
         # returning ALL invalid items, we may want to use something like a Draft7Validator instance instead.
         # NOTE: If the validation error occurs at the root level (i.e., the entire JSON object fails),
         # e.path may be empty. We have a backup descriptor "Entire document" for the offending item in this case.
-        raise ValueError(
-            "The provided data dictionary is not a valid Neurobagel data dictionary.\n"
-            "Details:\n"
+        log_error(
+            logger,
+            "The provided data dictionary is not a valid Neurobagel data dictionary. "
             f"Entry that failed validation: {e.path[-1] if e.path else 'Entire document'}\n"
-            f"{e.message}\n"
-            "Tip: Make sure that each annotated column contains an 'Annotations' key."
-        ) from e
+            f"Details: {e.message}\n"
+            "Tip: Make sure that each annotated column contains an 'Annotations' key.",
+        )
 
     if get_annotated_columns(data_dict) == []:
-        raise LookupError(
-            "The provided data dictionary must contain at least one column with Neurobagel annotations."
+        log_error(
+            logger,
+            "The provided data dictionary must contain at least one column with Neurobagel annotations.",
         )
 
     unsupported_namespaces, unrecognized_term_urls = (
@@ -388,12 +391,13 @@ def validate_data_dict(data_dict: dict) -> None:
                 f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
                 "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
             )
-        raise LookupError(
+        log_error(
+            logger,
             f"The provided data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
             f"Unsupported vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
             "Please ensure that the data dictionary only includes terms from Neurobagel recognized vocabularies. "
             "(See https://neurobagel.org/data_models/dictionaries/.)"
-            f"{namespace_deprecation_msg}"
+            f"{namespace_deprecation_msg}",
         )
 
     if (
@@ -404,8 +408,9 @@ def validate_data_dict(data_dict: dict) -> None:
         )
         == 0
     ):
-        raise LookupError(
-            "The provided data dictionary must contain at least one column annotated as being about participant ID."
+        log_error(
+            logger,
+            "The provided data dictionary must contain at least one column annotated as being about participant ID.",
         )
 
     # TODO: remove this validation when we start handling multiple participant and / or session ID columns
@@ -424,9 +429,10 @@ def validate_data_dict(data_dict: dict) -> None:
         )
         > 1
     ):
-        raise ValueError(
+        log_error(
+            logger,
             "The provided data dictionary has more than one column about participant ID or session ID. "
-            "Please make sure that only one column is annotated for participant and session IDs."
+            "Please make sure that only one column is annotated for participant and session IDs.",
         )
 
     if (
@@ -459,14 +465,15 @@ def validate_data_dict(data_dict: dict) -> None:
 
 
 def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
-    """Raise an error if there are duplicate participant IDs or duplicate combinations of participant and session IDs, if both are present."""
+    """Log an error if there are duplicate participant IDs or duplicate combinations of participant and session IDs, if both are present."""
     id_columns = get_columns_about(
         data_dict, concept=mappings.NEUROBAGEL["participant"]
     ) + get_columns_about(data_dict, concept=mappings.NEUROBAGEL["session"])
     if pheno_df.duplicated(subset=id_columns).any():
-        raise LookupError(
+        log_error(
+            logger,
             "The rows of the provided phenotypic file do not have unique combinations of participant and session IDs. "
-            "Please ensure that each row uniquely identifies one participant or one participant-session (if a column describing session is present)."
+            "Please ensure that each row uniquely identifies one participant or one participant-session (if a column describing session is present).",
         )
 
 
@@ -475,12 +482,13 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     validate_data_dict(data_dict)
 
     if not are_inputs_compatible(data_dict, pheno_df):
-        raise LookupError(
+        log_error(
+            logger,
             "The provided data dictionary and phenotypic file are individually valid, "
             "but are not compatible. Make sure that you selected the correct data "
             "dictionary for your phenotypic file. Every column described in the data "
             "dictionary has to have a corresponding column with the same name in the "
-            "phenotypic file"
+            "phenotypic file",
         )
 
     check_for_duplicate_ids(data_dict, pheno_df)
@@ -489,10 +497,11 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
         data_dict, pheno_df
     )
     if undefined_cat_col_values:
-        raise LookupError(
+        log_error(
+            logger,
             "Categorical column(s) in the phenotypic file have values not annotated in the data dictionary "
             f"(shown as <column_name>: [<undefined values>]): {undefined_cat_col_values}. "
-            "Please check that the correct data dictionary has been selected or make sure to annotate the missing values."
+            "Please check that the correct data dictionary has been selected or make sure to annotate the missing values.",
         )
 
     unused_missing_values = find_unused_missing_values(data_dict, pheno_df)
@@ -512,8 +521,9 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
         "session", []
     )
     if row_indices := get_rows_with_empty_strings(pheno_df, columns_about_ids):
-        raise LookupError(
+        log_error(
+            logger,
             "We have detected missing values in participant or session id columns. "
             "Please make sure that every row has a non-empty participant id (and session id where applicable). "
-            f"We found missing values in the following rows (first row is zero): {row_indices}."
+            f"We found missing values in the following rows (first row is zero): {row_indices}.",
         )

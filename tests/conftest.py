@@ -6,8 +6,6 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from bagel.logger import logger
-
 
 @pytest.fixture(scope="session")
 def runner():
@@ -15,21 +13,21 @@ def runner():
 
 
 @pytest.fixture(scope="function")
-def propagate_logs(monkeypatch):
-    """Ensure that Pytest captures the logs from the CLI."""
-    monkeypatch.setattr(logger, "propagate", True)
-
-
-@pytest.fixture(scope="function")
-def propagate_warnings(propagate_logs, caplog):
+def propagate_warnings(caplog):
     """Only capture WARNING logs and above from the CLI."""
     caplog.set_level(logging.WARNING)
 
 
 @pytest.fixture(scope="function")
-def propagate_info(propagate_logs, caplog):
+def propagate_info(caplog):
     """Only capture INFO logs and above from the CLI."""
     caplog.set_level(logging.INFO)
+
+
+@pytest.fixture(scope="function")
+def propagate_errors(caplog):
+    """Only capture ERROR logs and above from the CLI."""
+    caplog.set_level(logging.ERROR)
 
 
 @pytest.fixture(scope="session")

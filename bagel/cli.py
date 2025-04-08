@@ -5,7 +5,7 @@ from bids import BIDSLayout
 
 from bagel import mappings, models
 
-from .logger import logger
+from .logger import VerbosityLevel, configure_logger, log_error, logger
 from .utilities import (
     bids_utils,
     derivative_utils,
@@ -27,6 +27,29 @@ bagel = typer.Typer(
     # From https://github.com/tiangolo/typer/issues/201#issuecomment-744151303
     context_settings={"help_option_names": ["--help", "-h"]},
 )
+
+
+# NOTE: We use a reusable option instead of a callback to avoid the complexity
+# of needing to specify the flag before the actual CLI command names
+def verbosity_option():
+    """Create a reusable verbosity option for commands."""
+    return typer.Option(
+        VerbosityLevel.INFO,
+        "--verbosity",
+        "-v",
+        callback=configure_logger,
+        help="Set the verbosity level of the output. 0 = show errors only; 1 = show errors, warnings, and informational messages; 3 = show all logs, including debug messages.",
+    )
+
+
+def overwrite_option():
+    """Create a reusable overwrite option for commands."""
+    return typer.Option(
+        False,
+        "--overwrite",
+        "-f",
+        help="Overwrite output file if it already exists.",
+    )
 
 
 @bagel.command()
@@ -77,12 +100,8 @@ def pheno(
         dir_okay=False,
         resolve_path=True,
     ),
-    overwrite: bool = typer.Option(
-        False,
-        "--overwrite",
-        "-f",
-        help="Overwrite output file if it already exists.",
-    ),
+    overwrite: bool = overwrite_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
 ):
     """
     Process a tabular phenotypic file (.tsv) that has been successfully annotated
@@ -97,15 +116,16 @@ def pheno(
 
     data_dictionary = file_utils.load_json(dictionary)
     pheno_df = file_utils.load_tabular(pheno)
-    pheno_utils.validate_inputs(data_dictionary, pheno_df)
 
+    logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
     # It is calculated as = length of the longer string + 2 extra spaces
     width = 26
-    logger.info("Processing phenotypic annotations:")
     logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
     logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
+    pheno_utils.validate_inputs(data_dictionary, pheno_df)
 
+    logger.info("Processing phenotypic annotations...")
     subject_list = []
 
     column_mapping = pheno_utils.map_categories_to_columns(data_dictionary)
@@ -232,12 +252,8 @@ def bids(
         dir_okay=False,
         resolve_path=True,
     ),
-    overwrite: bool = typer.Option(
-        False,
-        "--overwrite",
-        "-f",
-        help="Overwrite output file if it already exists.",
-    ),
+    overwrite: bool = overwrite_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
 ):
     """
     Extract imaging metadata from a valid BIDS dataset and integrate it with
@@ -249,6 +265,7 @@ def bids(
     graph data model for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
+
     file_utils.check_overwrite(output, overwrite)
 
     width = 51
@@ -380,12 +397,8 @@ def derivatives(
         dir_okay=False,
         resolve_path=True,
     ),
-    overwrite: bool = typer.Option(
-        False,
-        "--overwrite",
-        "-f",
-        help="Overwrite output file if it already exists.",
-    ),
+    overwrite: bool = overwrite_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
 ):
     """
     Extract subject processing pipeline and derivative metadata from a tabular processing status file and
@@ -397,6 +410,7 @@ def derivatives(
     graph data model for the combined metadata in the .jsonld format.
     You can upload this .jsonld file to the Neurobagel graph.
     """
+
     file_utils.check_overwrite(output, overwrite)
 
     width = 51
@@ -417,10 +431,11 @@ def derivatives(
     if row_indices := pheno_utils.get_rows_with_empty_strings(
         status_df, [PROC_STATUS_COLS["participant"]]
     ):
-        raise LookupError(
+        log_error(
+            logger,
             f"Your processing status file contains missing values in the column '{PROC_STATUS_COLS['participant']}'. "
             "Please ensure that every row has a non-empty participant id. "
-            f"We found missing values in the following rows (first row is zero): {row_indices}."
+            f"We found missing values in the following rows (first row is zero): {row_indices}.",
         )
 
     derivative_utils.check_at_least_one_pipeline_version_is_recognized(

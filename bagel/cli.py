@@ -117,7 +117,6 @@ def pheno(
     data_dictionary = file_utils.load_json(dictionary)
     pheno_df = file_utils.load_tabular(pheno)
 
-    # TODO: Move before file loading?
     logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
     # It is calculated as = length of the longer string + 2 extra spaces

@@ -15,7 +15,7 @@ DATETIME_FMT = "[%Y-%m-%d %X]"
 def get_logger(level: int = logging.INFO) -> logging.Logger:
     """Create a logger with the specified logging level."""
 
-    logger = logging.getLogger("test")
+    logger = logging.getLogger(__name__)
     handler = RichHandler(
         omit_repeated_times=False, show_path=False, rich_tracebacks=True
     )

@@ -26,6 +26,7 @@ bagel = typer.Typer(
     """,
     # From https://github.com/tiangolo/typer/issues/201#issuecomment-744151303
     context_settings={"help_option_names": ["--help", "-h"]},
+    rich_markup_mode="rich",
 )
 
 
@@ -95,7 +96,7 @@ def pheno(
         "pheno.jsonld",
         "--output",
         "-o",
-        help="The path for the output .jsonld file.",
+        help="The path to the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
@@ -233,21 +234,32 @@ def bids(
         dir_okay=False,
         resolve_path=True,
     ),
-    bids_dir: Path = typer.Option(
-        ...,
-        "--bids-dir",
-        "-b",
-        help="The path to the corresponding BIDS dataset directory.",
+    input_bids_dir: Path = typer.Option(
+        Path.cwd(),
+        "--input-bids-dir",
+        "-i",
+        help="The absolute path to the BIDS directory for the dataset. This path will be used for BIDS parsing. "
+        "[bold red]NOTE: Leave this option unset if using the Docker/Singularity version of bagel-cli.[/bold red]",
         exists=True,
         file_okay=False,
         dir_okay=True,
         resolve_path=True,
     ),
+    bids_dir: Path = typer.Option(
+        ...,
+        "--bids-dir",
+        "-b",
+        callback=bids_utils.check_absolute_bids_path,
+        help="The path to the BIDS directory for the dataset. This path will be recorded as the location of the data. "
+        "[bold red]NOTE: If running bagel-cli directly in a Python environment (not in a container), this value should be the same as --input-bids-dir.[/bold red]",
+        file_okay=False,
+        dir_okay=True,
+    ),
     output: Path = typer.Option(
         "pheno_bids.jsonld",
         "--output",
         "-o",
-        help="The path for the output .jsonld file.",
+        help="The path to the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
@@ -392,7 +404,7 @@ def derivatives(
         "pheno_derivatives.jsonld",
         "--output",
         "-o",
-        help="The path for the output .jsonld file.",
+        help="The path to the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,

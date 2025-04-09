@@ -2,8 +2,20 @@ from pathlib import Path
 from typing import Optional
 
 from bids import BIDSLayout
+from typer import BadParameter
 
 from bagel import mappings, models
+
+
+def check_absolute_bids_path(bids_path: Path) -> Path:
+    """
+    Raise an error if the input BIDS path does not look like an absolute path.
+    This is a workaround for --bids-dir not requiring the path to exist (and thus not being able to resolve the path automatically),
+    since it refers to a path on a host machine which may not be mounted as-is when the CLI is running in a container.
+    """
+    if not bids_path.is_absolute():
+        raise BadParameter("BIDS directory path must be an absolute path.")
+    return bids_path
 
 
 def map_term_to_namespace(term: str, namespace: dict) -> str:

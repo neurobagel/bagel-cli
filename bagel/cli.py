@@ -245,6 +245,7 @@ def bids(
         dir_okay=True,
         resolve_path=True,
     ),
+    # TODO: Test
     bids_dir: Path = typer.Option(
         ...,
         "--bids-dir",
@@ -288,6 +289,7 @@ def bids(
         "Existing subject graph data to augment (.jsonld):",
         jsonld_path,
     )
+    # TODO: Update to display both bids_dir and input_bids_dir (?)
     logger.info("%-*s%s", width, "BIDS dataset directory:", bids_dir)
 
     jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
@@ -298,7 +300,7 @@ def bids(
 
     # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
     model_utils.confirm_subs_match_pheno_data(
-        subjects=bids_utils.get_bids_subjects_simple(bids_dir),
+        subjects=bids_utils.get_bids_subjects_simple(input_bids_dir),
         subject_source_for_err="BIDS directory",
         pheno_subjects=existing_subs_dict.keys(),
     )
@@ -310,7 +312,7 @@ def bids(
     )
     # NOTE: If there are no subjects in the BIDS dataset, the validation should fail.
     # The rest of this workflow assumes there's at least one subject in the BIDS dataset.
-    layout = BIDSLayout(bids_dir, validate=True)
+    layout = BIDSLayout(input_bids_dir, validate=True)
     logger.info("BIDS parsing completed.")
 
     logger.info("Merging BIDS metadata with existing subject annotations...")
@@ -351,7 +353,6 @@ def bids(
                 else f"ses-{session_id}"
             )
             session_path = bids_utils.get_session_path(
-                layout=layout,
                 bids_dir=bids_dir,
                 bids_sub_id=bids_sub_id,
                 session=session_id,

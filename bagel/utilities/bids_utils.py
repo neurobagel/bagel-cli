@@ -7,6 +7,7 @@ from typer import BadParameter
 from bagel import mappings, models
 
 
+# TODO: Test
 def check_absolute_bids_path(bids_path: Path) -> Path:
     """
     Raise an error if the input BIDS path does not look like an absolute path.
@@ -64,22 +65,11 @@ def create_acquisitions(
 
 
 def get_session_path(
-    layout: BIDSLayout,
     bids_dir: Path,
     bids_sub_id: str,
     session: Optional[str],
 ) -> str:
     """Returns session directory from the BIDS dataset if session layer exists, otherwise returns subject directory."""
-    if not session:
-        session_path = Path(
-            # TODO: Once bug in fetching subject directories with no session layers is resolved,
-            # switch to using layout.get() snippet below to fetch subject path.
-            bids_dir
-            / f"sub-{bids_sub_id}"
-        )
-    else:
-        session_path = (
-            Path(layout.root) / f"sub-{bids_sub_id}" / f"ses-{session}"
-        )
-
-    return session_path.resolve().as_posix()
+    subject_path = bids_dir / f"sub-{bids_sub_id}"
+    session_path = subject_path / f"ses-{session}" if session else subject_path
+    return session_path.as_posix()

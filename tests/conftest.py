@@ -6,10 +6,18 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
+from bagel.cli import bagel
+
 
 @pytest.fixture(scope="session")
 def runner():
     return CliRunner()
+
+
+@pytest.fixture(scope="function")
+def disable_rich_markup(monkeypatch):
+    """Disable rich markup for the CLI to assert over messages with formatting stripped."""
+    monkeypatch.setattr(bagel, "rich_markup_mode", None)
 
 
 @pytest.fixture(scope="function")

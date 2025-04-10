@@ -7,7 +7,6 @@ from typer import BadParameter
 from bagel import mappings, models
 
 
-# TODO: Test
 def check_absolute_bids_path(bids_path: Path) -> Path:
     """
     Raise an error if the input BIDS path does not look like an absolute path.

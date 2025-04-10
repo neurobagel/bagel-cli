@@ -245,7 +245,6 @@ def bids(
         dir_okay=True,
         resolve_path=True,
     ),
-    # TODO: Test
     bids_dir: Path = typer.Option(
         ...,
         "--bids-dir",

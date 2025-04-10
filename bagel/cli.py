@@ -240,19 +240,20 @@ def bids(
         Path.cwd() / "bids",
         "--input-bids-dir",
         "-i",
-        help="The absolute path to the BIDS directory for the dataset. This path will be used for BIDS parsing. "
+        help="The path to the BIDS directory for the dataset. This path will be used for BIDS parsing. "
         "[bold red]NOTE: Leave this option unset if using the Docker/Singularity version of bagel-cli.[/bold red]",
         exists=True,
         file_okay=False,
         dir_okay=True,
         resolve_path=True,
     ),
+    # TODO: Should we include a tip in the help text for using the repository root for DataLad datasets?
     bids_dir: Path = typer.Option(
         ...,
         "--bids-dir",
         "-b",
         callback=bids_utils.check_absolute_bids_path,
-        help="The path to the BIDS directory for the dataset. This path will be recorded as the location of the data. "
+        help="The absolute path to the BIDS directory for the dataset. This path will be recorded as the location of the data. "
         "[bold red]NOTE: If running bagel-cli directly in a Python environment (not in a container), this value should be the same as --input-bids-dir.[/bold red]",
         file_okay=False,
         dir_okay=True,

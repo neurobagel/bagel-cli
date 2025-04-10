@@ -10,6 +10,7 @@ if [ "$CLI_COMMAND" == "bids" ]; then
         echo "EXAMPLE (Docker):"
         echo "docker run --rm -v /PATH/TO/JSONLD/DIR:/data -v /PATH/TO/BIDS/DIR:/data/bids -w /data neurobagel/bagelcli bids \
  --jsonld-path "DATASET.jsonld" --bids-dir "/PATH/TO/BIDS/DIRECTORY" --output "DATASET_BIDS.jsonld""
+        echo "(For more information, see https://neurobagel.org/user_guide/cli/)"
         exit 1
     fi
 fi

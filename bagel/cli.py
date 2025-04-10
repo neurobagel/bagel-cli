@@ -223,6 +223,8 @@ def pheno(
 
 @bagel.command()
 def bids(
+    # TODO: If we wanted to make this option simpler for the user when the CLI is running in a container,
+    # we could add a sensible default file name and fix the container mount path in the Docker command
     jsonld_path: Path = typer.Option(
         ...,
         "--jsonld-path",
@@ -235,7 +237,7 @@ def bids(
         resolve_path=True,
     ),
     input_bids_dir: Path = typer.Option(
-        Path.cwd(),
+        Path.cwd() / "bids",
         "--input-bids-dir",
         "-i",
         help="The absolute path to the BIDS directory for the dataset. This path will be used for BIDS parsing. "
@@ -255,6 +257,8 @@ def bids(
         file_okay=False,
         dir_okay=True,
     ),
+    # TODO: Should we rename the default output file to something more generic to account for the fact that
+    # the file may also include derivatives data? e.g., dataset_bids.jsonld
     output: Path = typer.Option(
         "pheno_bids.jsonld",
         "--output",

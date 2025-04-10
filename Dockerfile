@@ -10,5 +10,5 @@ RUN pip install -r /app/src/requirements.txt
 # 2. install the CLI script without touching the dependencies again
 RUN pip install --no-cache-dir --no-deps /app/src
 
-ENTRYPOINT [ "bagel" ]
+ENTRYPOINT [ "/app/src/entrypoint.sh" ]
 CMD ["--help"]

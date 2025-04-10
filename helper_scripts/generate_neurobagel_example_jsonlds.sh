@@ -20,10 +20,10 @@ docker run --rm --volume=$PWD:/data/neurobagel/bagel-cli -w /data/neurobagel/bag
     --overwrite
 
 # Phenotypic & BIDS data JSONLD
-docker run --rm --volume=$PWD:/data/neurobagel/bagel-cli -w /data/neurobagel/bagel-cli bagel bids \
-    --jsonld-path ${data_dir}/example_synthetic.jsonld \
-    --bids-dir bids-examples/synthetic \
-    --output ${data_dir}/pheno-bids-output/example_synthetic_pheno-bids.jsonld \
+docker run --rm --volume=$PWD/$data_dir:/data --volume=$PWD/bids-examples/synthetic:/data/bids -w /data bagel bids \
+    --jsonld-path example_synthetic.jsonld \
+    --bids-dir /data/neurobagel/bagel-cli/bids-examples/synthetic \
+    --output pheno-bids-output/example_synthetic_pheno-bids.jsonld \
     --overwrite
 
 # Phenotypic & derivatives data JSONLD

@@ -73,7 +73,6 @@ def test_get_session_path_when_session_exists(
     get_session_path() returns a path to the subject's session directory.
     """
     session_path = bids_utils.get_session_path(
-        layout=BIDSLayout(bids_synthetic, validate=True),
         bids_dir=bids_synthetic,
         bids_sub_id=bids_sub_id,
         session=session,
@@ -93,7 +92,6 @@ def test_get_session_path_when_session_missing(bids_sub_id, bids_path):
     """
     bids_dir = bids_path / "ds001"
     session_path = bids_utils.get_session_path(
-        layout=BIDSLayout(bids_dir, validate=True),
         bids_dir=bids_dir,
         bids_sub_id=bids_sub_id,
         session=None,

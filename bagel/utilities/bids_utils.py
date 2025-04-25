@@ -10,7 +10,7 @@ from bagel import mappings, models
 def check_absolute_bids_path(bids_path: Path) -> Path:
     """
     Raise an error if the input BIDS path does not look like an absolute path.
-    This is a workaround for --bids-dir not requiring the path to exist (and thus not being able to resolve the path automatically),
+    This is a workaround for --source-bids-dir not requiring the path to exist (and thus not being able to resolve the path automatically),
     since it refers to a path on a host machine which may not be mounted as-is when the CLI is running in a container.
     """
     if not bids_path.is_absolute():

@@ -26,7 +26,7 @@ def test_bids_valid_inputs_run_successfully(
             test_data_upload_path / "example_synthetic.jsonld",
             "--input-bids-dir",
             bids_synthetic,
-            "--bids-dir",
+            "--source-bids-dir",
             bids_synthetic,
             "--output",
             default_pheno_bids_output_path,
@@ -54,7 +54,7 @@ def test_imaging_sessions_have_expected_labels(
             test_data_upload_path / "example_synthetic.jsonld",
             "--input-bids-dir",
             bids_synthetic,
-            "--bids-dir",
+            "--source-bids-dir",
             bids_synthetic,
             "--output",
             default_pheno_bids_output_path,
@@ -108,7 +108,7 @@ def test_imaging_sessions_have_expected_metadata(
             test_data_upload_path / jsonld_path,
             "--input-bids-dir",
             bids_synthetic,
-            "--bids-dir",
+            "--source-bids-dir",
             bids_synthetic,
             "--output",
             default_pheno_bids_output_path,
@@ -145,7 +145,7 @@ def test_bids_data_with_sessions_have_correct_paths(
 ):
     """
     Check that BIDS session paths added to pheno_bids.jsonld match the parent
-    session/subject labels and have the correct base directory path matching the provided --bids-dir.
+    session/subject labels and have the correct base directory path matching the provided --source-bids-dir.
     """
     runner.invoke(
         bagel,
@@ -155,7 +155,7 @@ def test_bids_data_with_sessions_have_correct_paths(
             test_data_upload_path / "example_synthetic.jsonld",
             "--input-bids-dir",
             bids_synthetic,
-            "--bids-dir",
+            "--source-bids-dir",
             Path(__file__).absolute().parent
             / "example_public_datasets"
             / "public_synthetic",
@@ -192,7 +192,7 @@ def test_relative_bids_dir_path_raises_error(
             "bids",
             "--jsonld-path",
             test_data_upload_path / "example_synthetic.jsonld",
-            "--bids-dir",
+            "--source-bids-dir",
             "data/bids",
             "--output",
             default_pheno_bids_output_path,

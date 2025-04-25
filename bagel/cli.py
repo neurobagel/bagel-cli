@@ -240,21 +240,21 @@ def bids(
         Path.cwd() / "bids",
         "--input-bids-dir",
         "-i",
-        help="The path to the BIDS directory for the dataset. This path will be used for BIDS parsing. "
-        "[bold red]NOTE: Leave this option unset if using the Docker/Singularity version of bagel-cli.[/bold red]",
+        help="The path to the BIDS dataset directory to read and parse the BIDS data from. "
+        "[bold red]NOTE: Leave unset if using the Docker/Singularity version of bagel-cli.[/bold red]",
         exists=True,
         file_okay=False,
         dir_okay=True,
         resolve_path=True,
     ),
     # TODO: Should we include a tip in the help text for using the repository root for DataLad datasets?
-    bids_dir: Path = typer.Option(
+    source_bids_dir: Path = typer.Option(
         ...,
-        "--bids-dir",
+        "--source-bids-dir",
         "-b",
         callback=bids_utils.check_absolute_bids_path,
-        help="The absolute path to the BIDS directory for the dataset. This path will be recorded as the location of the data. "
-        "[bold red]NOTE: If running bagel-cli directly in a Python environment (not in a container), this value should be the same as --input-bids-dir.[/bold red]",
+        help="The absolute path to the original BIDS dataset directory location. This will be used to derive and record data source paths. "
+        "[bold red]NOTE: If running bagel-cli directly in a Python environment (not in a container), this value may be the same as --input-bids-dir.[/bold red]",
         file_okay=False,
         dir_okay=True,
     ),
@@ -293,8 +293,8 @@ def bids(
         "Existing subject graph data to augment (.jsonld):",
         jsonld_path,
     )
-    # TODO: Update to display both bids_dir and input_bids_dir (?)
-    logger.info("%-*s%s", width, "BIDS dataset directory:", bids_dir)
+    logger.info("%-*s%s", width, "Input BIDS directory:", input_bids_dir)
+    logger.info("%-*s%s", width, "Source BIDS directory:", source_bids_dir)
 
     jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
         jsonld_path
@@ -357,7 +357,7 @@ def bids(
                 else f"ses-{session_id}"
             )
             session_path = bids_utils.get_session_path(
-                bids_dir=bids_dir,
+                bids_dir=source_bids_dir,
                 bids_sub_id=bids_sub_id,
                 session=session_id,
             )

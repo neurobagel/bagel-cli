@@ -357,7 +357,7 @@ def bids(
                 else f"ses-{session_id}"
             )
             session_path = bids_utils.get_session_path(
-                bids_dir=source_bids_dir,
+                source_bids_dir=source_bids_dir,
                 bids_sub_id=bids_sub_id,
                 session=session_id,
             )

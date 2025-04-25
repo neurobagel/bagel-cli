@@ -64,11 +64,11 @@ def create_acquisitions(
 
 
 def get_session_path(
-    bids_dir: Path,
+    source_bids_dir: Path,
     bids_sub_id: str,
     session: Optional[str],
 ) -> str:
-    """Returns session directory from the BIDS dataset if session layer exists, otherwise returns subject directory."""
-    subject_path = bids_dir / f"sub-{bids_sub_id}"
+    """Construct the session directory from the source BIDS directory path if session layer exists, otherwise returns subject directory."""
+    subject_path = source_bids_dir / f"sub-{bids_sub_id}"
     session_path = subject_path / f"ses-{session}" if session else subject_path
     return session_path.as_posix()

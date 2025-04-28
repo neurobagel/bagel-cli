@@ -26,6 +26,7 @@ bagel = typer.Typer(
     """,
     # From https://github.com/tiangolo/typer/issues/201#issuecomment-744151303
     context_settings={"help_option_names": ["--help", "-h"]},
+    rich_markup_mode="rich",
 )
 
 
@@ -95,7 +96,7 @@ def pheno(
         "pheno.jsonld",
         "--output",
         "-o",
-        help="The path for the output .jsonld file.",
+        help="The path to the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
@@ -222,6 +223,8 @@ def pheno(
 
 @bagel.command()
 def bids(
+    # TODO: If we wanted to make this option simpler for the user when the CLI is running in a container,
+    # we could add a sensible default file name and fix the container mount path in the Docker command
     jsonld_path: Path = typer.Option(
         ...,
         "--jsonld-path",
@@ -233,21 +236,35 @@ def bids(
         dir_okay=False,
         resolve_path=True,
     ),
-    bids_dir: Path = typer.Option(
-        ...,
-        "--bids-dir",
-        "-b",
-        help="The path to the corresponding BIDS dataset directory.",
+    input_bids_dir: Path = typer.Option(
+        Path.cwd() / "bids",
+        "--input-bids-dir",
+        "-i",
+        help="The path to the BIDS dataset directory to read and parse the BIDS data from. "
+        "[bold red]NOTE: Leave unset if using the Docker/Singularity version of bagel-cli.[/bold red]",
         exists=True,
         file_okay=False,
         dir_okay=True,
         resolve_path=True,
     ),
+    # TODO: Should we include a tip in the help text for using the repository root for DataLad datasets?
+    source_bids_dir: Path = typer.Option(
+        ...,
+        "--source-bids-dir",
+        "-b",
+        callback=bids_utils.check_absolute_bids_path,
+        help="The absolute path to the original BIDS dataset directory location. This will be used to derive and record data source paths. "
+        "[bold red]NOTE: If running bagel-cli directly in a Python environment (not in a container), this value may be the same as --input-bids-dir.[/bold red]",
+        file_okay=False,
+        dir_okay=True,
+    ),
+    # TODO: Should we rename the default output file to something more generic to account for the fact that
+    # the file may also include derivatives data? e.g., dataset_bids.jsonld
     output: Path = typer.Option(
         "pheno_bids.jsonld",
         "--output",
         "-o",
-        help="The path for the output .jsonld file.",
+        help="The path to the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
@@ -276,7 +293,8 @@ def bids(
         "Existing subject graph data to augment (.jsonld):",
         jsonld_path,
     )
-    logger.info("%-*s%s", width, "BIDS dataset directory:", bids_dir)
+    logger.info("%-*s%s", width, "Input BIDS directory:", input_bids_dir)
+    logger.info("%-*s%s", width, "Source BIDS directory:", source_bids_dir)
 
     jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
         jsonld_path
@@ -286,7 +304,7 @@ def bids(
 
     # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
     model_utils.confirm_subs_match_pheno_data(
-        subjects=bids_utils.get_bids_subjects_simple(bids_dir),
+        subjects=bids_utils.get_bids_subjects_simple(input_bids_dir),
         subject_source_for_err="BIDS directory",
         pheno_subjects=existing_subs_dict.keys(),
     )
@@ -298,7 +316,7 @@ def bids(
     )
     # NOTE: If there are no subjects in the BIDS dataset, the validation should fail.
     # The rest of this workflow assumes there's at least one subject in the BIDS dataset.
-    layout = BIDSLayout(bids_dir, validate=True)
+    layout = BIDSLayout(input_bids_dir, validate=True)
     logger.info("BIDS parsing completed.")
 
     logger.info("Merging BIDS metadata with existing subject annotations...")
@@ -339,8 +357,7 @@ def bids(
                 else f"ses-{session_id}"
             )
             session_path = bids_utils.get_session_path(
-                layout=layout,
-                bids_dir=bids_dir,
+                source_bids_dir=source_bids_dir,
                 bids_sub_id=bids_sub_id,
                 session=session_id,
             )
@@ -392,7 +409,7 @@ def derivatives(
         "pheno_derivatives.jsonld",
         "--output",
         "-o",
-        help="The path for the output .jsonld file.",
+        help="The path to the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,

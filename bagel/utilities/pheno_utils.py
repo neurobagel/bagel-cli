@@ -188,7 +188,7 @@ def map_cat_val_to_term(
 
 
 def get_age_format(column: str, data_dict: dict) -> str:
-    return data_dict[column]["Annotations"]["Transformation"]["TermURL"]
+    return data_dict[column]["Annotations"]["Format"]["TermURL"]
 
 
 def transform_age(value: str, value_format: str) -> float:
@@ -527,3 +527,28 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
             "Please make sure that every row has a non-empty participant id (and session id where applicable). "
             f"We found missing values in the following rows (first row is zero): {row_indices}.",
         )
+
+
+def convert_transformation_to_format(data_dict: dict) -> dict:
+    """
+    If the uploaded data dictionary contains a "Transformation" key, rename the key to "Format"
+    internally for downstream operations involving the data dictionary.
+    This ensures compatibility with both v1 and v2 annotation tool-generated data dictionaries.
+
+    If both "Format" and "Transformation" keys are present, the "Transformation" key is removed
+    (ignored) from the internal data dictionary representation to avoid potential conflicts.
+
+    TODO: Remove when we no longer support data dictionaries annotated using the annotation tool v1.
+    """
+    age_column_names = get_columns_about(
+        data_dict, concept=mappings.NEUROBAGEL["age"]
+    )
+    if age_column_names:
+        # NOTE: At the moment, data dictionary validation only allows a single age column
+        age_annotations = data_dict[age_column_names[0]]["Annotations"]
+        if "Format" in age_annotations:
+            age_annotations.pop("Transformation", None)
+        elif "Transformation" in age_annotations:
+            age_annotations["Format"] = age_annotations.pop("Transformation")
+
+    return data_dict

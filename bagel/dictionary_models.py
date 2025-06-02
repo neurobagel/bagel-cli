@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Union
+from typing import Dict, List, Union
 
 from pydantic import (
     AfterValidator,
@@ -6,7 +6,6 @@ from pydantic import (
     ConfigDict,
     Field,
     RootModel,
-    model_validator,
 )
 from pydantic_core import PydanticCustomError
 from typing_extensions import Annotated
@@ -93,18 +92,6 @@ class ContinuousNeurobagel(Neurobagel):
         "data element referenced in the IsAbout attribute.",
         alias="Format",
     )
-
-    @model_validator(mode="before")
-    @classmethod
-    def accept_format_or_transformation(cls, data: Any) -> Any:
-        """
-        Support data dictionaries annotated using the annotation tool v1 where "Format" was named "Transformation".
-        TODO: Remove when we no longer support the deprecated field name.
-        """
-        if isinstance(data, dict):
-            if "Format" not in data and "Transformation" in data:
-                data["Format"] = data["Transformation"]
-        return data
 
 
 class IdentifierNeurobagel(Neurobagel):

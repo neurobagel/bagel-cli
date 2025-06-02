@@ -1,6 +1,13 @@
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field, RootModel
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    RootModel,
+    model_validator,
+)
 from pydantic_core import PydanticCustomError
 from typing_extensions import Annotated
 
@@ -78,14 +85,26 @@ class CategoricalNeurobagel(Neurobagel):
 class ContinuousNeurobagel(Neurobagel):
     """A Neurobagel annotation for a continuous column"""
 
-    transformation: Identifier = Field(
+    format: Identifier = Field(
         ...,
-        description="For continuous columns this field can be used to describe"
-        "a transformation that can be applied to the values in this"
+        description="For continuous columns this field is used to describe"
+        "the numerical format of values, which is then used to transform this"
         "column in order to match the desired format of a standardized"
         "data element referenced in the IsAbout attribute.",
-        alias="Transformation",
+        alias="Format",
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_format_or_transformation(cls, data: Any) -> Any:
+        """
+        Support data dictionaries annotated using the annotation tool v1 where "Format" was named "Transformation".
+        TODO: Remove when we no longer support the deprecated field name.
+        """
+        if isinstance(data, dict):
+            if "Format" not in data and "Transformation" in data:
+                data["Format"] = data["Transformation"]
+        return data
 
 
 class IdentifierNeurobagel(Neurobagel):

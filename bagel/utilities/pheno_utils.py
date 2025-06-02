@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from copy import deepcopy
 from typing import Optional, Union
 
 import isodate
@@ -17,7 +18,8 @@ from bagel.mappings import (
     SUPPORTED_NAMESPACE_PREFIXES,
 )
 
-DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()
+# TODO: Once we remove support for v1 annotation tool data dictionaries, revert to using this version for data dictionary schema validation
+# DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()
 
 AGE_FORMATS = {
     "float": NB.pf + ":FromFloat",
@@ -352,9 +354,36 @@ def get_rows_with_empty_strings(df: pd.DataFrame, columns: list) -> list:
     return list(empty_row[empty_row].index)
 
 
+def construct_dictionary_schema_for_validation() -> dict:
+    """
+    For backwards compatibility with the v1 annotation tool, we patch the data dictionary schema
+    to allow for either a 'Format' or 'Transformation' key (but not both) for continuous columns.
+    This ensures that v1 annotation tool data dictionaries still pass the initial schema validation (for now),
+    without encoding the 'Transformation' key in the updated data dictionary model itself.
+
+    TODO: Remove once we no longer support data dictionaries annotated using annotation tool v1.
+    """
+    patched_schema = deepcopy(
+        dictionary_models.DataDictionary.model_json_schema()
+    )
+    continuous_schema = patched_schema["$defs"]["ContinuousNeurobagel"]
+    continuous_schema["properties"]["Transformation"] = deepcopy(
+        continuous_schema["properties"]["Format"]
+    )
+    if "Format" in continuous_schema.get("required", []):
+        continuous_schema["required"].remove("Format")
+    continuous_schema["oneOf"] = [
+        {"required": ["Transformation"], "not": {"required": ["Format"]}},
+        {"required": ["Format"], "not": {"required": ["Transformation"]}},
+    ]
+    return patched_schema
+
+
 def validate_data_dict(data_dict: dict) -> None:
     try:
-        jsonschema.validate(data_dict, DICTIONARY_SCHEMA)
+        jsonschema.validate(
+            data_dict, construct_dictionary_schema_for_validation()
+        )
     except jsonschema.ValidationError as e:
         # TODO: When *every* item in an input JSON is not schema valid,
         # jsonschema.validate will raise a ValidationError for only *one* item among them.
@@ -538,7 +567,7 @@ def convert_transformation_to_format(data_dict: dict) -> dict:
     If both "Format" and "Transformation" keys are present, the "Transformation" key is removed
     (ignored) from the internal data dictionary representation to avoid potential conflicts.
 
-    TODO: Remove when we no longer support data dictionaries annotated using the annotation tool v1.
+    TODO: Remove when we no longer support data dictionaries annotated using annotation tool v1.
     """
     age_column_names = get_columns_about(
         data_dict, concept=mappings.NEUROBAGEL["age"]

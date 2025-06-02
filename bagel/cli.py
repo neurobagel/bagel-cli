@@ -53,6 +53,7 @@ def overwrite_option():
     )
 
 
+# TODO: Look into whitespace for command docstring - seems to be preserved in the help text.
 @bagel.command()
 def pheno(
     pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
@@ -125,6 +126,11 @@ def pheno(
     logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
     logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
     pheno_utils.validate_inputs(data_dictionary, pheno_df)
+
+    # TODO: Remove once we no longer support annotation tool v1 data dictionaries
+    data_dictionary = pheno_utils.convert_transformation_to_format(
+        data_dictionary
+    )
 
     logger.info("Processing phenotypic annotations...")
     subject_list = []

@@ -574,10 +574,15 @@ def convert_transformation_to_format(data_dict: dict) -> dict:
     )
     if age_column_names:
         # NOTE: At the moment, data dictionary validation only allows a single age column
-        age_annotations = data_dict[age_column_names[0]]["Annotations"]
-        if "Format" in age_annotations:
-            age_annotations.pop("Transformation", None)
-        elif "Transformation" in age_annotations:
+        age_column_name = age_column_names[0]
+        age_annotations = data_dict[age_column_name]["Annotations"]
+        if "Transformation" in age_annotations:
             age_annotations["Format"] = age_annotations.pop("Transformation")
+            logger.warning(
+                f"The data dictionary contains a deprecated 'Transformation' key in the annotations for the column: {age_column_name}. "
+                "This key has been renamed to 'Format'. For now, 'Transformation' will be interpreted as equivalent to 'Format', "
+                "but support for 'Transformation' will be removed in a future release. "
+                "We recommend updating your data dictionary using the latest version of the Neurobagel annotation tool."
+            )
 
     return data_dict

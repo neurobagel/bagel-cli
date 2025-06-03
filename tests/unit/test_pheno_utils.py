@@ -56,6 +56,35 @@ from bagel.utilities import pheno_utils
             },
             "age",
         ),
+        (
+            {
+                "participant_id": {
+                    "Description": "Participant ID",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:ParticipantID",
+                            "Label": "Unique participant identifier",
+                        },
+                        "Identifies": "participant",
+                    },
+                },
+                "age": {
+                    "Description": "Participant age",
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                        "Format": {
+                            "TermURL": "nb:FromEuro",
+                            "Label": "european decimal value",
+                        },
+                        "Transformation": {
+                            "TermURL": "nb:FromEuro",
+                            "Label": "european decimal value",
+                        },
+                    },
+                },
+            },
+            "age",
+        ),
     ],
 )
 def test_schema_invalid_column_raises_error(
@@ -377,3 +406,175 @@ def test_invalid_age_format(caplog, propagate_errors):
         pheno_utils.transform_age("11,0", "nb:birthyear")
 
     assert "unrecognized age transformation: nb:birthyear" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "data_dict",
+    [
+        {
+            "participant_id": {
+                "Description": "Participant ID",
+                "Annotations": {
+                    "IsAbout": {
+                        "TermURL": "nb:ParticipantID",
+                        "Label": "Unique participant identifier",
+                    },
+                    "Identifies": "participant",
+                },
+            },
+            "age": {
+                "Description": "Participant age",
+                "Annotations": {
+                    "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                    "Format": {
+                        "TermURL": "nb:FromEuro",
+                        "Label": "european decimal value",
+                    },
+                },
+            },
+        },
+        {
+            "participant_id": {
+                "Description": "Participant ID",
+                "Annotations": {
+                    "IsAbout": {
+                        "TermURL": "nb:ParticipantID",
+                        "Label": "Unique participant identifier",
+                    },
+                    "Identifies": "participant",
+                },
+            },
+            "age": {
+                "Description": "Participant age",
+                "Annotations": {
+                    "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                    "Transformation": {
+                        "TermURL": "nb:FromEuro",
+                        "Label": "european decimal value",
+                    },
+                },
+            },
+        },
+    ],
+)
+def test_format_and_transformation_schema_validation(data_dict):
+    """A data dictionary with either a valid 'Format' or 'Transformation' field should pass schema validation."""
+    pheno_utils.validate_data_dict(data_dict)
+
+
+@pytest.mark.parametrize(
+    "raw_data_dict,expected_data_dict,expected_warnings",
+    [
+        (
+            {
+                "participant_id": {
+                    "Description": "Participant ID",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:ParticipantID",
+                            "Label": "Unique participant identifier",
+                        },
+                        "Identifies": "participant",
+                    },
+                },
+                "age": {
+                    "Description": "Participant age",
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                        "Format": {
+                            "TermURL": "nb:FromEuro",
+                            "Label": "european decimal value",
+                        },
+                    },
+                },
+            },
+            {
+                "participant_id": {
+                    "Description": "Participant ID",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:ParticipantID",
+                            "Label": "Unique participant identifier",
+                        },
+                        "Identifies": "participant",
+                    },
+                },
+                "age": {
+                    "Description": "Participant age",
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                        "Format": {
+                            "TermURL": "nb:FromEuro",
+                            "Label": "european decimal value",
+                        },
+                    },
+                },
+            },
+            0,
+        ),
+        (
+            {
+                "subject_id": {
+                    "Description": "Subject ID",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:ParticipantID",
+                            "Label": "Unique participant identifier",
+                        },
+                        "Identifies": "participant",
+                    },
+                },
+                "recruitment_age": {
+                    "Description": "Recruitment age",
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                        "Transformation": {
+                            "TermURL": "nb:FromEuro",
+                            "Label": "european decimal value",
+                        },
+                    },
+                },
+            },
+            {
+                "subject_id": {
+                    "Description": "Subject ID",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:ParticipantID",
+                            "Label": "Unique participant identifier",
+                        },
+                        "Identifies": "participant",
+                    },
+                },
+                "recruitment_age": {
+                    "Description": "Recruitment age",
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                        "Format": {
+                            "TermURL": "nb:FromEuro",
+                            "Label": "european decimal value",
+                        },
+                    },
+                },
+            },
+            1,
+        ),
+    ],
+)
+def test_convert_transformation_to_format(
+    raw_data_dict,
+    expected_data_dict,
+    caplog,
+    propagate_warnings,
+    expected_warnings,
+):
+    """If a 'Transformation' key is found in a data dictionary, it should be converted to 'Format' for downstream operations."""
+    converted_data_dict = pheno_utils.convert_transformation_to_format(
+        raw_data_dict
+    )
+
+    assert converted_data_dict == expected_data_dict
+    assert len(caplog.records) == expected_warnings
+    # Only check the warning message if there are any warnings
+    for warning in caplog.records:
+        assert "contains a deprecated 'Transformation' key" in warning.message

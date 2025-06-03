@@ -479,7 +479,7 @@ def validate_data_dict(data_dict: dict) -> None:
     ):
         logger.warning(
             "The provided data dictionary indicates more than one column about age. "
-            "Neurobagel cannot resolve multiple sex values per subject-session, so will only consider the first of these columns for age data."
+            "Neurobagel cannot resolve multiple age values per subject-session, so will only consider the first of these columns for age data."
         )
 
     if not categorical_cols_have_bids_levels(data_dict):
@@ -560,7 +560,7 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
 
 def convert_transformation_to_format(data_dict: dict) -> dict:
     """
-    If the uploaded data dictionary contains a "Transformation" key, rename the key to "Format"
+    If the uploaded data dictionary contains any "Transformation" keys, rename the key(s) to "Format"
     internally for downstream operations involving the data dictionary.
     This ensures compatibility with both v1 and v2 annotation tool-generated data dictionaries.
 
@@ -570,14 +570,19 @@ def convert_transformation_to_format(data_dict: dict) -> dict:
         data_dict, concept=mappings.NEUROBAGEL["age"]
     )
     if age_column_names:
-        # NOTE: At the moment, data dictionary validation only allows a single age column
-        age_column_name = age_column_names[0]
-        age_annotations = data_dict[age_column_name]["Annotations"]
-        if "Transformation" in age_annotations:
-            age_annotations["Format"] = age_annotations.pop("Transformation")
+        age_cols_using_transformation = []
+        for age_column_name in age_column_names:
+            age_annotations = data_dict[age_column_name]["Annotations"]
+            if "Transformation" in age_annotations:
+                age_cols_using_transformation.append(age_column_name)
+                age_annotations["Format"] = age_annotations.pop(
+                    "Transformation"
+                )
+
+        if age_cols_using_transformation:
             logger.warning(
-                f"The data dictionary contains a deprecated 'Transformation' key in the annotations for the column: {age_column_name}. "
-                "This key has been renamed to 'Format'. For now, 'Transformation' will be interpreted as equivalent to 'Format', "
+                f"The data dictionary contains a deprecated 'Transformation' key in the annotations for the column(s): {age_cols_using_transformation}. "
+                "This key has been replaced by 'Format'. For now, 'Transformation' will be interpreted as equivalent to 'Format', "
                 "but support for 'Transformation' will be removed in a future release. "
                 "We recommend updating your data dictionary using the latest version of the Neurobagel annotation tool."
             )

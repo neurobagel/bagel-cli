@@ -456,11 +456,49 @@ def test_invalid_age_format(caplog, propagate_errors):
                 },
             },
         },
+        {
+            "participant_id": {
+                "Description": "Participant ID",
+                "Annotations": {
+                    "IsAbout": {
+                        "TermURL": "nb:ParticipantID",
+                        "Label": "Unique participant identifier",
+                    },
+                    "Identifies": "participant",
+                },
+            },
+            "age_iso8601": {
+                "Description": "Participant age in ISO8601 format",
+                "Annotations": {
+                    "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                    "Transformation": {
+                        "TermURL": "nb:FromISO8601",
+                        "Label": "period of time defined according to the ISO8601 standard",
+                    },
+                },
+            },
+            "age": {
+                "Description": "Age in years",
+                "Annotations": {
+                    "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                    "Transformation": {
+                        "TermURL": "nb:FromFloat",
+                        "Label": "float value",
+                    },
+                },
+            },
+        },
     ],
 )
-def test_format_and_transformation_schema_validation(data_dict):
-    """A data dictionary with either a valid 'Format' or 'Transformation' field should pass schema validation."""
+def test_format_and_transformation_schema_validation(
+    data_dict, caplog, propagate_errors
+):
+    """
+    A data dictionary where continuous columns have either a valid 'Format' or 'Transformation' field
+    should pass validation without errors.
+    """
     pheno_utils.validate_data_dict(data_dict)
+    assert len(caplog.records) == 0
 
 
 @pytest.mark.parametrize(
@@ -560,16 +598,84 @@ def test_format_and_transformation_schema_validation(data_dict):
             },
             1,
         ),
+        (
+            {
+                "participant_id": {
+                    "Description": "Participant ID",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:ParticipantID",
+                            "Label": "Unique participant identifier",
+                        },
+                        "Identifies": "participant",
+                    },
+                },
+                "age_iso8601": {
+                    "Description": "Participant age in ISO8601 format",
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                        "Transformation": {
+                            "TermURL": "nb:FromISO8601",
+                            "Label": "period of time defined according to the ISO8601 standard",
+                        },
+                    },
+                },
+                "age": {
+                    "Description": "Age in years",
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                        "Transformation": {
+                            "TermURL": "nb:FromFloat",
+                            "Label": "float value",
+                        },
+                    },
+                },
+            },
+            {
+                "participant_id": {
+                    "Description": "Participant ID",
+                    "Annotations": {
+                        "IsAbout": {
+                            "TermURL": "nb:ParticipantID",
+                            "Label": "Unique participant identifier",
+                        },
+                        "Identifies": "participant",
+                    },
+                },
+                "age_iso8601": {
+                    "Description": "Participant age in ISO8601 format",
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                        "Format": {
+                            "TermURL": "nb:FromISO8601",
+                            "Label": "period of time defined according to the ISO8601 standard",
+                        },
+                    },
+                },
+                "age": {
+                    "Description": "Age in years",
+                    "Annotations": {
+                        "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                        "Format": {
+                            "TermURL": "nb:FromFloat",
+                            "Label": "float value",
+                        },
+                    },
+                },
+            },
+            1,
+        ),
     ],
 )
 def test_convert_transformation_to_format(
     raw_data_dict,
     expected_data_dict,
+    expected_warnings,
     caplog,
     propagate_warnings,
-    expected_warnings,
 ):
-    """If a 'Transformation' key is found in a data dictionary, it should be converted to 'Format' for downstream operations."""
+    """If any 'Transformation' keys are found in a data dictionary, they should be converted to 'Format' for downstream operations."""
+
     converted_data_dict = pheno_utils.convert_transformation_to_format(
         raw_data_dict
     )

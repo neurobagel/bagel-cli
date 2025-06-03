@@ -75,7 +75,7 @@ class CategoricalNeurobagel(Neurobagel):
     levels: Dict[str, Identifier] = Field(
         ...,
         description="For categorical variables: "
-        "An object of values (keys) in the column and the semantic"
+        "An object of values (keys) in the column and the semantic "
         "term (URI and label) they are unambiguously mapped to.",
         alias="Levels",
     )
@@ -86,9 +86,9 @@ class ContinuousNeurobagel(Neurobagel):
 
     format: Identifier = Field(
         ...,
-        description="For continuous columns this field is used to describe"
-        "the numerical format of values, which is then used to transform this"
-        "column in order to match the desired format of a standardized"
+        description="For continuous columns this field is used to describe "
+        "the numerical format of values, which is then used to transform this "
+        "column in order to match the desired format of a standardized "
         "data element referenced in the IsAbout attribute.",
         alias="Format",
     )

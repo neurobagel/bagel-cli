@@ -123,7 +123,7 @@
         "TermURL": "nb:Age",
         "Label": "Chronological age"
       },
-      "Transformation": {
+      "Format": {
         "TermURL": "nb:FromISO8601",
         "Label": "A period of time defined according to the ISO8601 standard"
       }
@@ -136,7 +136,7 @@
         "TermURL": "nb:Age",
         "Label": "Chronological age"
       },
-      "Transformation": {
+      "Format": {
         "TermURL": "nb:FromFloat",
         "Label": "Age as a floating point number"
       }

@@ -190,11 +190,14 @@ def pheno(
                     ]
 
             if "age" in column_mapping.keys():
+                # NOTE: At the moment, our data model only supports a single age value per subject.
+                # To achieve this, we transform the values from ALL columns annotated as about age
+                # (so we expect each of them to be valid according to the data dictionary model),
+                # but we take and store only the first instance in the graph data.
                 _age_vals = pheno_utils.get_transformed_values(
                     column_mapping["age"], _ses_pheno, data_dictionary
                 )
                 if _age_vals:
-                    # NOTE: Our data model only allows a single age value, so we only take the first instance if multiple columns are about age
                     session.hasAge = _age_vals[0]
 
             if tool_mapping:

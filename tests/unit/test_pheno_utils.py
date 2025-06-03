@@ -31,7 +31,7 @@ from bagel.utilities import pheno_utils
             },
             "sex",
         ),
-        # age column missing Transformation
+        # age column missing Format
         (
             {
                 "participant_id": {
@@ -56,6 +56,7 @@ from bagel.utilities import pheno_utils
             },
             "age",
         ),
+        # age column containing both Format and Transformation (invalid)
         (
             {
                 "participant_id": {
@@ -390,22 +391,22 @@ def test_age_gets_converted(raw_age, expected_age, value_format):
 def test_incorrect_age_format(
     raw_age, incorrect_format, caplog, propagate_errors
 ):
-    """Given an age transformation that does not match the type of age value provided, returns an informative error."""
+    """Given an age format that does not match the type of age value provided, returns an informative error."""
     with pytest.raises(typer.Exit):
         pheno_utils.transform_age(raw_age, incorrect_format)
 
     assert (
-        f"problem with applying the transformation {incorrect_format} to the age: {raw_age}"
+        f"problem with applying the format {incorrect_format} to the age: {raw_age}"
         in caplog.text
     )
 
 
 def test_invalid_age_format(caplog, propagate_errors):
-    """Given an age transformation that is not recognized, returns an informative ValueError."""
+    """Given an age format that is not recognized, returns an informative ValueError."""
     with pytest.raises(typer.Exit):
         pheno_utils.transform_age("11,0", "nb:birthyear")
 
-    assert "unrecognized age transformation: nb:birthyear" in caplog.text
+    assert "unrecognized age format: nb:birthyear" in caplog.text
 
 
 @pytest.mark.parametrize(

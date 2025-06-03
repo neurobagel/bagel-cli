@@ -216,16 +216,16 @@ def transform_age(value: str, value_format: str) -> float:
             return sum(map(float, [a_min, a_max])) / 2
         log_error(
             logger,
-            f"The provided data dictionary contains an unrecognized age transformation: {value_format}. "
-            f"Ensure that the transformation TermURL is one of {list(AGE_FORMATS.values())}.",
+            f"The provided data dictionary contains an unrecognized age format: {value_format}. "
+            f"Ensure that the format TermURL is one of {list(AGE_FORMATS.values())}.",
         )
     except (ValueError, isodate.isoerror.ISO8601Error) as e:
         log_error(
             logger,
-            f"There was a problem with applying the transformation {value_format} to the age: {value}. Error: {str(e)}\n"
-            f"Check that the transformation specified in the data dictionary ({value_format}) is correct for the age values in your phenotypic file, "
+            f"There was a problem with applying the format {value_format} to the age: {value}. Error: {str(e)}\n"
+            f"Check that the format specified in the data dictionary ({value_format}) is correct for the age values in your phenotypic file, "
             "and that you correctly annotated any missing values in your age column. "
-            "For examples of acceptable values for specific age transformations, see https://neurobagel.org/data_models/dictionaries/#age.",
+            "For examples of acceptable values for specific age formats, see https://neurobagel.org/data_models/dictionaries/#age.",
         )
 
 
@@ -563,9 +563,6 @@ def convert_transformation_to_format(data_dict: dict) -> dict:
     If the uploaded data dictionary contains a "Transformation" key, rename the key to "Format"
     internally for downstream operations involving the data dictionary.
     This ensures compatibility with both v1 and v2 annotation tool-generated data dictionaries.
-
-    If both "Format" and "Transformation" keys are present, the "Transformation" key is removed
-    (ignored) from the internal data dictionary representation to avoid potential conflicts.
 
     TODO: Remove when we no longer support data dictionaries annotated using annotation tool v1.
     """

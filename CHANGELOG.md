@@ -1,3 +1,17 @@
+# v0.5.0 (Wed Jun 04 2025)
+
+#### 🚀 Enhancements
+
+- [ENH] Rename `"Transformation"` to `"Format"` in data dictionary model [#459](https://github.com/neurobagel/bagel-cli/pull/459) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Split `--bids-dir` into input and host path options [#449](https://github.com/neurobagel/bagel-cli/pull/449) ([@alyssadai](https://github.com/alyssadai) [@rmanaem](https://github.com/rmanaem))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+
+---
+
 # v0.4.4 (Tue Apr 08 2025)
 
 #### 🚀 Enhancements

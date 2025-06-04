@@ -1,6 +1,12 @@
 from typing import Dict, List, Union
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field, RootModel
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    RootModel,
+)
 from pydantic_core import PydanticCustomError
 from typing_extensions import Annotated
 
@@ -69,7 +75,7 @@ class CategoricalNeurobagel(Neurobagel):
     levels: Dict[str, Identifier] = Field(
         ...,
         description="For categorical variables: "
-        "An object of values (keys) in the column and the semantic"
+        "An object of values (keys) in the column and the semantic "
         "term (URI and label) they are unambiguously mapped to.",
         alias="Levels",
     )
@@ -78,13 +84,13 @@ class CategoricalNeurobagel(Neurobagel):
 class ContinuousNeurobagel(Neurobagel):
     """A Neurobagel annotation for a continuous column"""
 
-    transformation: Identifier = Field(
+    format: Identifier = Field(
         ...,
-        description="For continuous columns this field can be used to describe"
-        "a transformation that can be applied to the values in this"
-        "column in order to match the desired format of a standardized"
+        description="For continuous columns this field is used to describe "
+        "the format of the raw numerical values in the column. This information is used to transform "
+        "the column values into the desired format of the standardized "
         "data element referenced in the IsAbout attribute.",
-        alias="Transformation",
+        alias="Format",
     )
 
 

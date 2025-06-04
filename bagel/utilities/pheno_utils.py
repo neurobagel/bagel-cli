@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from copy import deepcopy
 from typing import Optional, Union
 
 import isodate
@@ -17,7 +18,8 @@ from bagel.mappings import (
     SUPPORTED_NAMESPACE_PREFIXES,
 )
 
-DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()
+# TODO: Once we remove support for v1 annotation tool data dictionaries, revert to using this version for data dictionary schema validation
+# DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()
 
 AGE_FORMATS = {
     "float": NB.pf + ":FromFloat",
@@ -188,7 +190,7 @@ def map_cat_val_to_term(
 
 
 def get_age_format(column: str, data_dict: dict) -> str:
-    return data_dict[column]["Annotations"]["Transformation"]["TermURL"]
+    return data_dict[column]["Annotations"]["Format"]["TermURL"]
 
 
 def transform_age(value: str, value_format: str) -> float:
@@ -214,16 +216,16 @@ def transform_age(value: str, value_format: str) -> float:
             return sum(map(float, [a_min, a_max])) / 2
         log_error(
             logger,
-            f"The provided data dictionary contains an unrecognized age transformation: {value_format}. "
-            f"Ensure that the transformation TermURL is one of {list(AGE_FORMATS.values())}.",
+            f"The provided data dictionary contains an unrecognized age format: {value_format}. "
+            f"Ensure that the format TermURL is one of {list(AGE_FORMATS.values())}.",
         )
     except (ValueError, isodate.isoerror.ISO8601Error) as e:
         log_error(
             logger,
-            f"There was a problem with applying the transformation {value_format} to the age: {value}. Error: {str(e)}\n"
-            f"Check that the transformation specified in the data dictionary ({value_format}) is correct for the age values in your phenotypic file, "
+            f"There was a problem with applying the format {value_format} to the age: {value}. Error: {str(e)}\n"
+            f"Check that the format specified in the data dictionary ({value_format}) is correct for the age values in your phenotypic file, "
             "and that you correctly annotated any missing values in your age column. "
-            "For examples of acceptable values for specific age transformations, see https://neurobagel.org/data_models/dictionaries/#age.",
+            "For examples of acceptable values for specific age formats, see https://neurobagel.org/data_models/dictionaries/#age.",
         )
 
 
@@ -352,9 +354,36 @@ def get_rows_with_empty_strings(df: pd.DataFrame, columns: list) -> list:
     return list(empty_row[empty_row].index)
 
 
+def construct_dictionary_schema_for_validation() -> dict:
+    """
+    For backwards compatibility with the v1 annotation tool, we patch the data dictionary schema
+    to allow for either a 'Format' or 'Transformation' key (but not both) for continuous columns.
+    This ensures that v1 annotation tool data dictionaries still pass the initial schema validation (for now),
+    without encoding the 'Transformation' key in the updated data dictionary model itself.
+
+    TODO: Remove once we no longer support data dictionaries annotated using annotation tool v1.
+    """
+    patched_schema = deepcopy(
+        dictionary_models.DataDictionary.model_json_schema()
+    )
+    continuous_schema = patched_schema["$defs"]["ContinuousNeurobagel"]
+    continuous_schema["properties"]["Transformation"] = deepcopy(
+        continuous_schema["properties"]["Format"]
+    )
+    if "Format" in continuous_schema.get("required", []):
+        continuous_schema["required"].remove("Format")
+    continuous_schema["oneOf"] = [
+        {"required": ["Transformation"], "not": {"required": ["Format"]}},
+        {"required": ["Format"], "not": {"required": ["Transformation"]}},
+    ]
+    return patched_schema
+
+
 def validate_data_dict(data_dict: dict) -> None:
     try:
-        jsonschema.validate(data_dict, DICTIONARY_SCHEMA)
+        jsonschema.validate(
+            data_dict, construct_dictionary_schema_for_validation()
+        )
     except jsonschema.ValidationError as e:
         # TODO: When *every* item in an input JSON is not schema valid,
         # jsonschema.validate will raise a ValidationError for only *one* item among them.
@@ -450,7 +479,7 @@ def validate_data_dict(data_dict: dict) -> None:
     ):
         logger.warning(
             "The provided data dictionary indicates more than one column about age. "
-            "Neurobagel cannot resolve multiple sex values per subject-session, so will only consider the first of these columns for age data."
+            "Neurobagel cannot resolve multiple age values per subject-session, so will only consider the first of these columns for age data."
         )
 
     if not categorical_cols_have_bids_levels(data_dict):
@@ -527,3 +556,35 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
             "Please make sure that every row has a non-empty participant id (and session id where applicable). "
             f"We found missing values in the following rows (first row is zero): {row_indices}.",
         )
+
+
+def convert_transformation_to_format(data_dict: dict) -> dict:
+    """
+    If the uploaded data dictionary contains any "Transformation" keys, rename the key(s) to "Format"
+    internally for downstream operations involving the data dictionary.
+    This ensures compatibility with both v1 and v2 annotation tool-generated data dictionaries.
+
+    TODO: Remove when we no longer support data dictionaries annotated using annotation tool v1.
+    """
+    age_column_names = get_columns_about(
+        data_dict, concept=mappings.NEUROBAGEL["age"]
+    )
+    if age_column_names:
+        age_cols_using_transformation = []
+        for age_column_name in age_column_names:
+            age_annotations = data_dict[age_column_name]["Annotations"]
+            if "Transformation" in age_annotations:
+                age_cols_using_transformation.append(age_column_name)
+                age_annotations["Format"] = age_annotations.pop(
+                    "Transformation"
+                )
+
+        if age_cols_using_transformation:
+            logger.warning(
+                f"The data dictionary contains a deprecated 'Transformation' key in the annotations for the column(s): {age_cols_using_transformation}. "
+                "This key has been replaced by 'Format'. For now, 'Transformation' will be interpreted as equivalent to 'Format', "
+                "but support for 'Transformation' will be removed in a future release. "
+                "We recommend updating your data dictionary using the latest version of the Neurobagel annotation tool."
+            )
+
+    return data_dict

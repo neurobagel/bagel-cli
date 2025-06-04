@@ -20,22 +20,25 @@ def disable_rich_markup(monkeypatch):
     monkeypatch.setattr(bagel, "rich_markup_mode", None)
 
 
+# TODO: Revisit these fixtures - it seems it's safer to explicitly define the logger name because the CLI uses a named logger ("bagel.logger").
+# When the logger name is unset, there can be weird behaviour where caplog will only capture logs from the root logger for certain test modules
+# (maybe due to import order?), depending on how pytest is run (e.g., on a specific test file or all tests).
 @pytest.fixture(scope="function")
 def propagate_warnings(caplog):
     """Only capture WARNING logs and above from the CLI."""
-    caplog.set_level(logging.WARNING)
+    caplog.set_level(logging.WARNING, logger="bagel.logger")
 
 
 @pytest.fixture(scope="function")
 def propagate_info(caplog):
     """Only capture INFO logs and above from the CLI."""
-    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.INFO, logger="bagel.logger")
 
 
 @pytest.fixture(scope="function")
 def propagate_errors(caplog):
     """Only capture ERROR logs and above from the CLI."""
-    caplog.set_level(logging.ERROR)
+    caplog.set_level(logging.ERROR, logger="bagel.logger")
 
 
 @pytest.fixture(scope="session")

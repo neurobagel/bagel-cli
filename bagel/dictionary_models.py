@@ -87,8 +87,8 @@ class ContinuousNeurobagel(Neurobagel):
     format: Identifier = Field(
         ...,
         description="For continuous columns this field is used to describe "
-        "the numerical format of values, which is then used to transform this "
-        "column in order to match the desired format of a standardized "
+        "the format of the raw numerical values in the column. This information is used to transform "
+        "the column values into the desired format of the standardized "
         "data element referenced in the IsAbout attribute.",
         alias="Format",
     )

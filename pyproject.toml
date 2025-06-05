@@ -38,6 +38,12 @@ dev = ["bagel[test]", "pre-commit"]
 [project.scripts]
 bagel = "bagel.cli:bagel"
 
+[tool.hatch.build.targets.wheel]
+packages = ["bagel"]
+include = [
+  "bagel/pipeline-catalog/**/*"
+]
+
 [tool.black]
 line-length = 79
 safe = true

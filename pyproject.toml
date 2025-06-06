@@ -50,6 +50,9 @@ exclude = ["tests/**"]  # omit deeply nested test data from the source tarball
 [tool.hatch.version]
 source = "vcs"  # use git tags to automatically determine the project version using hatch-vcs
 
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"  # do not append local version info to the version string to avoid PyPI upload errors
+
 [tool.black]
 line-length = 79
 

@@ -1,44 +1,48 @@
 <div align="center">
 
-# `bagel-cli`
+# Neurobagel CLI
 
 [![Main branch checks status](https://img.shields.io/github/check-runs/neurobagel/bagel-cli/main?style=flat-square&logo=github)](https://github.com/neurobagel/bagel-cli/actions?query=branch:main)
 [![Tests status](https://img.shields.io/github/actions/workflow/status/neurobagel/bagel-cli/test.yml?branch=main&style=flat-square&logo=github&label=tests)](https://github.com/neurobagel/bagel-cli/actions/workflows/test.yml)
 [![Codecov](https://img.shields.io/codecov/c/github/neurobagel/bagel-cli?token=R1KI9KIP8D&style=flat-square&logo=codecov&link=https%3A%2F%2Fcodecov.io%2Fgh%2Fneurobagel%2Fbagel-cli)](https://app.codecov.io/gh/neurobagel/bagel-cli)
 [![Python versions static](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue?style=flat-square&logo=python)](https://www.python.org)
 [![License](https://img.shields.io/github/license/neurobagel/bagel-cli?style=flat-square&color=purple&link=LICENSE)](LICENSE)
+[![PyPI - Version](https://img.shields.io/pypi/v/bagel?link=https%3A%2F%2Fimg.shields.io%2Fpypi%2Fv%2Fbagel)](https://img.shields.io/pypi/v/bagel)
 [![Docker Image Version (tag)](https://img.shields.io/docker/v/neurobagel/bagelcli/latest?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Fbagelcli%2Ftags)](https://hub.docker.com/r/neurobagel/bagelcli/tags)
 [![Docker Pulls](https://img.shields.io/docker/pulls/neurobagel/bagelcli?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Fbagelcli%2Ftags)](https://hub.docker.com/r/neurobagel/bagelcli/tags)
 
 </div>
 
-The `bagel-cli` is a Python command-line tool to automatically parse and describe subject phenotypic and imaging attributes in an annotated dataset for integration into the Neurobagel graph.
+The Neurobagel CLI is a Python command-line tool to automatically parse and describe subject phenotypic and imaging attributes in an annotated dataset for integration into the Neurobagel graph.
 
-**Please refer to our [official Neurobagel documentation](https://neurobagel.org/user_guide/cli/) for information on how to install and use the CLI.**
+**Please refer to the [official Neurobagel documentation](https://neurobagel.org/user_guide/cli/) for information on how to install and use the CLI.**
 
+## Installation
+The Neurobagel CLI is available as a Python package that can be installed from PyPI using:
+
+```bash
+pip install bagel
+```
+
+(If you prefer to run the CLI using Docker or Singularity containers instead, please refer to the [Neurobagel documentation](https://neurobagel.org/user_guide/cli/).)
 
 ## Development environment
-
-To ensure that our Docker images are built in a predictable way,
-we use `requirements.txt` as a lock-file.
-That is, `requirements.txt` includes the entire dependency tree of our tool,
-with pinned versions for every dependency (see [here](https://pip.pypa.io/en/latest/topics/repeatable-installs/#repeatability) for more information).
-
 
 ### Setting up a local development environment
 To work on the CLI, we suggest that you create a development environment 
 that is as close as possible to the environment we run in production.
 
-1. Install the dependencies from the lockfile (`dev_requirements.txt`):
+1. Clone the repository
 
     ```bash
-    pip install -r dev_requirements.txt
+    git clone https://github.com/neurobagel/bagel-cli.git
+    cd bagel-cli
     ```
 
-2. Install the CLI without touching the dependencies:
+2. Install the CLI in editable mode:
 
     ```bash
-    pip install --no-deps -e .
+    pip install -e .
     ```
 
 3. Install the `bids-examples` and `neurobagel_examples` submodules needed to run the test suite:
@@ -61,26 +65,8 @@ pre-commit install
 
 pre-commit will now run automatically whenever you run `git commit`.
 
-### Updating Python lock-file
-The `requirements.txt` file is automatically generated from the `setup.cfg`
-constraints. To update it, we use `pip-compile` from the `pip-tools` package.
-Here is how you can use these tools to update the `requirements.txt` file.
-
-_Note: `pip-compile` will update dependencies based on the Python version of the environment it's running in._
-
-1. Ensure `pip-tools` is installed:
-    ```bash
-    pip install pip-tools
-    ```
-2. Update the runtime dependencies in `requirements.txt`:
-    ```bash
-    pip-compile -o requirements.txt --upgrade
-    ```
-3. The above command only updates the runtime dependencies.
-Now, update the developer dependencies in `dev_requirements.txt`:
-    ```bash
-    pip-compile -o dev_requirements.txt --extra all --upgrade
-    ```
+### Updating dependencies
+If new runtime or development dependencies are needed, add them to `pyproject.toml` using minimal version constraints.
 
 ## Regenerating the Neurobagel vocabulary file
 Terms in the Neurobagel namespace (`nb` prefix) and their class relationships are serialized to a file 

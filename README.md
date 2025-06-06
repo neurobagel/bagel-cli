@@ -39,10 +39,10 @@ that is as close as possible to the environment we run in production.
     cd bagel-cli
     ```
 
-2. Install the CLI in editable mode:
+2. Install the CLI and all development dependencies in editable mode:
 
     ```bash
-    pip install -e .
+    pip install -e ".[dev]"
     ```
 
 3. Install the `bids-examples` and `neurobagel_examples` submodules needed to run the test suite:

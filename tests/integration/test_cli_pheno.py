@@ -910,6 +910,7 @@ def test_empty_string_dataset_name_raises_error(
     test_data_upload_path,
     default_pheno_output_path,
     invalid_dataset_name,
+    disable_rich_markup,
 ):
     """Ensure that provided dataset names cannot be empty strings or only contain whitespace."""
     result = runner.invoke(

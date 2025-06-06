@@ -44,6 +44,9 @@ include = [
   "bagel/pipeline-catalog/**/*"
 ]
 
+[tool.hatch.build.targets.sdist]
+exclude = ["tests/**"]  # omit deeply nested test data from the source tarball
+
 [tool.hatch.version]
 source = "vcs"  # use git tags to automatically determine the project version using hatch-vcs
 

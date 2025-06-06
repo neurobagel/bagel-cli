@@ -44,9 +44,11 @@ include = [
   "bagel/pipeline-catalog/**/*"
 ]
 
+[tool.hatch.version]
+source = "vcs"  # use git tags to automatically determine the project version using hatch-vcs
+
 [tool.black]
 line-length = 79
-safe = true
 
 [tool.isort]
 profile = "black"

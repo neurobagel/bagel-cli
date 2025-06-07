@@ -32,7 +32,7 @@ def get_recognized_pipelines(pipelines: Iterable[str]) -> list:
 
     unrecognized_pipelines_details = (
         f"Unrecognized processing pipelines: {unrecognized_pipelines}. "
-        f"Supported pipelines are found in the Nipoppy pipeline vocabulary (https://github.com/nipoppy/pipeline-catalog): "
+        f"Supported pipelines are found in the Nipoppy pipeline vocabulary (https://github.com/nipoppy/pipeline-vocabulary): "
         f"{list(mappings.KNOWN_PIPELINE_URIS.keys())}"
     )
     if not recognized_pipelines:
@@ -92,7 +92,7 @@ def check_at_least_one_pipeline_version_is_recognized(status_df: pd.DataFrame):
 
     unrecognized_versions_details = (
         f"Unrecognized processing pipeline versions: {unrecognized_pipeline_versions}. "
-        "Supported pipeline versions are found in the Nipoppy pipeline vocabulary (https://github.com/nipoppy/pipeline-catalog)."
+        "Supported pipeline versions are found in the Nipoppy pipeline vocabulary (https://github.com/nipoppy/pipeline-vocabulary)."
     )
     if not any_recognized_versions:
         log_error(

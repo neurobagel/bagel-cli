@@ -11,7 +11,7 @@ def test_get_pipeline_from_backup_if_remote_fails(
     monkeypatch, caplog, propagate_warnings
 ):
     """
-    Test that the pipeline catalog is loaded from the local backup if the remote location is unreachable.
+    Test that the pipeline vocabulary is loaded from the local backup if the remote location is unreachable.
 
     NOTE: This test will fail if the submodule has not been correctly initialized.
     """
@@ -31,19 +31,19 @@ def test_get_pipeline_from_backup_if_remote_fails(
 
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
-    result = mappings.get_pipeline_catalog(
+    result = mappings.get_pipeline_vocabulary(
         url=nonsense_url, path=mappings.PROCESSING_PIPELINE_PATH
     )
 
     assert all(isinstance(item, dict) for item in result)
-    assert "Unable to download pipeline catalog" in caplog.text
+    assert "Unable to download pipeline vocabulary" in caplog.text
 
 
-def test_raises_exception_if_remote_and_local_pipeline_catalog_fails(
+def test_raises_exception_if_remote_and_local_pipeline_vocabulary_fails(
     monkeypatch, tmp_path, caplog, propagate_warnings
 ):
     """
-    If I cannot get the pipeline catalog from both the remote location and the local backup, I should raise an exception.
+    If I cannot get the pipeline vocabulary from both the remote location and the local backup, I should raise an exception.
     """
     nonsense_url = "https://does.not.exist.url"
 
@@ -62,12 +62,14 @@ def test_raises_exception_if_remote_and_local_pipeline_catalog_fails(
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
     with pytest.raises(typer.Exit):
-        mappings.get_pipeline_catalog(
+        mappings.get_pipeline_vocabulary(
             url=nonsense_url, path=tmp_path / "does_not_exist.json"
         )
 
     assert len(caplog.records) == 2
-    assert "Unable to download pipeline catalog" in caplog.records[0].message
+    assert (
+        "Unable to download pipeline vocabulary" in caplog.records[0].message
+    )
     assert (
         "Have you correctly initialized the submodules"
         in caplog.records[1].message
@@ -75,8 +77,8 @@ def test_raises_exception_if_remote_and_local_pipeline_catalog_fails(
 
 
 def test_get_pipeline_from_remote_succeeds(monkeypatch):
-    nonsense_url = "https://made.up.url/pipeline_catalog.json"
-    mock_pipeline_catalog = [
+    nonsense_url = "https://made.up.url/pipeline_vocabulary.json"
+    mock_pipeline_vocabulary = [
         {"name": "sillypipe", "versions": ["1", "2"]},
         {"name": "funpipe", "versions": ["10", "11"]},
     ]
@@ -84,7 +86,7 @@ def test_get_pipeline_from_remote_succeeds(monkeypatch):
     def mock_httpx_get(*args, **kwargs):
         response = httpx.Response(
             status_code=200,
-            json=mock_pipeline_catalog,
+            json=mock_pipeline_vocabulary,
             request=httpx.Request("GET", nonsense_url),
         )
         # This slightly odd construction is necessary to create a Response object
@@ -94,17 +96,17 @@ def test_get_pipeline_from_remote_succeeds(monkeypatch):
 
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
-    result = mappings.get_pipeline_catalog(
+    result = mappings.get_pipeline_vocabulary(
         url=nonsense_url, path=mappings.PROCESSING_PIPELINE_PATH
     )
 
-    assert result == mock_pipeline_catalog
+    assert result == mock_pipeline_vocabulary
 
 
 def test_pipeline_uris_are_loaded():
     """Test that pipeline URIs are loaded from the pipeline-catalog submodule."""
 
-    uri_dict, _ = mappings.parse_pipeline_catalog()
+    uri_dict, _ = mappings.parse_pipeline_vocabulary()
     assert all(
         ((mappings.NP.pf in pipe_uri) and (" " not in pipe_uri))
         for pipe_uri in uri_dict.values()
@@ -114,7 +116,7 @@ def test_pipeline_uris_are_loaded():
 def test_pipeline_versions_are_loaded():
     """Test that pipeline versions are loaded from the pipeline-catalog submodule."""
 
-    _, version_dict = mappings.parse_pipeline_catalog()
+    _, version_dict = mappings.parse_pipeline_vocabulary()
     assert all(
         isinstance(pipe_versions, list) and len(pipe_versions) > 0
         for pipe_versions in version_dict.values()
@@ -125,7 +127,7 @@ def test_warning_raised_when_some_pipeline_names_unrecognized(
     caplog, propagate_warnings
 ):
     """
-    Test that when a subset of pipeline names are not found in the pipeline catalog,
+    Test that when a subset of pipeline names are not found in the pipeline vocabulary,
     an informative warning is raised but the recognized pipeline names are successfully returned.
     """
     pipelines = ["fmriprep", "fakepipeline1"]
@@ -143,7 +145,7 @@ def test_error_raised_when_no_pipeline_names_recognized(
     caplog, propagate_errors
 ):
     """
-    Test that when no provided pipeline names are found in the pipeline catalog,
+    Test that when no provided pipeline names are found in the pipeline vocabulary,
     an informative error is raised.
     """
     pipelines = ["fakepipeline1", "fakepipeline2"]
@@ -164,7 +166,7 @@ def test_error_raised_when_no_pipeline_names_recognized(
 def test_pipeline_versions_classified_correctly(
     fmriprep_versions, expected_recog_versions, expected_unrecog_versions
 ):
-    """Test that versions of a pipeline are correctly classified as recognized or unrecognized according to the pipeline catalog."""
+    """Test that versions of a pipeline are correctly classified as recognized or unrecognized according to the pipeline vocabulary."""
     recog_versions, unrecog_versions = (
         derivative_utils.validate_pipeline_versions(
             "fmriprep", fmriprep_versions

@@ -43,8 +43,8 @@ _incomplete.tsv | Has a missing value in the `bids_participant_id` column | Fail
 _unique_sessions.csv | Includes a unique subject-session (`sub-01`, `ses-03`) not found in the synthetic dataset | Pass
 _missing_sessions.tsv | One subject (`sub-02`) is missing all session labels | Pass
 _no_bids_sessions.tsv | Has session labels in all rows for `session_id`, but no values in `bids_session_id` column | Pass
-_unrecognized_pipelines.tsv | Includes some pipeline names and versions not found in the pipeline catalog | Pass
-_no_recognized_pipelines.tsv | Includes pipeline names found in the pipeline catalog, but no recognized versions | Fail 
+_unrecognized_pipelines.tsv | Includes some pipeline names and versions not found in the pipeline vocabulary | Pass
+_no_recognized_pipelines.tsv | Includes pipeline names found in the pipeline vocabulary, but no recognized versions | Fail 
 
 
 

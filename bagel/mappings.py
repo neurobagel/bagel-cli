@@ -56,7 +56,7 @@ PROCESSING_PIPELINE_URL = "https://raw.githubusercontent.com/nipoppy/pipeline-ca
 
 def get_pipeline_catalog(url: str, path: Path) -> list[dict]:
     """
-    Load the pipeline catalog from the remote location or, if that fails,
+    Load the pipeline vocabulary from the remote location or, if that fails,
     from the local backup.
     """
     try:
@@ -66,7 +66,7 @@ def get_pipeline_catalog(url: str, path: Path) -> list[dict]:
     # The JSONDecodeError should catch the case where the file is empty
     except (httpx.HTTPError, json.JSONDecodeError):
         logger.warning(
-            f"Unable to download pipeline catalog from {url}. Will revert to loading backup from {path}."
+            f"Unable to download pipeline vocabulary from {url}. Will revert to loading backup from {path}."
         )
         try:
             # load_json() will catch JSONDecodeError which should catch when the file is empty
@@ -80,7 +80,7 @@ def get_pipeline_catalog(url: str, path: Path) -> list[dict]:
 
 def parse_pipeline_catalog() -> tuple[dict, dict]:
     """
-    Load the pipeline catalog and return a dictionary of pipeline names and their URIs in the Nipoppy namespace,
+    Load the pipeline vocabulary and return a dictionary of pipeline names and their URIs in the Nipoppy namespace,
     and a dictionary of pipeline names and their supported versions in Nipoppy.
     """
     pipeline_catalog_arr = get_pipeline_catalog(

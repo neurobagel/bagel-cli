@@ -54,7 +54,7 @@ PROCESSING_PIPELINE_PATH = (
 PROCESSING_PIPELINE_URL = "https://raw.githubusercontent.com/nipoppy/pipeline-catalog/refs/heads/main/processing/processing.json"
 
 
-def get_pipeline_catalog(url: str, path: Path) -> list[dict]:
+def get_pipeline_vocabulary(url: str, path: Path) -> list[dict]:
     """
     Load the pipeline vocabulary from the remote location or, if that fails,
     from the local backup.
@@ -74,23 +74,23 @@ def get_pipeline_catalog(url: str, path: Path) -> list[dict]:
         except FileNotFoundError as e:
             log_error(
                 logger,
-                f"Unable to find a local pipeline-catalog backup. Have you correctly initialized the submodules? {e}",
+                f"Unable to find a local pipeline-vocabulary backup. Have you correctly initialized the submodules? {e}",
             )
 
 
-def parse_pipeline_catalog() -> tuple[dict, dict]:
+def parse_pipeline_vocabulary() -> tuple[dict, dict]:
     """
     Load the pipeline vocabulary and return a dictionary of pipeline names and their URIs in the Nipoppy namespace,
     and a dictionary of pipeline names and their supported versions in Nipoppy.
     """
-    pipeline_catalog_arr = get_pipeline_catalog(
+    pipeline_vocabulary_arr = get_pipeline_vocabulary(
         url=PROCESSING_PIPELINE_URL,
         path=PROCESSING_PIPELINE_PATH,
     )
 
     version_dict = {}
     uri_dict = {}
-    for pipeline in pipeline_catalog_arr:
+    for pipeline in pipeline_vocabulary_arr:
         version_dict[pipeline["name"]] = pipeline["versions"]
         uri_dict[pipeline["name"]] = f"{NP.pf}:{pipeline['name']}"
 
@@ -99,4 +99,4 @@ def parse_pipeline_catalog() -> tuple[dict, dict]:
 
 # TODO: consider refactoring this into a Mappings class that also
 # handles lazy loading of the remote content, i.e. only when accessed
-KNOWN_PIPELINE_URIS, KNOWN_PIPELINE_VERSIONS = parse_pipeline_catalog()
+KNOWN_PIPELINE_URIS, KNOWN_PIPELINE_VERSIONS = parse_pipeline_vocabulary()

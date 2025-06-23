@@ -1,3 +1,19 @@
+# v0.6.0 (Mon Jun 23 2025)
+
+#### 🚀 Enhancements
+
+- [MNT] Set up `bagel` CLI for publishing on PyPi [#460](https://github.com/neurobagel/bagel-cli/pull/460) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [CI] Release the CLI [#465](https://github.com/neurobagel/bagel-cli/pull/465) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.5.0 (Wed Jun 04 2025)
 
 #### 🚀 Enhancements

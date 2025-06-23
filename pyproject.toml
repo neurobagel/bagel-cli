@@ -1,31 +1,69 @@
 [build-system]
-requires = ["setuptools>=42"]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
+requires = ["hatch-vcs", "hatchling"]
+
+[project]
+name = "bagel"
+dynamic = ["version"]
+license = { file = "LICENSE" }
+authors = [{ name = "Neurobagel Developers" }]
+maintainers = [{ name = "Sebastian Urchs", email = "sebastian.urchs@mcgill.ca" }]
+description = "Automatic parsing of subjects' tabular data and imaging metadata into Neurobagel graph-compatible JSONLD files."
+readme = "README.md"
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.10"
+dependencies = [
+  "pybids",
+  "typer",
+  "rich",
+  "pydantic>=2,<3",
+  "jsonschema",
+  "isodate",
+  "httpx",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+  "coverage",
+]
+dev = ["bagel[test]", "pre-commit"]
+
+[project.scripts]
+bagel = "bagel.cli:bagel"
+
+[tool.hatch.build.targets.wheel]
+packages = ["bagel"]
+include = [
+  "bagel/pipeline-catalog/**/*"
+]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["tests/**"]  # omit deeply nested test data from the source tarball
+
+[tool.hatch.version]
+source = "vcs"  # use git tags to automatically determine the project version using hatch-vcs
+
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"  # do not append local version info to the version string to avoid PyPI upload errors
 
 [tool.black]
 line-length = 79
-target-version = ['py37']
-include = '\.pyi?$'
-exclude = '''
-(
-  /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-    | \.github
-    | \.hg
-    | \.pytest_cache
-    | _build
-    | build
-    | dist
-  )/
-  | get_version.py
-  | versioneer.py
-)
-'''
 
 [tool.isort]
 profile = "black"
-[tool.codespell]
-skip = '.git,*.pdf,*.svg'
-#
-# ignore-words-list = ''
+filter_files = true
+line_length = 79
+
+[tool.mypy]
+ignore_missing_imports = true
+no_warn_no_return = true
+warn_redundant_casts = true
+show_error_codes = true
+pretty = true

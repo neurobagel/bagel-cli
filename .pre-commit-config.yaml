@@ -7,8 +7,7 @@ repos:
     hooks:
       - id: black
         args:
-          - --line-length=79
-          - --safe
+          - --config=pyproject.toml
 
   - repo: https://github.com/PyCQA/flake8
     rev: 7.2.0
@@ -16,9 +15,7 @@ repos:
       - id: flake8
         language_version: python3
         args:
-          - --extend-ignore=E501,E203
-          - --extend-select=B950
-          - --per-file-ignores=./bagelbids/cli.py:F841
+          - --config=.flake8
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -31,9 +28,7 @@ repos:
     hooks:
       - id: isort
         args: 
-          - --profile=black
-          - --filter-files
-          - --line-length=79
+          - --settings-path=pyproject.toml
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
@@ -43,12 +38,8 @@ repos:
           - tomli
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
+    rev: v1.16.0
     hooks:
       - id: mypy
         args:
-          - --ignore-missing-imports
-          - --no-warn-no-return
-          - --warn-redundant-casts
-          - --show-error-codes
-          - --pretty
+          - --config-file=pyproject.toml

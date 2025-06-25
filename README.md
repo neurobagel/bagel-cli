@@ -7,7 +7,7 @@
 [![Codecov](https://img.shields.io/codecov/c/github/neurobagel/bagel-cli?token=R1KI9KIP8D&style=flat-square&logo=codecov&link=https%3A%2F%2Fcodecov.io%2Fgh%2Fneurobagel%2Fbagel-cli)](https://app.codecov.io/gh/neurobagel/bagel-cli)
 [![Python versions static](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue?style=flat-square&logo=python)](https://www.python.org)
 [![License](https://img.shields.io/github/license/neurobagel/bagel-cli?style=flat-square&color=purple&link=LICENSE)](LICENSE)
-[![PyPI - Version](https://img.shields.io/pypi/v/bagel?link=https%3A%2F%2Fimg.shields.io%2Fpypi%2Fv%2Fbagel)](https://img.shields.io/pypi/v/bagel)
+[![PyPI - Version](https://img.shields.io/pypi/v/bagel?style=flat-square&logo=pypi&link=https%3A%2F%2Fimg.shields.io%2Fpypi%2Fv%2Fbagel)](https://pypi.org/project/bagel/)
 [![Docker Image Version (tag)](https://img.shields.io/docker/v/neurobagel/bagelcli/latest?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Fbagelcli%2Ftags)](https://hub.docker.com/r/neurobagel/bagelcli/tags)
 [![Docker Pulls](https://img.shields.io/docker/pulls/neurobagel/bagelcli?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Fbagelcli%2Ftags)](https://hub.docker.com/r/neurobagel/bagelcli/tags)
 
@@ -15,7 +15,7 @@
 
 The Neurobagel CLI is a Python command-line tool to automatically parse and describe subject phenotypic and imaging attributes in an annotated dataset for integration into the Neurobagel graph.
 
-**Please refer to the [official Neurobagel documentation](https://neurobagel.org/user_guide/cli/) for information on how to install and use the CLI.**
+**For information on how to use the CLI, please refer to the [official Neurobagel documentation](https://neurobagel.org/user_guide/cli/).**
 
 ## Installation
 The Neurobagel CLI is available as a Python package that can be installed from PyPI using:

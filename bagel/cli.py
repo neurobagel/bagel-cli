@@ -1,7 +1,9 @@
 from pathlib import Path
 
+import bids2table as b2t2
+import pandas as pd
 import typer
-from bids import BIDSLayout
+from bids import BIDSLayout, exceptions
 
 from bagel import mappings, models
 
@@ -51,6 +53,61 @@ def overwrite_option():
         "-f",
         help="Overwrite output file if it already exists.",
     )
+
+
+@bagel.command()
+def bids2tsv(
+    bids_dir: Path = typer.Option(
+        ...,
+        "--bids-dir",
+        "-b",
+        help="The path to the BIDS dataset directory.",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        resolve_path=True,
+    ),
+    output: Path = typer.Option(
+        "bids.tsv",
+        "--output",
+        "-o",
+        help="The path to save the output .tsv file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    overwrite: bool = overwrite_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
+):
+    """
+    Convert a BIDS dataset into a tabular .tsv format for easier processing.
+    """
+    file_utils.check_overwrite(output, overwrite)
+
+    try:
+        BIDSLayout(bids_dir, validate=True)
+    except exceptions.BIDSValidationError as e:
+        log_error(
+            logger,
+            f"Invalid BIDS dataset at {bids_dir}. Validation error: {e}",
+        )
+
+    output_columns = ["sub", "ses", "suffix", "path"]
+    dataset_tab = b2t2.index_dataset(bids_dir)
+    dataset_df = dataset_tab.to_pandas()
+
+    dataset_df = dataset_df[dataset_df["ext"].isin([".nii", ".nii.gz"])]
+    dataset_df["path"] = dataset_df.apply(
+        lambda row: Path(row["root"]) / row["path"], axis=1
+    )
+    dataset_df = dataset_df[output_columns]
+
+    dataset_df["sub"] = dataset_df["sub"].apply(lambda id: f"sub-{id}")
+    dataset_df["ses"] = dataset_df["ses"].apply(
+        lambda id: f"ses-{id}" if pd.notna(id) else id
+    )
+
+    dataset_df.to_csv(output, sep="\t", index=False)
 
 
 # TODO: Look into whitespace for command docstring - seems to be preserved in the help text.

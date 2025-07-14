@@ -80,7 +80,8 @@ def bids2tsv(
     verbosity: VerbosityLevel = verbosity_option(),
 ):
     """
-    Convert a BIDS dataset into a tabular .tsv format for easier processing.
+    Convert a BIDS dataset into a minimal tabular format (.tsv file) containing information about
+    subject, session, suffix (image contrast), and file path for NIfTI data only.
     """
     file_utils.check_overwrite(output, overwrite)
 

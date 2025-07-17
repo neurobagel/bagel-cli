@@ -1,7 +1,6 @@
 from pathlib import Path
-from typing import Optional
 
-from bids import BIDSLayout
+import pandas as pd
 from typer import BadParameter
 
 from bagel import mappings, models
@@ -23,6 +22,7 @@ def map_term_to_namespace(term: str, namespace: dict) -> str:
     return namespace.get(term, False)
 
 
+# TODO: Delete this function once no longer needed.
 def get_bids_subjects_simple(bids_dir: Path) -> list:
     """Returns list of subject IDs (in format of sub-<SUBJECT>) for a BIDS directory inferred from the names of non-empty subdirectories."""
     bids_subject_list = []
@@ -37,20 +37,14 @@ def get_bids_subjects_simple(bids_dir: Path) -> list:
 
 
 def create_acquisitions(
-    layout: BIDSLayout,
-    bids_sub_id: str,
-    session: Optional[str],
+    session_df: pd.DataFrame,
 ) -> list:
     """Parses BIDS image files for a specified session/subject to create a list of Acquisition objects."""
     image_list = []
-    for bids_file in layout.get(
-        subject=bids_sub_id,
-        session=session,
-        extension=[".nii", ".nii.gz"],
-    ):
-        # If the suffix of a BIDS file is not recognized, then ignore
+
+    for bids_file_suffix in session_df["suffix"].unique():
         mapped_term = map_term_to_namespace(
-            bids_file.get_entities().get("suffix"),
+            term=bids_file_suffix,
             namespace=mappings.BIDS,
         )
         if mapped_term:
@@ -64,11 +58,33 @@ def create_acquisitions(
 
 
 def get_session_path(
-    source_bids_dir: Path,
+    file_path: Path,
     bids_sub_id: str,
-    session: Optional[str],
-) -> str:
+    session_id: str,
+) -> str | None:
     """Construct the session directory from the source BIDS directory path if session layer exists, otherwise returns subject directory."""
-    subject_path = source_bids_dir / f"sub-{bids_sub_id}"
-    session_path = subject_path / f"ses-{session}" if session else subject_path
-    return session_path.as_posix()
+    target = session_id if session_id.strip() != "" else bids_sub_id
+
+    if target not in file_path.parts:
+        # TODO: Have fallback if subject or session ID is not found in the file path?
+        # e.g., could default to using the parent of the .nii/.nii.gz file
+        # TODO: Emit warning
+        session_path = None
+    else:
+        target_idx = file_path.parts.index(target)
+        session_path = Path(*file_path.parts[: target_idx + 1]).as_posix()
+
+    # Alternative: if we want to catch cases where the session/subject ID is a substring of a directory name
+    # (Although, this may be rare if we enforce sub-/ses- prefixes, since IDs are more likely to be substrings of dir names rather than the other way around)
+    #
+    # Only look for the target ID in directory names, since we want to return a subject/session directory
+    # if file_path.suffix:
+    #     path_dir_parts = file_path.parent.parts
+    # else:
+    #     path_dir_parts = file_path.parts
+    # target_idx = next((
+    #     idx for idx, path_part in enumerate(path_dir_parts) if target in path_part
+    # ), None)
+    # session_path = Path(*file_path.parts[:target_idx + 1]).as_posix() if target_idx is not None else None
+
+    return session_path

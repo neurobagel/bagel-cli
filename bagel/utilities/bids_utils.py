@@ -4,6 +4,7 @@ import pandas as pd
 from typer import BadParameter
 
 from bagel import mappings, models
+from bagel.logger import logger
 
 
 def check_absolute_bids_path(bids_path: Path) -> Path:
@@ -42,7 +43,7 @@ def create_acquisitions(
     """Parses BIDS image files for a specified session/subject to create a list of Acquisition objects."""
     image_list = []
 
-    for bids_file_suffix in session_df["suffix"].unique():
+    for bids_file_suffix in session_df["suffix"]:
         mapped_term = map_term_to_namespace(
             term=bids_file_suffix,
             namespace=mappings.BIDS,
@@ -68,7 +69,10 @@ def get_session_path(
     if target not in file_path.parts:
         # TODO: Have fallback if subject or session ID is not found in the file path?
         # e.g., could default to using the parent of the .nii/.nii.gz file
-        # TODO: Emit warning
+        logger.warning(
+            f"Could not derive an imaging session directory path for sub {bids_sub_id}, ses {session_id}: "
+            f"the subject or session ID {target} was not found in the path {file_path}."
+        )
         session_path = None
     else:
         target_idx = file_path.parts.index(target)

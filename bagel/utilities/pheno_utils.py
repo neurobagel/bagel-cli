@@ -290,16 +290,25 @@ def are_any_available(columns: list, row: pd.Series, data_dict: dict) -> bool:
     )
 
 
-def are_inputs_compatible(data_dict: dict, pheno_df: pd.DataFrame) -> bool:
+def find_missing_annotated_cols(
+    data_dict: dict, pheno_df: pd.DataFrame
+) -> list:
     """
-    Determines whether the provided data dictionary and phenotypic file make sense together
+    Find columns that are annotated in the data dictionary but not present in the phenotypic file.
     """
-    return all(
-        [
-            col in pheno_df.columns
-            for col, _ in get_annotated_columns(data_dict)
-        ]
-    )
+    missing_annotated_cols = []
+    for col, _ in get_annotated_columns(data_dict):
+        if col not in pheno_df.columns:
+            missing_annotated_cols.append(col)
+
+    return missing_annotated_cols
+
+    # return all(
+    #     [
+    #         col in pheno_df.columns
+    #         for col, _ in get_annotated_columns(data_dict)
+    #     ]
+    # )
 
 
 def find_undefined_cat_col_values(
@@ -510,14 +519,15 @@ def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
     """Determines whether input data are valid"""
     validate_data_dict(data_dict)
 
-    if not are_inputs_compatible(data_dict, pheno_df):
+    if missing_annotated_cols := find_missing_annotated_cols(
+        data_dict, pheno_df
+    ):
         log_error(
             logger,
-            "The provided data dictionary and phenotypic file are individually valid, "
-            "but are not compatible. Make sure that you selected the correct data "
-            "dictionary for your phenotypic file. Every column described in the data "
-            "dictionary has to have a corresponding column with the same name in the "
-            "phenotypic file",
+            "The provided phenotypic file and data dictionary are not compatible. "
+            f"The following columns are annotated in the data dictionary but are missing from the phenotypic file: {missing_annotated_cols} "
+            "Check that you have selected the correct data dictionary for your phenotypic file. "
+            "Each column described in the data dictionary must have a corresponding column with the same name in the phenotypic file.",
         )
 
     check_for_duplicate_ids(data_dict, pheno_df)

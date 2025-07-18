@@ -82,7 +82,10 @@ def test_pheno_valid_inputs_run_successfully(
             "example_invalid",
             ["not a valid Neurobagel data dictionary"],
         ),
-        ("example7", ["not compatible"]),
+        (
+            "example7",
+            ["not compatible", "missing from the phenotypic file: ['group']"],
+        ),
         ("example8", ["more than one column"]),
         (
             "example9",

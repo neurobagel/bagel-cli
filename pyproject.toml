@@ -26,6 +26,7 @@ dependencies = [
   "jsonschema",
   "isodate",
   "httpx",
+  "bids2table"
 ]
 
 [project.optional-dependencies]

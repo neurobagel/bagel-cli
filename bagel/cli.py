@@ -1,7 +1,9 @@
 from pathlib import Path
 
+import bids2table as b2t2
+import pandas as pd
 import typer
-from bids import BIDSLayout
+from bids import BIDSLayout, exceptions
 
 from bagel import mappings, models
 
@@ -51,6 +53,68 @@ def overwrite_option():
         "-f",
         help="Overwrite output file if it already exists.",
     )
+
+
+@bagel.command()
+def bids2tsv(
+    bids_dir: Path = typer.Option(
+        ...,
+        "--bids-dir",
+        "-b",
+        help="The path to the BIDS dataset directory.",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        resolve_path=True,
+    ),
+    output: Path = typer.Option(
+        "bids.tsv",
+        "--output",
+        "-o",
+        help="The path to save the output .tsv file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    overwrite: bool = overwrite_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
+):
+    """
+    Convert a BIDS dataset into a minimal tabular format (.tsv file) containing information about
+    subject, session, suffix (image contrast), and file path for NIfTI data only.
+    """
+    file_utils.check_overwrite(output, overwrite)
+
+    try:
+        # NOTE: If there are no subjects in the BIDS dataset, the validation should fail.
+        # The rest of this workflow assumes there's at least one subject in the BIDS dataset.
+        logger.info("Validating BIDS dataset. This may take a while...")
+        BIDSLayout(bids_dir, validate=True)
+        logger.info("BIDS validation passed.")
+    except exceptions.BIDSValidationError as e:
+        log_error(
+            logger,
+            f"Invalid BIDS dataset at {bids_dir}. Validation error: {e}",
+        )
+
+    output_columns = ["sub", "ses", "suffix", "path"]
+    dataset_tab = b2t2.index_dataset(bids_dir)
+    dataset_df = dataset_tab.to_pandas()
+
+    dataset_df = dataset_df[dataset_df["ext"].isin([".nii", ".nii.gz"])]
+    # TODO: Leave paths OS-specific?
+    dataset_df["path"] = dataset_df.apply(
+        lambda row: (Path(row["root"]) / row["path"]).as_posix(), axis=1
+    )
+    dataset_df = dataset_df[output_columns]
+
+    dataset_df["sub"] = dataset_df["sub"].apply(lambda id: f"sub-{id}")
+    dataset_df["ses"] = dataset_df["ses"].apply(
+        lambda id: f"ses-{id}" if pd.notna(id) else id
+    )
+
+    dataset_df.to_csv(output, sep="\t", index=False)
+    logger.info(f"Saved output to:  {output}")
 
 
 # TODO: Look into whitespace for command docstring - seems to be preserved in the help text.
@@ -234,6 +298,7 @@ def pheno(
 def bids(
     # TODO: If we wanted to make this option simpler for the user when the CLI is running in a container,
     # we could add a sensible default file name and fix the container mount path in the Docker command
+    # TODO: Rename to --jsonld? Since other file options do not have the _path suffix.
     jsonld_path: Path = typer.Option(
         ...,
         "--jsonld-path",
@@ -245,28 +310,39 @@ def bids(
         dir_okay=False,
         resolve_path=True,
     ),
-    input_bids_dir: Path = typer.Option(
-        Path.cwd() / "bids",
-        "--input-bids-dir",
-        "-i",
-        help="The path to the BIDS dataset directory to read and parse the BIDS data from. "
-        "[bold red]NOTE: Leave unset if using the Docker/Singularity version of bagel-cli.[/bold red]",
+    bids_table: Path = typer.Option(
+        ...,
+        "--bids-table",
+        "-b",
+        help="The path to a .tsv file containing the BIDS metadata for image files including 'sub', 'ses', 'suffix', and 'path' columns. "
+        "This file can be created using the bagel bids2tsv command.",
         exists=True,
-        file_okay=False,
-        dir_okay=True,
+        file_okay=True,
+        dir_okay=False,
         resolve_path=True,
     ),
-    # TODO: Should we include a tip in the help text for using the repository root for DataLad datasets?
-    source_bids_dir: Path = typer.Option(
-        ...,
-        "--source-bids-dir",
-        "-b",
-        callback=bids_utils.check_absolute_bids_path,
-        help="The absolute path to the original BIDS dataset directory location. This will be used to derive and record data source paths. "
-        "[bold red]NOTE: If running bagel-cli directly in a Python environment (not in a container), this value may be the same as --input-bids-dir.[/bold red]",
-        file_okay=False,
-        dir_okay=True,
-    ),
+    # input_bids_dir: Path = typer.Option(
+    #     Path.cwd() / "bids",
+    #     "--input-bids-dir",
+    #     "-i",
+    #     help="The path to the BIDS dataset directory to read and parse the BIDS data from. "
+    #     "[bold red]NOTE: Leave unset if using the Docker/Singularity version of bagel-cli.[/bold red]",
+    #     exists=True,
+    #     file_okay=False,
+    #     dir_okay=True,
+    #     resolve_path=True,
+    # ),
+    # # TODO: Should we include a tip in the help text for using the repository root for DataLad datasets?
+    # source_bids_dir: Path = typer.Option(
+    #     ...,
+    #     "--source-bids-dir",
+    #     "-b",
+    #     callback=bids_utils.check_absolute_bids_path,
+    #     help="The absolute path to the original BIDS dataset directory location. This will be used to derive and record data source paths. "
+    #     "[bold red]NOTE: If running bagel-cli directly in a Python environment (not in a container), this value may be the same as --input-bids-dir.[/bold red]",
+    #     file_okay=False,
+    #     dir_okay=True,
+    # ),
     # TODO: Should we rename the default output file to something more generic to account for the fact that
     # the file may also include derivatives data? e.g., dataset_bids.jsonld
     output: Path = typer.Option(
@@ -302,52 +378,44 @@ def bids(
         "Existing subject graph data to augment (.jsonld):",
         jsonld_path,
     )
-    logger.info("%-*s%s", width, "Input BIDS directory:", input_bids_dir)
-    logger.info("%-*s%s", width, "Source BIDS directory:", source_bids_dir)
+    logger.info("%-*s%s", width, "BIDS dataset table:", bids_table)
+    # logger.info("%-*s%s", width, "Input BIDS directory:", input_bids_dir)
+    # logger.info("%-*s%s", width, "Source BIDS directory:", source_bids_dir)
 
     jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
         jsonld_path
     )
+    bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
 
     existing_subs_dict = model_utils.get_subject_instances(jsonld_dataset)
+    bids_subject_ids = list(bids_dataset["sub"].unique())
 
-    # TODO: Revert to using Layout.get_subjects() to get BIDS subjects once pybids performance is improved
+    # TODO: Validate input BIDS table
+
     model_utils.confirm_subs_match_pheno_data(
-        subjects=bids_utils.get_bids_subjects_simple(input_bids_dir),
-        subject_source_for_err="BIDS directory",
+        subjects=bids_subject_ids,
+        subject_source_for_err="BIDS dataset file",
         pheno_subjects=existing_subs_dict.keys(),
     )
 
     logger.info("Initial checks of inputs passed.")
 
-    logger.info(
-        "Parsing and validating BIDS dataset. This may take a while..."
-    )
-    # NOTE: If there are no subjects in the BIDS dataset, the validation should fail.
-    # The rest of this workflow assumes there's at least one subject in the BIDS dataset.
-    layout = BIDSLayout(input_bids_dir, validate=True)
-    logger.info("BIDS parsing completed.")
-
     logger.info("Merging BIDS metadata with existing subject annotations...")
-    for bids_sub_id in layout.get_subjects():
-        existing_subject = existing_subs_dict[f"sub-{bids_sub_id}"]
+    for bids_sub_id in bids_subject_ids:
+        _bids_sub = bids_dataset[bids_dataset["sub"] == bids_sub_id]
+        existing_subject = existing_subs_dict[bids_sub_id]
         existing_sessions_dict = model_utils.get_imaging_session_instances(
             existing_subject
         )
 
-        bids_sessions = layout.get_sessions(subject=bids_sub_id)
-        if not bids_sessions:
-            if not layout.get_datatypes(subject=bids_sub_id):
-                continue
-            bids_sessions = [None]
-
-        # For some reason .get_sessions() doesn't always follow alphanumeric order
-        # By default (without sorting) the session lists look like ["02", "01"] per subject
+        bids_sessions = list(_bids_sub["ses"].unique())
+        # TODO: Do we need to explicitly preprocess cases where ses values are other types of whitespace?
+        # Ensure the sessions are in alphanumeric order for readability
+        # for bids_session_idx, bids_session_row in _bids_sub.iterrows():
         for session_id in sorted(bids_sessions):
+            _bids_session = _bids_sub[_bids_sub["ses"] == session_id]
             image_list = bids_utils.create_acquisitions(
-                layout=layout,
-                bids_sub_id=bids_sub_id,
-                session=session_id,
+                session_df=_bids_session
             )
 
             if not image_list:
@@ -359,16 +427,17 @@ def bids(
             # However, we still provide the BIDS SUBJECT directory as the session path, instead of making up a path.
             # This should be revisited in the future as for these cases the resulting dataset object is not
             # an exact representation of what's on disk.
-            # Here, we also need to add back "ses" prefix because pybids stripped it
             session_label = (
                 CUSTOM_SESSION_LABEL
-                if session_id is None
-                else f"ses-{session_id}"
+                if session_id.strip() == ""
+                else session_id
             )
             session_path = bids_utils.get_session_path(
-                source_bids_dir=source_bids_dir,
+                # NOTE: We assume all files for a session live in the same session or subject (when no session exists) directory,
+                # so we use the first file path instance to derive this directory path.
+                file_path=Path(_bids_session["path"].iloc[0]),
                 bids_sub_id=bids_sub_id,
-                session=session_id,
+                session_id=session_id,
             )
 
             # If a custom Neurobagel-created session already exists (if `bagel derivatives` was run first),

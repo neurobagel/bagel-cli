@@ -102,7 +102,7 @@ def bids2tsv(
     dataset_df = dataset_tab.to_pandas()
 
     dataset_df = dataset_df[dataset_df["ext"].isin([".nii", ".nii.gz"])]
-    # TODO: Only return unix paths?
+    # TODO: Convert paths to unix before saving?
     dataset_df["path"] = dataset_df.apply(
         lambda row: Path(row["root"]) / row["path"], axis=1
     )
@@ -114,6 +114,7 @@ def bids2tsv(
     )
 
     dataset_df.to_csv(output, sep="\t", index=False)
+    logger.info(f"Saved output to:  {output}")
 
 
 # TODO: Look into whitespace for command docstring - seems to be preserved in the help text.

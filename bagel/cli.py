@@ -102,9 +102,9 @@ def bids2tsv(
     dataset_df = dataset_tab.to_pandas()
 
     dataset_df = dataset_df[dataset_df["ext"].isin([".nii", ".nii.gz"])]
-    # TODO: Convert paths to unix before saving?
+    # TODO: Leave paths OS-specific?
     dataset_df["path"] = dataset_df.apply(
-        lambda row: Path(row["root"]) / row["path"], axis=1
+        lambda row: (Path(row["root"]) / row["path"]).as_posix(), axis=1
     )
     dataset_df = dataset_df[output_columns]
 

@@ -4,6 +4,7 @@ import bids2table as b2t2
 import pandas as pd
 import typer
 from bids import BIDSLayout, exceptions
+from rich.progress import Progress, SpinnerColumn, TextColumn, track
 
 from bagel import mappings, models
 
@@ -85,11 +86,21 @@ def bids2tsv(
     """
     file_utils.check_overwrite(output, overwrite)
 
+    logger.info(f"Input BIDS directory:  {bids_dir}")
+
     try:
         # NOTE: If there are no subjects in the BIDS dataset, the validation should fail.
         # The rest of this workflow assumes there's at least one subject in the BIDS dataset.
-        logger.info("Validating BIDS dataset. This may take a while...")
-        BIDSLayout(bids_dir, validate=True)
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient=True,
+        ) as progress:
+            # Add a spinner during BIDS parsing
+            progress.add_task(
+                "Validating BIDS dataset. This may take a while...", total=None
+            )
+            BIDSLayout(bids_dir, validate=True)
         logger.info("BIDS validation passed.")
     except exceptions.BIDSValidationError as e:
         log_error(
@@ -401,7 +412,9 @@ def bids(
     logger.info("Initial checks of inputs passed.")
 
     logger.info("Merging BIDS metadata with existing subject annotations...")
-    for bids_sub_id in bids_subject_ids:
+    for bids_sub_id in track(
+        bids_subject_ids, description="Processing BIDS subjects..."
+    ):
         _bids_sub = bids_dataset[bids_dataset["sub"] == bids_sub_id]
         existing_subject = existing_subs_dict[bids_sub_id]
         existing_sessions_dict = model_utils.get_imaging_session_instances(

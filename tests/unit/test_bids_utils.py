@@ -8,6 +8,7 @@ from bids import BIDSLayout
 from bagel.utilities import bids_utils
 
 
+# TODO: Remove since we no longer need the corresponding utility function
 @pytest.mark.parametrize(
     "bids_dir",
     ["synthetic", "ds000248"],
@@ -111,7 +112,10 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
     ],
 )
 def test_create_acquisitions(session_df_rows, expected_acquisitions):
-    """Given a BIDS dataset, creates a list of acquisitions matching the image files found on disk."""
+    """
+    Test that given a set of rows corresponding to a session's BIDS files,
+    create_acquisitions() creates a correct list of acquisitions matching the image file suffixes.
+    """
     session_df = pd.DataFrame(
         session_df_rows, columns=["sub", "ses", "suffix", "path"]
     )
@@ -132,28 +136,27 @@ def test_create_acquisitions(session_df_rows, expected_acquisitions):
     [
         (
             "/data/bids/sub-01/ses-01/anat/sub-01_ses-01_T1w.nii",
-            "sub-01",
             "ses-01",
             "/data/bids/sub-01/ses-01",
         ),
         (
             "/data/bids/sub-01/anat/sub-01_ses-01_T1w.nii",
-            "sub-01",
             "",
             "/data/bids/sub-01",
         ),
     ],
 )
 def test_get_session_path_when_id_in_path(
-    file_path, sub, ses, expected_session_path
+    file_path, ses, expected_session_path
 ):
     """
-    Test that given a subject and session ID (i.e. when BIDS session layer exists for dataset),
-    get_session_path() returns a path to the subject's session directory.
+    Test that depending on whether a session ID is provided in addition to a subject ID
+    (i.e. whether a BIDS session layer exists), get_session_path() correctly returns the path to
+    either the session or subject directory.
     """
     session_path = bids_utils.get_session_path(
         file_path=Path(file_path),
-        bids_sub_id=sub,
+        bids_sub_id="sub-01",
         session_id=ses,
     )
 
@@ -179,8 +182,8 @@ def test_get_session_path_when_id_not_in_path(
     file_path, sub, ses, caplog, propagate_warnings
 ):
     """
-    Test that given only a subject ID (i.e., when BIDS session layer is missing for dataset),
-    get_session_path() returns the path to the subject directory.
+    Test that when the provided session ID is not found in the file path,
+    get_session_path() returns no directory path and logs an informative warning.
     """
     session_path = bids_utils.get_session_path(
         file_path=Path(file_path),

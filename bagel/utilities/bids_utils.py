@@ -23,7 +23,7 @@ def map_term_to_namespace(term: str, namespace: dict) -> str:
     return namespace.get(term, False)
 
 
-# TODO: Delete this function once no longer needed.
+# TODO: Remove this function
 def get_bids_subjects_simple(bids_dir: Path) -> list:
     """Returns list of subject IDs (in format of sub-<SUBJECT>) for a BIDS directory inferred from the names of non-empty subdirectories."""
     bids_subject_list = []
@@ -40,7 +40,7 @@ def get_bids_subjects_simple(bids_dir: Path) -> list:
 def create_acquisitions(
     session_df: pd.DataFrame,
 ) -> list:
-    """Parses BIDS image files for a specified session/subject to create a list of Acquisition objects."""
+    """Parses BIDS image file suffixes for a specified session to create a list of Acquisition objects."""
     image_list = []
 
     for bids_file_suffix in session_df["suffix"]:
@@ -63,7 +63,7 @@ def get_session_path(
     bids_sub_id: str,
     session_id: str,
 ) -> str | None:
-    """Construct the session directory from the source BIDS directory path if session layer exists, otherwise returns subject directory."""
+    """Extract the session directory from a BIDS file path based on the provided session ID or subject ID (when there is no session ID)."""
     target = session_id if session_id.strip() != "" else bids_sub_id
 
     if target not in file_path.parts:

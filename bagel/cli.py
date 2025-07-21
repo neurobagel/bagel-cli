@@ -401,7 +401,7 @@ def bids(
     existing_subs_dict = model_utils.get_subject_instances(jsonld_dataset)
     bids_subject_ids = list(bids_dataset["sub"].unique())
 
-    # TODO: Validate input BIDS table
+    # TODO: Validate input BIDS table (https://github.com/neurobagel/bagel-cli/issues/476)
 
     model_utils.confirm_subs_match_pheno_data(
         subjects=bids_subject_ids,
@@ -424,7 +424,6 @@ def bids(
         bids_sessions = list(_bids_sub["ses"].unique())
         # TODO: Do we need to explicitly preprocess cases where ses values are other types of whitespace?
         # Ensure the sessions are in alphanumeric order for readability
-        # for bids_session_idx, bids_session_row in _bids_sub.iterrows():
         for session_id in sorted(bids_sessions):
             _bids_session = _bids_sub[_bids_sub["ses"] == session_id]
             image_list = bids_utils.create_acquisitions(

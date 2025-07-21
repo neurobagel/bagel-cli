@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 
 from bagel.cli import bagel
@@ -11,10 +9,16 @@ def default_pheno_bids_output_path(tmp_path):
     return tmp_path / "pheno_bids.jsonld"
 
 
+@pytest.fixture(scope="function")
+def synthetic_dataset_tsv_path(test_data):
+    """Return the path to the BIDS TSV file for the bids-examples synthetic dataset."""
+    return test_data / "bids_metadata_synthetic.tsv"
+
+
 def test_bids_valid_inputs_run_successfully(
     runner,
     test_data_upload_path,
-    bids_synthetic,
+    synthetic_dataset_tsv_path,
     default_pheno_bids_output_path,
 ):
     """Basic smoke test for the "add-bids" subcommand"""
@@ -24,10 +28,8 @@ def test_bids_valid_inputs_run_successfully(
             "bids",
             "--jsonld-path",
             test_data_upload_path / "example_synthetic.jsonld",
-            "--input-bids-dir",
-            bids_synthetic,
-            "--source-bids-dir",
-            bids_synthetic,
+            "--bids-table",
+            synthetic_dataset_tsv_path,
             "--output",
             default_pheno_bids_output_path,
         ],
@@ -41,7 +43,7 @@ def test_bids_valid_inputs_run_successfully(
 def test_imaging_sessions_have_expected_labels(
     runner,
     test_data_upload_path,
-    bids_synthetic,
+    synthetic_dataset_tsv_path,
     default_pheno_bids_output_path,
     load_test_json,
 ):
@@ -52,10 +54,8 @@ def test_imaging_sessions_have_expected_labels(
             "bids",
             "--jsonld-path",
             test_data_upload_path / "example_synthetic.jsonld",
-            "--input-bids-dir",
-            bids_synthetic,
-            "--source-bids-dir",
-            bids_synthetic,
+            "--bids-table",
+            synthetic_dataset_tsv_path,
             "--output",
             default_pheno_bids_output_path,
         ],
@@ -89,7 +89,7 @@ def test_imaging_sessions_have_expected_labels(
 def test_imaging_sessions_have_expected_metadata(
     runner,
     test_data_upload_path,
-    bids_synthetic,
+    synthetic_dataset_tsv_path,
     default_pheno_bids_output_path,
     load_test_json,
     jsonld_path,
@@ -106,10 +106,8 @@ def test_imaging_sessions_have_expected_metadata(
             "bids",
             "--jsonld-path",
             test_data_upload_path / jsonld_path,
-            "--input-bids-dir",
-            bids_synthetic,
-            "--source-bids-dir",
-            bids_synthetic,
+            "--bids-table",
+            synthetic_dataset_tsv_path,
             "--output",
             default_pheno_bids_output_path,
         ],
@@ -136,68 +134,70 @@ def test_imaging_sessions_have_expected_metadata(
     )
 
 
-def test_bids_data_with_sessions_have_correct_paths(
-    runner,
-    test_data_upload_path,
-    bids_synthetic,
-    default_pheno_bids_output_path,
-    load_test_json,
-):
-    """
-    Check that BIDS session paths added to pheno_bids.jsonld match the parent
-    session/subject labels and have the correct base directory path matching the provided --source-bids-dir.
-    """
-    runner.invoke(
-        bagel,
-        [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
-            "--input-bids-dir",
-            bids_synthetic,
-            "--source-bids-dir",
-            Path(__file__).absolute().parent
-            / "example_public_datasets"
-            / "public_synthetic",
-            "--output",
-            default_pheno_bids_output_path,
-        ],
-    )
+# TODO: Remove
+# def test_bids_data_with_sessions_have_correct_paths(
+#     runner,
+#     test_data_upload_path,
+#     bids_synthetic,
+#     default_pheno_bids_output_path,
+#     load_test_json,
+# ):
+#     """
+#     Check that BIDS session paths added to pheno_bids.jsonld match the parent
+#     session/subject labels and have the correct base directory path matching the provided --source-bids-dir.
+#     """
+#     runner.invoke(
+#         bagel,
+#         [
+#             "bids",
+#             "--jsonld-path",
+#             test_data_upload_path / "example_synthetic.jsonld",
+#             "--input-bids-dir",
+#             bids_synthetic,
+#             "--source-bids-dir",
+#             Path(__file__).absolute().parent
+#             / "example_public_datasets"
+#             / "public_synthetic",
+#             "--output",
+#             default_pheno_bids_output_path,
+#         ],
+#     )
 
-    pheno_bids = load_test_json(default_pheno_bids_output_path)
-    for sub in pheno_bids["hasSamples"]:
-        for imaging_session in [
-            ses
-            for ses in sub["hasSession"]
-            if ses["schemaKey"] == "imaging_session"
-        ]:
-            assert (
-                f"example_public_datasets/public_synthetic/{sub['hasLabel']}/{imaging_session['hasLabel']}"
-                in imaging_session["hasFilePath"]
-            )
-            assert Path(imaging_session["hasFilePath"]).is_absolute()
-            assert Path(imaging_session["hasFilePath"]).is_dir()
+#     pheno_bids = load_test_json(default_pheno_bids_output_path)
+#     for sub in pheno_bids["hasSamples"]:
+#         for imaging_session in [
+#             ses
+#             for ses in sub["hasSession"]
+#             if ses["schemaKey"] == "imaging_session"
+#         ]:
+#             assert (
+#                 f"example_public_datasets/public_synthetic/{sub['hasLabel']}/{imaging_session['hasLabel']}"
+#                 in imaging_session["hasFilePath"]
+#             )
+#             assert Path(imaging_session["hasFilePath"]).is_absolute()
+#             assert Path(imaging_session["hasFilePath"]).is_dir()
 
 
-def test_relative_bids_dir_path_raises_error(
-    runner,
-    test_data_upload_path,
-    default_pheno_bids_output_path,
-    disable_rich_markup,
-):
-    """Check that a relative BIDS directory path raises an error."""
-    result = runner.invoke(
-        bagel,
-        [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
-            "--source-bids-dir",
-            "data/bids",
-            "--output",
-            default_pheno_bids_output_path,
-        ],
-        catch_exceptions=False,
-    )
-    assert result.exit_code != 0
-    assert "must be an absolute path" in result.output
+# TODO: Remove
+# def test_relative_bids_dir_path_raises_error(
+#     runner,
+#     test_data_upload_path,
+#     default_pheno_bids_output_path,
+#     disable_rich_markup,
+# ):
+#     """Check that a relative BIDS directory path raises an error."""
+#     result = runner.invoke(
+#         bagel,
+#         [
+#             "bids",
+#             "--jsonld-path",
+#             test_data_upload_path / "example_synthetic.jsonld",
+#             "--source-bids-dir",
+#             "data/bids",
+#             "--output",
+#             default_pheno_bids_output_path,
+#         ],
+#         catch_exceptions=False,
+#     )
+#     assert result.exit_code != 0
+#     assert "must be an absolute path" in result.output

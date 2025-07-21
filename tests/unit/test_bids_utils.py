@@ -132,65 +132,35 @@ def test_create_acquisitions(session_df_rows, expected_acquisitions):
 
 
 @pytest.mark.parametrize(
-    "file_path, ses, expected_session_path",
+    "dataset_root, ses, expected_session_path",
     [
         (
-            "/data/bids/sub-01/ses-01/anat/sub-01_ses-01_T1w.nii",
+            Path("/data/pd/bids"),
             "ses-01",
-            "/data/bids/sub-01/ses-01",
+            "/data/pd/bids/sub-01/ses-01",
         ),
         (
-            "/data/bids/sub-01/anat/sub-01_ses-01_T1w.nii",
+            Path("/data/pd/bids"),
             "",
-            "/data/bids/sub-01",
+            "/data/pd/bids/sub-01",
+        ),
+        (
+            None,
+            "ses-01",
+            "sub-01/ses-01",
         ),
     ],
 )
-def test_get_session_path_when_id_in_path(
-    file_path, ses, expected_session_path
-):
+def test_get_session_path(dataset_root, ses, expected_session_path):
     """
     Test that depending on whether a session ID is provided in addition to a subject ID
     (i.e. whether a BIDS session layer exists), get_session_path() correctly returns the path to
     either the session or subject directory.
     """
     session_path = bids_utils.get_session_path(
-        file_path=Path(file_path),
+        dataset_root=dataset_root,
         bids_sub_id="sub-01",
         session_id=ses,
     )
 
     assert session_path == expected_session_path
-
-
-@pytest.mark.parametrize(
-    "file_path, sub, ses",
-    [
-        (
-            "/data/pd_dataset/pd00123/baseline/nifti/pd00123_T1w.nii",
-            "sub-pd00123",
-            "ses-baseline",
-        ),
-        (
-            "/data/bids/anat/sub-01_ses-01_T1w.nii",
-            "sub-01",
-            "ses-01",
-        ),
-    ],
-)
-def test_get_session_path_when_id_not_in_path(
-    file_path, sub, ses, caplog, propagate_warnings
-):
-    """
-    Test that when the provided session ID is not found in the file path,
-    get_session_path() returns no directory path and logs an informative warning.
-    """
-    session_path = bids_utils.get_session_path(
-        file_path=Path(file_path),
-        bids_sub_id=sub,
-        session_id=ses,
-    )
-
-    assert session_path is None
-    assert len(caplog.records) == 1
-    assert f"{ses} was not found in the path" in caplog.records[0].message

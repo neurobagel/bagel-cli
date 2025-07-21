@@ -113,7 +113,6 @@ def bids2tsv(
     dataset_df = dataset_tab.to_pandas()
 
     dataset_df = dataset_df[dataset_df["ext"].isin([".nii", ".nii.gz"])]
-    # TODO: Leave paths OS-specific?
     dataset_df["path"] = dataset_df.apply(
         lambda row: (Path(row["root"]) / row["path"]).as_posix(), axis=1
     )
@@ -307,8 +306,6 @@ def pheno(
 
 @bagel.command()
 def bids(
-    # TODO: If we wanted to make this option simpler for the user when the CLI is running in a container,
-    # we could add a sensible default file name and fix the container mount path in the Docker command
     # TODO: Rename to --jsonld? Since other file options do not have the _path suffix.
     jsonld_path: Path = typer.Option(
         ...,
@@ -332,28 +329,18 @@ def bids(
         dir_okay=False,
         resolve_path=True,
     ),
-    # input_bids_dir: Path = typer.Option(
-    #     Path.cwd() / "bids",
-    #     "--input-bids-dir",
-    #     "-i",
-    #     help="The path to the BIDS dataset directory to read and parse the BIDS data from. "
-    #     "[bold red]NOTE: Leave unset if using the Docker/Singularity version of bagel-cli.[/bold red]",
-    #     exists=True,
-    #     file_okay=False,
-    #     dir_okay=True,
-    #     resolve_path=True,
-    # ),
-    # # TODO: Should we include a tip in the help text for using the repository root for DataLad datasets?
-    # source_bids_dir: Path = typer.Option(
-    #     ...,
-    #     "--source-bids-dir",
-    #     "-b",
-    #     callback=bids_utils.check_absolute_bids_path,
-    #     help="The absolute path to the original BIDS dataset directory location. This will be used to derive and record data source paths. "
-    #     "[bold red]NOTE: If running bagel-cli directly in a Python environment (not in a container), this value may be the same as --input-bids-dir.[/bold red]",
-    #     file_okay=False,
-    #     dir_okay=True,
-    # ),
+    # TODO: Should we include a tip in the help text for using the repository root for DataLad datasets?
+    # NOTE: dataset_source_path or dataset_root_path?
+    dataset_source_path: Path = typer.Option(
+        None,
+        "--dataset-source-path",
+        "-r",
+        callback=bids_utils.check_absolute_path,
+        help="The absolute path to the root directory of the dataset at the source location/file server."
+        "If provided, this path will be combined with the subject and session IDs from the BIDS table to derive and record source paths for the imaging data.",
+        file_okay=False,
+        dir_okay=True,
+    ),
     # TODO: Should we rename the default output file to something more generic to account for the fact that
     # the file may also include derivatives data? e.g., dataset_bids.jsonld
     output: Path = typer.Option(
@@ -389,9 +376,14 @@ def bids(
         "Existing subject graph data to augment (.jsonld):",
         jsonld_path,
     )
-    logger.info("%-*s%s", width, "BIDS dataset table:", bids_table)
-    # logger.info("%-*s%s", width, "Input BIDS directory:", input_bids_dir)
-    # logger.info("%-*s%s", width, "Source BIDS directory:", source_bids_dir)
+    logger.info("%-*s%s", width, "BIDS dataset table (.tsv):", bids_table)
+    if dataset_source_path:
+        logger.info(
+            "%-*s%s",
+            width,
+            "Dataset root directory at the data source location (used to construct imaging data paths):",
+            dataset_source_path,
+        )
 
     jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
         jsonld_path
@@ -445,9 +437,7 @@ def bids(
                 else session_id
             )
             session_path = bids_utils.get_session_path(
-                # NOTE: We assume all files for a session live in the same session or subject (when no session exists) directory,
-                # so we use the first file path instance to derive this directory path.
-                file_path=Path(_bids_session["path"].iloc[0]),
+                dataset_root=dataset_source_path,
                 bids_sub_id=bids_sub_id,
                 session_id=session_id,
             )

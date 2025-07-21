@@ -132,7 +132,7 @@ def test_create_acquisitions(session_df_rows, expected_acquisitions):
 
 
 @pytest.mark.parametrize(
-    "file_path, sub, ses, expected_session_path",
+    "file_path, ses, expected_session_path",
     [
         (
             "/data/bids/sub-01/ses-01/anat/sub-01_ses-01_T1w.nii",

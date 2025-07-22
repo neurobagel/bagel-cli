@@ -331,10 +331,10 @@ def bids(
     ),
     # TODO: Should we include a tip in the help text for using the repository root for DataLad datasets?
     # NOTE: dataset_source_path or dataset_root_path?
-    dataset_source_path: Path = typer.Option(
+    dataset_source_dir: Path = typer.Option(
         None,
-        "--dataset-source-path",
-        "-r",
+        "--dataset-source-dir",
+        "-s",
         callback=bids_utils.check_absolute_path,
         help="The absolute path to the root directory of the dataset at the source location/file server."
         "If provided, this path will be combined with the subject and session IDs from the BIDS table to derive and record source paths for the imaging data.",
@@ -377,12 +377,12 @@ def bids(
         jsonld_path,
     )
     logger.info("%-*s%s", width, "BIDS dataset table (.tsv):", bids_table)
-    if dataset_source_path:
+    if dataset_source_dir:
         logger.info(
             "%-*s%s",
             width,
             "Dataset root directory at the data source location (used to construct imaging data paths):",
-            dataset_source_path,
+            dataset_source_dir,
         )
 
     jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
@@ -437,7 +437,7 @@ def bids(
                 else session_id
             )
             session_path = bids_utils.get_session_path(
-                dataset_root=dataset_source_path,
+                dataset_root=dataset_source_dir,
                 bids_sub_id=bids_sub_id,
                 session_id=session_id,
             )

@@ -6,13 +6,18 @@ from typer import BadParameter
 from bagel import mappings, models
 
 
-def check_absolute_path(dir_path: Path) -> Path:
+def check_absolute_path(dir_path: Path | None) -> Path | None:
     """
     Raise an error if the input path does not look like an absolute path.
     This is a workaround for --dataset-source-path not requiring the path to exist on the host machine
     (and thus not being able to resolve the path automatically).
     """
-    if not dir_path.is_absolute():
+    # Allow POSIX-style absolute paths (e.g., "/data/...") across OSes - useful for referencing paths on remote Unix servers.
+    if dir_path is not None and not (
+        dir_path.is_absolute() or dir_path.as_posix().startswith("/")
+    ):
+        my_path = str(dir_path)
+        print(my_path)
         raise BadParameter(
             "Dataset source directory must be an absolute path."
         )

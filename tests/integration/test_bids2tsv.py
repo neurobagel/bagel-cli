@@ -6,7 +6,7 @@ from bagel.cli import bagel
 
 @pytest.fixture(scope="function")
 def default_bids2tsv_output_path(tmp_path):
-    "Return temporary bids2tsv command output filepath that uses the default filename."
+    """Return temporary bids2tsv command output filepath that uses the default filename."""
     return tmp_path / "bids.tsv"
 
 

@@ -4,7 +4,7 @@ import bids2table as b2t2
 import pandas as pd
 import typer
 from bids import BIDSLayout, exceptions
-from rich import Progress, SpinnerColumn, TextColumn, track
+from rich.progress import Progress, SpinnerColumn, TextColumn, track
 
 from bagel import mappings, models
 

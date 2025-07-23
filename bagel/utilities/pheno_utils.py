@@ -303,13 +303,6 @@ def find_missing_annotated_cols(
 
     return missing_annotated_cols
 
-    # return all(
-    #     [
-    #         col in pheno_df.columns
-    #         for col, _ in get_annotated_columns(data_dict)
-    #     ]
-    # )
-
 
 def find_undefined_cat_col_values(
     data_dict: dict, pheno_df: pd.DataFrame

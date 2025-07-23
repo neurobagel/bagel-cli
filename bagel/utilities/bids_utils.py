@@ -1,21 +1,25 @@
 from pathlib import Path
-from typing import Optional
 
-from bids import BIDSLayout
+import pandas as pd
 from typer import BadParameter
 
 from bagel import mappings, models
 
 
-def check_absolute_bids_path(bids_path: Path) -> Path:
+def check_absolute_path(dir_path: Path | None) -> Path | None:
     """
-    Raise an error if the input BIDS path does not look like an absolute path.
-    This is a workaround for --source-bids-dir not requiring the path to exist (and thus not being able to resolve the path automatically),
-    since it refers to a path on a host machine which may not be mounted as-is when the CLI is running in a container.
+    Raise an error if the input path does not look like an absolute path.
+    This is a workaround for --dataset-source-path not requiring the path to exist on the host machine
+    (and thus not being able to resolve the path automatically).
     """
-    if not bids_path.is_absolute():
-        raise BadParameter("BIDS directory path must be an absolute path.")
-    return bids_path
+    # Allow POSIX-style absolute paths (e.g., "/data/...") across OSes - useful for referencing paths on remote Unix servers.
+    if dir_path is not None and not (
+        dir_path.is_absolute() or dir_path.as_posix().startswith("/")
+    ):
+        raise BadParameter(
+            "Dataset source directory must be an absolute path."
+        )
+    return dir_path
 
 
 def map_term_to_namespace(term: str, namespace: dict) -> str:
@@ -23,6 +27,7 @@ def map_term_to_namespace(term: str, namespace: dict) -> str:
     return namespace.get(term, False)
 
 
+# TODO: Remove this function
 def get_bids_subjects_simple(bids_dir: Path) -> list:
     """Returns list of subject IDs (in format of sub-<SUBJECT>) for a BIDS directory inferred from the names of non-empty subdirectories."""
     bids_subject_list = []
@@ -37,20 +42,14 @@ def get_bids_subjects_simple(bids_dir: Path) -> list:
 
 
 def create_acquisitions(
-    layout: BIDSLayout,
-    bids_sub_id: str,
-    session: Optional[str],
+    session_df: pd.DataFrame,
 ) -> list:
-    """Parses BIDS image files for a specified session/subject to create a list of Acquisition objects."""
+    """Parses BIDS image file suffixes for a specified session to create a list of Acquisition objects."""
     image_list = []
-    for bids_file in layout.get(
-        subject=bids_sub_id,
-        session=session,
-        extension=[".nii", ".nii.gz"],
-    ):
-        # If the suffix of a BIDS file is not recognized, then ignore
+
+    for bids_file_suffix in session_df["suffix"]:
         mapped_term = map_term_to_namespace(
-            bids_file.get_entities().get("suffix"),
+            term=bids_file_suffix,
             namespace=mappings.BIDS,
         )
         if mapped_term:
@@ -64,11 +63,18 @@ def create_acquisitions(
 
 
 def get_session_path(
-    source_bids_dir: Path,
+    dataset_root: Path | None,
     bids_sub_id: str,
-    session: Optional[str],
+    session_id: str,
 ) -> str:
-    """Construct the session directory from the source BIDS directory path if session layer exists, otherwise returns subject directory."""
-    subject_path = source_bids_dir / f"sub-{bids_sub_id}"
-    session_path = subject_path / f"ses-{session}" if session else subject_path
+    """
+    Construct the session directory or subject directory path (when there is no session ID) from the source BIDS directory path, subject ID, and session ID.
+    If no source BIDS directory is available, return a relative path.
+    """
+    subject_path = (
+        Path(dataset_root / bids_sub_id) if dataset_root else Path(bids_sub_id)
+    )
+    session_path = (
+        subject_path / session_id if session_id.strip() != "" else subject_path
+    )
     return session_path.as_posix()

@@ -1,12 +1,14 @@
 from collections import Counter
 from pathlib import Path
 
+import pandas as pd
 import pytest
 from bids import BIDSLayout
 
 from bagel.utilities import bids_utils
 
 
+# TODO: Remove since we no longer need the corresponding utility function
 @pytest.mark.parametrize(
     "bids_dir",
     ["synthetic", "ds000248"],
@@ -26,77 +28,139 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
 
 
 @pytest.mark.parametrize(
-    "bids_dir, acquisitions, bids_session",
+    "session_df_rows, expected_acquisitions",
     [
         (
-            "synthetic",
+            [
+                [
+                    "sub-01",
+                    "ses-01",
+                    "T1w",
+                    "/data/synthetic/sub-01/ses-01/anat/sub-01_ses-01_T1w.nii",
+                ],
+                [
+                    "sub-01",
+                    "ses-01",
+                    "bold",
+                    "/data/bids-examples/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-nback_run-01_bold.nii",
+                ],
+                [
+                    "sub-01",
+                    "ses-01",
+                    "bold",
+                    "/data/bids-examples/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-nback_run-02_bold.nii",
+                ],
+                [
+                    "sub-01",
+                    "ses-01",
+                    "bold",
+                    "/data/bids-examples/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-rest_bold.nii",
+                ],
+            ],
             {"nidm:T1Weighted": 1, "nidm:FlowWeighted": 3},
-            "01",
         ),
         (
-            "ds001",
+            [
+                [
+                    "sub-01",
+                    "",
+                    "inplaneT2",
+                    "/data/bids-examples/ds001/sub-01/anat/sub-01_inplaneT2.nii.gz",
+                ],
+                [
+                    "sub-01",
+                    "",
+                    "T1w",
+                    "/data/bids-examples/ds001/sub-01/anat/sub-01_T1w.nii.gz",
+                ],
+                [
+                    "sub-01",
+                    "",
+                    "bold",
+                    "/data/bids-examples/ds001/sub-01/func/sub-01_task-balloonanalogrisktask_run-01_bold.nii.gz",
+                ],
+                [
+                    "sub-01",
+                    "",
+                    "bold",
+                    "/data/bids-examples/ds001/sub-01/func/sub-01_task-balloonanalogrisktask_run-02_bold.nii.gz",
+                ],
+                [
+                    "sub-01",
+                    "",
+                    "bold",
+                    "/data/bids-examples/ds001/sub-01/func/sub-01_task-balloonanalogrisktask_run-03_bold.nii.gz",
+                ],
+            ],
             {
                 "nidm:T2Weighted": 1,
                 "nidm:T1Weighted": 1,
                 "nidm:FlowWeighted": 3,
             },
-            None,
         ),
-        ("eeg_ds000117", {"nidm:T1Weighted": 1}, None),
+        (
+            [
+                [
+                    "sub-01",
+                    "",
+                    "T1w",
+                    "/data/bids-examples/eeg_ds000117/sub-01/anat/sub-01_T1w.nii.gz",
+                ]
+            ],
+            {"nidm:T1Weighted": 1},
+        ),
     ],
 )
-def test_create_acquisitions(bids_path, bids_dir, acquisitions, bids_session):
-    """Given a BIDS dataset, creates a list of acquisitions matching the image files found on disk."""
+def test_create_acquisitions(session_df_rows, expected_acquisitions):
+    """
+    Test that given a table with rows corresponding to a session's BIDS files,
+    create_acquisitions() creates a correct list of acquisitions matching the image file suffixes.
+    """
+    session_df = pd.DataFrame(
+        session_df_rows, columns=["sub", "ses", "suffix", "path"]
+    )
     image_list = bids_utils.create_acquisitions(
-        layout=BIDSLayout(bids_path / bids_dir, validate=True),
-        bids_sub_id="01",
-        session=bids_session,
+        session_df=session_df,
     )
 
-    image_counts = Counter(
+    extracted_image_counts = Counter(
         [image.hasContrastType.identifier for image in image_list]
     )
 
-    for contrast, count in acquisitions.items():
-        assert image_counts[contrast] == count
+    for expected_contrast, expected_count in expected_acquisitions.items():
+        assert extracted_image_counts[expected_contrast] == expected_count
 
 
 @pytest.mark.parametrize(
-    "bids_sub_id, session",
-    [("01", "01"), ("02", "02"), ("03", "01")],
+    "dataset_root, ses, expected_session_path",
+    [
+        (
+            Path("/data/pd/bids"),
+            "ses-01",
+            "/data/pd/bids/sub-01/ses-01",
+        ),
+        (
+            Path("/data/pd/bids"),
+            "",
+            "/data/pd/bids/sub-01",
+        ),
+        (
+            None,
+            "ses-01",
+            "sub-01/ses-01",
+        ),
+    ],
 )
-def test_get_session_path_when_session_exists(
-    bids_sub_id, session, bids_synthetic
-):
+def test_get_session_path(dataset_root, ses, expected_session_path):
     """
-    Test that given a subject and session ID (i.e. when BIDS session layer exists for dataset),
-    get_session_path() returns a path to the subject's session directory.
+    Test that depending on whether a session ID is provided in addition to a subject ID
+    (i.e. whether a BIDS session layer exists), get_session_path() correctly returns the path to
+    either the session or subject directory.
     """
     session_path = bids_utils.get_session_path(
-        source_bids_dir=bids_synthetic,
-        bids_sub_id=bids_sub_id,
-        session=session,
+        dataset_root=dataset_root,
+        bids_sub_id="sub-01",
+        session_id=ses,
     )
 
-    assert f"sub-{bids_sub_id}" in session_path
-    assert f"ses-{session}" in session_path
-    assert Path(session_path).is_absolute()
-    assert Path(session_path).is_dir()
-
-
-@pytest.mark.parametrize("bids_sub_id", ["01", "03", "05"])
-def test_get_session_path_when_session_missing(bids_sub_id, bids_path):
-    """
-    Test that given only a subject ID (i.e., when BIDS session layer is missing for dataset),
-    get_session_path() returns the path to the subject directory.
-    """
-    bids_dir = bids_path / "ds001"
-    session_path = bids_utils.get_session_path(
-        source_bids_dir=bids_dir,
-        bids_sub_id=bids_sub_id,
-        session=None,
-    )
-
-    assert session_path.endswith(f"sub-{bids_sub_id}")
-    assert Path(session_path).is_absolute()
-    assert Path(session_path).is_dir()
+    assert session_path == expected_session_path

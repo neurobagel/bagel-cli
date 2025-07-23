@@ -4,7 +4,7 @@ import bids2table as b2t2
 import pandas as pd
 import typer
 from bids import BIDSLayout, exceptions
-from rich.progress import Progress, SpinnerColumn, TextColumn, track
+from rich import Progress, SpinnerColumn, TextColumn, track
 
 from bagel import mappings, models
 
@@ -337,7 +337,8 @@ def bids(
         "-s",
         callback=bids_utils.check_absolute_path,
         help="The absolute path to the root directory of the dataset at the source location/file server."
-        "If provided, this path will be combined with the subject and session IDs from the BIDS table to derive and record source paths for the imaging data.",
+        "If provided, this path will be combined with the subject and session IDs from the BIDS table "
+        "to create absolute source paths to the imaging data for each subject and session.",
         file_okay=False,
         dir_okay=True,
     ),

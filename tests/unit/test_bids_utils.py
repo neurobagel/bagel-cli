@@ -113,7 +113,7 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
 )
 def test_create_acquisitions(session_df_rows, expected_acquisitions):
     """
-    Test that given a set of rows corresponding to a session's BIDS files,
+    Test that given a table with rows corresponding to a session's BIDS files,
     create_acquisitions() creates a correct list of acquisitions matching the image file suffixes.
     """
     session_df = pd.DataFrame(

@@ -16,7 +16,6 @@ def check_absolute_path(dir_path: Path | None) -> Path | None:
     if dir_path is not None and not (
         dir_path.is_absolute() or dir_path.as_posix().startswith("/")
     ):
-        my_path = str(dir_path)
         raise BadParameter(
             "Dataset source directory must be an absolute path."
         )

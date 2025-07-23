@@ -33,7 +33,7 @@ def test_valid_bids_dataset_converted_successfully(
 
     bids_tsv = pd.read_csv(default_bids2tsv_output_path, sep="\t")
     assert list(bids_tsv.columns) == ["sub", "ses", "suffix", "path"]
-    assert bids_tsv[["sub", "suffix", "path"]].notna()..all(axis=None)
+    assert bids_tsv[["sub", "suffix", "path"]].notna().all(axis=None)
     assert bids_tsv["sub"].str.startswith("sub-").all()
     assert bids_tsv["ses"].str.startswith("ses-").all()
     assert set(bids_tsv["suffix"].unique()) == set(["bold", "T1w"])

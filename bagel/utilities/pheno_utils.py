@@ -143,7 +143,7 @@ def map_categories_to_columns(data_dict: dict) -> dict[str, list]:
     Maps all pre-defined Neurobagel categories (e.g. "Sex") to a list containing all column names (if any) that
     have been linked to this category.
 
-    Returns a dictionary where the keys are the Neurobagel categories and the values are lists of column names.
+    Returns a dictionary where the keys are the aliases for Neurobagel categories and the values are lists of column names.
     """
     return {
         cat_name: get_columns_about(data_dict, cat_iri)

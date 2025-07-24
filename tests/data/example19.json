@@ -27,25 +27,22 @@
     },
     "Annotations": {
       "IsAbout": {
-        "TermURL": "nb:Diagnosis",
-        "Label": "Diagnosis"
+        "TermURL": "nb:SubjectGroup",
+        "Label": "Study subject group"
       },
       "Levels": {
-        "PD": {
-          "TermURL": "snomed:49049000",
-          "Label": "Parkinson's disease"
-        },
         "CTRL": {
           "TermURL": "ncit:C94342",
           "Label": "Healthy Control"
         }
-      }
+      },
+      "MissingValues": ["PD"]
     }
   },
-  "diagnosis": {
-    "Description": "Diagnosis at baseline visit",
+  "primary_diag": {
+    "Description": "Primary diagnosis at baseline visit",
     "Levels": {
-      "PD": "Parkinson's disease",
+      "GAD": "Generalized anxiety disorder",
       "SPD": "Sporadic Parkinson disease"
     },
     "Annotations": {
@@ -54,17 +51,32 @@
         "Label": "Diagnosis"
       },
       "Levels": {
-        "PD": {
-          "TermURL": "snomed:49049000",
-          "Label": "Parkinson's disease"
-        },
         "SPD": {
           "TermURL": "snomed:724761004",
           "Label": "Sporadic Parkinson disease"
         },
-        "AD": {
-          "TermURL": "snomed:26929004",
-          "Label": "Alzheimer's disease"
+        "GAD": {
+          "TermURL": "snomed:21897009",
+          "Label": "Generalized anxiety disorder"
+        }
+      },
+      "MissingValues": [""]
+    }
+  },
+  "secondary_diag": {
+    "Description": "Secondary diagnosis at baseline visit",
+    "Levels": {
+      "MDD": "Major depressive disorder"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Diagnosis",
+        "Label": "Diagnosis"
+      },
+      "Levels": {
+        "MDD": {
+          "TermURL": "snomed:370143000",
+          "Label": "Major depressive disorder"
         }
       },
       "MissingValues": [""]

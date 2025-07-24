@@ -243,8 +243,9 @@ def test_map_tools_to_columns(test_data, load_test_json, tool, columns):
         ("example2", ["sex"], ["snomed:248153007"]),
         (
             "example19",
-            ["group", "diagnosis"],
-            ["snomed:49049000", "snomed:724761004"],
+            # Example of a categorical variable that has been mapped to multiple columns
+            ["primary_diag", "secondary_diag"],
+            ["snomed:724761004", "snomed:370143000"],
         ),
     ],
 )

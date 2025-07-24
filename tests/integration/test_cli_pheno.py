@@ -835,16 +835,15 @@ def test_multicolumn_diagnosis_annot_is_handled(
             "hasDiagnosis"
         ]
     ]
-    assert sub_01_diagnoses == ["snomed:49049000", "snomed:724761004"]
+    assert sub_01_diagnoses == ["snomed:724761004", "snomed:370143000"]
 
 
-@pytest.mark.parametrize("sub_idx", [1, 2])
-def test_multicolumn_diagnosis_annot_with_healthy_control_is_handled(
-    runner, test_data, default_pheno_output_path, load_test_json, sub_idx
+def test_healthy_control_subject_with_diagnosis_is_handled(
+    runner, test_data, default_pheno_output_path, load_test_json
 ):
     """
-    Test that when there are multiple columns about diagnosis and a subject has a healthy control status in one column,
-    the healthy control status is used and any other diagnoses are ignored.
+    Test that when a subject has both a diagnosis and a healthy control status,
+    both are correctly parsed and stored as part of the subject's data.
     """
     runner.invoke(
         bagel,
@@ -862,14 +861,22 @@ def test_multicolumn_diagnosis_annot_with_healthy_control_is_handled(
     )
 
     pheno = load_test_json(default_pheno_output_path)
-    sub_with_healthy_control_annotation = pheno["hasSamples"][sub_idx][
+
+    healthy_control_sub_with_diagnosis = next(
+        sub for sub in pheno["hasSamples"] if sub["hasLabel"] == "sub-03"
+    )
+    healthy_control_sub_with_diagnosis = healthy_control_sub_with_diagnosis[
         "hasSession"
     ][0]
 
-    assert "hasDiagnosis" not in sub_with_healthy_control_annotation.keys()
     assert (
-        sub_with_healthy_control_annotation["isSubjectGroup"]["identifier"]
+        healthy_control_sub_with_diagnosis["isSubjectGroup"]["identifier"]
         == "ncit:C94342"
+    )
+    assert len(healthy_control_sub_with_diagnosis["hasDiagnosis"]) == 1
+    assert (
+        healthy_control_sub_with_diagnosis["hasDiagnosis"][0]["identifier"]
+        == "snomed:21897009"
     )
 
 

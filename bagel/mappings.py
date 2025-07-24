@@ -8,6 +8,8 @@ from .logger import log_error, logger
 from .utilities import file_utils
 
 Namespace = namedtuple("Namespace", ["pf", "url"])
+# NOTE: We are keeping the cogatlas namespace for now to warn about its deprecation.
+# Remove once we officially support custom vocabularies/namespaces.
 COGATLAS = Namespace("cogatlas", "https://www.cognitiveatlas.org/task/id/")
 NB = Namespace("nb", "http://neurobagel.org/vocab/")
 NCIT = Namespace("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#")

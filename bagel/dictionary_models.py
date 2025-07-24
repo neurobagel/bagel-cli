@@ -69,6 +69,19 @@ class Neurobagel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class IdentifierNeurobagel(BaseModel):
+    """A Neurobagel annotation for an identifier column"""
+
+    isAbout: Identifier = Field(
+        ...,
+        description="The concept or controlled term that describes this column",
+        alias="IsAbout",
+    )
+
+    # We need to forbid extra fields to prevent partially annotated columns from being parsed as IdentifierNeurobagel
+    model_config = ConfigDict(extra="forbid")
+
+
 class CategoricalNeurobagel(Neurobagel):
     """A Neurobagel annotation for a categorical column"""
 
@@ -94,16 +107,6 @@ class ContinuousNeurobagel(Neurobagel):
     )
 
 
-class IdentifierNeurobagel(Neurobagel):
-    """A Neurobagel annotation for an identifier column"""
-
-    identifies: str = Field(
-        ...,
-        description="For identifier columns, the type of observation uniquely identified by this column.",
-        alias="Identifies",
-    )
-
-
 class ToolNeurobagel(Neurobagel):
     """A Neurobagel annotation for an assessment tool column"""
 
@@ -120,6 +123,9 @@ class ToolNeurobagel(Neurobagel):
 class Column(BaseModel):
     """The base model for a BIDS column description"""
 
+    # TODO: Revisit if we want to make description an optional field, since we don't currently use it in the graph data.
+    # At the moment, the key itself is always required and the value can be an empty string "",
+    # but a value of null ("Description": null) is invalid and will result in a schema validation error.
     description: str = Field(
         ...,
         description="Free-form natural language description",
@@ -149,7 +155,7 @@ class ContinuousColumn(Column):
     """A BIDS column annotation for a continuous column"""
 
     units: str = Field(
-        None,
+        ...,
         description="Measurement units for the values in this column. "
         "SI units in CMIXF formatting are RECOMMENDED (see Units)",
         alias="Units",
@@ -157,7 +163,7 @@ class ContinuousColumn(Column):
 
 
 class DataDictionary(
-    RootModel[Dict[str, Union[ContinuousColumn, CategoricalColumn]]]
+    RootModel[Dict[str, Union[Column, ContinuousColumn, CategoricalColumn]]]
 ):
     """A data dictionary with human and machine readable information for a tabular data file"""
 

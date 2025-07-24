@@ -4,8 +4,7 @@
         "Annotations": {
             "IsAbout": {
                 "Label": "Unique participant identifier"
-            },
-            "Identifies": "participant"
+            }
         }
     },
     "session_id": {
@@ -13,8 +12,7 @@
         "Annotations": {
             "IsAbout": {
                 "Label": "Unique session identifier"
-            },
-            "Identifies": "session"
+            }
         }
     },
     "group": {

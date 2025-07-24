@@ -472,7 +472,7 @@ def validate_data_dict(data_dict: dict) -> None:
     ):
         logger.warning(
             "The provided data dictionary indicates more than one column about sex. "
-            "Neurobagel cannot resolve multiple sex values per subject-session, and so will only consider the first of these columns for sex data."
+            "Neurobagel cannot resolve multiple sex values per subject-session, and so will use only the first identified column for sex data."
         )
 
     if (
@@ -481,7 +481,20 @@ def validate_data_dict(data_dict: dict) -> None:
     ):
         logger.warning(
             "The provided data dictionary indicates more than one column about age. "
-            "Neurobagel cannot resolve multiple age values per subject-session, so will only consider the first of these columns for age data."
+            "Neurobagel cannot resolve multiple age values per subject-session, and so will use only the first identified column for age data."
+        )
+
+    if (
+        len(
+            get_columns_about(
+                data_dict, concept=mappings.NEUROBAGEL["subject_group"]
+            )
+        )
+        > 1
+    ):
+        logger.warning(
+            "The provided data dictionary indicates more than one column about subject group. "
+            "Neurobagel cannot resolve multiple subject group values per subject-session, and so will use only the first identified column for subject group data."
         )
 
     if not categorical_cols_have_bids_levels(data_dict):

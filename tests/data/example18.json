@@ -5,8 +5,7 @@
       "IsAbout": {
         "TermURL": "nb:ParticipantID",
         "Label": "Unique participant identifier"
-      },
-      "Identifies": "participant"
+      }
     }
   },
   "group": {

@@ -5,8 +5,7 @@
       "IsAbout": {
         "TermURL": "nb:ParticipantID",
         "Label": "Unique participant identifier"
-      },
-      "Identifies": "participant"
+      }
     }
   },
   "session_id": {
@@ -15,8 +14,7 @@
       "IsAbout": {
         "TermURL": "nb:SessionID",
         "Label": "Unique session identifier"
-      },
-      "Identifies": "session"
+      }
     }
   },
   "âge_des_participants": {

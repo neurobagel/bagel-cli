@@ -18,8 +18,7 @@ from bagel.utilities import pheno_utils
                         "IsAbout": {
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
-                        },
-                        "Identifies": "participant",
+                        }
                     },
                 },
                 "sex": {
@@ -40,8 +39,7 @@ from bagel.utilities import pheno_utils
                         "IsAbout": {
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
-                        },
-                        "Identifies": "participant",
+                        }
                     },
                 },
                 "age": {
@@ -65,8 +63,7 @@ from bagel.utilities import pheno_utils
                         "IsAbout": {
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
-                        },
-                        "Identifies": "participant",
+                        }
                     },
                 },
                 "age": {
@@ -147,8 +144,7 @@ def test_find_unsupported_namespaces_and_term_urls():
                 "IsAbout": {
                     "TermURL": "nb:ParticipantID",
                     "Label": "Unique participant identifier",
-                },
-                "Identifies": "participant",
+                }
             },
         },
         "group": {
@@ -419,8 +415,7 @@ def test_invalid_age_format(caplog, propagate_errors):
                     "IsAbout": {
                         "TermURL": "nb:ParticipantID",
                         "Label": "Unique participant identifier",
-                    },
-                    "Identifies": "participant",
+                    }
                 },
             },
             "age": {
@@ -441,8 +436,7 @@ def test_invalid_age_format(caplog, propagate_errors):
                     "IsAbout": {
                         "TermURL": "nb:ParticipantID",
                         "Label": "Unique participant identifier",
-                    },
-                    "Identifies": "participant",
+                    }
                 },
             },
             "age": {
@@ -463,8 +457,7 @@ def test_invalid_age_format(caplog, propagate_errors):
                     "IsAbout": {
                         "TermURL": "nb:ParticipantID",
                         "Label": "Unique participant identifier",
-                    },
-                    "Identifies": "participant",
+                    }
                 },
             },
             "age_iso8601": {
@@ -512,8 +505,7 @@ def test_format_and_transformation_schema_validation(
                         "IsAbout": {
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
-                        },
-                        "Identifies": "participant",
+                        }
                     },
                 },
                 "age": {
@@ -534,8 +526,7 @@ def test_format_and_transformation_schema_validation(
                         "IsAbout": {
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
-                        },
-                        "Identifies": "participant",
+                        }
                     },
                 },
                 "age": {
@@ -560,7 +551,6 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
                         },
-                        "Identifies": "participant",
                     },
                 },
                 "recruitment_age": {
@@ -582,7 +572,6 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
                         },
-                        "Identifies": "participant",
                     },
                 },
                 "recruitment_age": {
@@ -607,7 +596,6 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
                         },
-                        "Identifies": "participant",
                     },
                 },
                 "age_iso8601": {
@@ -639,7 +627,6 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
                         },
-                        "Identifies": "participant",
                     },
                 },
                 "age_iso8601": {

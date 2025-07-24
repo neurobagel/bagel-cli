@@ -197,14 +197,17 @@ def test_invalid_portal_uris_produces_error(
     )
 
 
-def test_multiple_age_or_sex_columns_raises_warning(
+def test_multiple_columns_about_single_column_variable_raises_warning(
     runner,
     test_data,
     default_pheno_output_path,
     caplog,
     propagate_warnings,
 ):
-    """Test that an informative warning is logged when multiple columns in the phenotypic file have been annotated as being about age or sex."""
+    """
+    Test that an informative warning is logged when multiple columns in the phenotypic file
+    have been annotated as being about age, sex, or subject group.
+    """
     runner.invoke(
         bagel,
         [
@@ -216,15 +219,16 @@ def test_multiple_age_or_sex_columns_raises_warning(
             "--output",
             default_pheno_output_path,
             "--name",
-            "Multiple age/sex columns dataset",
+            "Multiple age/sex/subject group columns dataset",
         ],
         catch_exceptions=False,
     )
 
-    assert len(caplog.records) == 2
+    assert len(caplog.records) == 3
     for warn_substring in [
         "more than one column about age",
         "more than one column about sex",
+        "more than one column about subject group",
     ]:
         assert warn_substring in caplog.text
 

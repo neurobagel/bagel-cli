@@ -20,51 +20,43 @@
     }
   },
   "group": {
-    "Description": "Group variable",
+    "Description": "Study group",
     "Levels": {
-      "PD": "Parkinson's disease",
+      "PAT": "Patient",
       "CTRL": "Control subject"
     },
     "Annotations": {
       "IsAbout": {
-        "TermURL": "nb:Diagnosis",
-        "Label": "Diagnosis"
+        "TermURL": "nb:SubjectGroup",
+        "Label": "Study subject group"
       },
       "Levels": {
-        "PD": {
-          "TermURL": "snomed:49049000",
-          "Label": "Parkinson's disease"
+        "CTRL": {
+          "TermURL": "ncit:C94342",
+          "Label": "Healthy Control"
         }
       },
-      "MissingValues": ["CTRL"]
+      "MissingValues": ["PAT"]
     }
   },
-  "diagnosis": {
-    "Description": "Diagnosis at baseline visit",
+  "clinical_group": {
+    "Description": "Clinical diagnosis group",
     "Levels": {
       "PD": "Parkinson's disease",
-      "SPD": "Sporadic Parkinson disease"
+      "CTRL": "Healthy control"
     },
     "Annotations": {
       "IsAbout": {
-        "TermURL": "nb:Diagnosis",
-        "Label": "Diagnosis"
+        "TermURL": "nb:SubjectGroup",
+        "Label": "Study subject group"
       },
       "Levels": {
-        "PD": {
-          "TermURL": "snomed:49049000",
-          "Label": "Parkinson's disease"
-        },
-        "SPD": {
-          "TermURL": "snomed:724761004",
-          "Label": "Sporadic Parkinson disease"
-        },
-        "AD": {
-          "TermURL": "snomed:26929004",
-          "Label": "Alzheimer's disease"
+        "CTRL": {
+          "TermURL": "ncit:C94342",
+          "Label": "Healthy Control"
         }
       },
-      "MissingValues": [""]
+      "MissingValues": ["PD"]
     }
   },
   "sex": {

@@ -197,14 +197,17 @@ def test_invalid_portal_uris_produces_error(
     )
 
 
-def test_multiple_age_or_sex_columns_raises_warning(
+def test_multiple_columns_about_single_column_variable_raises_warning(
     runner,
     test_data,
     default_pheno_output_path,
     caplog,
     propagate_warnings,
 ):
-    """Test that an informative warning is logged when multiple columns in the phenotypic file have been annotated as being about age or sex."""
+    """
+    Test that an informative warning is logged when multiple columns in the phenotypic file
+    have been annotated as being about age, sex, or subject group.
+    """
     runner.invoke(
         bagel,
         [
@@ -216,15 +219,16 @@ def test_multiple_age_or_sex_columns_raises_warning(
             "--output",
             default_pheno_output_path,
             "--name",
-            "Multiple age/sex columns dataset",
+            "Multiple age/sex/subject group columns dataset",
         ],
         catch_exceptions=False,
     )
 
-    assert len(caplog.records) == 2
+    assert len(caplog.records) == 3
     for warn_substring in [
         "more than one column about age",
         "more than one column about sex",
+        "more than one column about subject group",
     ]:
         assert warn_substring in caplog.text
 
@@ -835,16 +839,15 @@ def test_multicolumn_diagnosis_annot_is_handled(
             "hasDiagnosis"
         ]
     ]
-    assert sub_01_diagnoses == ["snomed:49049000", "snomed:724761004"]
+    assert sub_01_diagnoses == ["snomed:724761004", "snomed:370143000"]
 
 
-@pytest.mark.parametrize("sub_idx", [1, 2])
-def test_multicolumn_diagnosis_annot_with_healthy_control_is_handled(
-    runner, test_data, default_pheno_output_path, load_test_json, sub_idx
+def test_healthy_control_subject_with_diagnosis_is_handled(
+    runner, test_data, default_pheno_output_path, load_test_json
 ):
     """
-    Test that when there are multiple columns about diagnosis and a subject has a healthy control status in one column,
-    the healthy control status is used and any other diagnoses are ignored.
+    Test that when a subject has both a diagnosis and a healthy control status,
+    both are correctly parsed and stored as part of the subject's data.
     """
     runner.invoke(
         bagel,
@@ -862,14 +865,22 @@ def test_multicolumn_diagnosis_annot_with_healthy_control_is_handled(
     )
 
     pheno = load_test_json(default_pheno_output_path)
-    sub_with_healthy_control_annotation = pheno["hasSamples"][sub_idx][
+
+    healthy_control_sub_with_diagnosis = next(
+        sub for sub in pheno["hasSamples"] if sub["hasLabel"] == "sub-03"
+    )
+    healthy_control_sub_with_diagnosis = healthy_control_sub_with_diagnosis[
         "hasSession"
     ][0]
 
-    assert "hasDiagnosis" not in sub_with_healthy_control_annotation.keys()
     assert (
-        sub_with_healthy_control_annotation["isSubjectGroup"]["identifier"]
+        healthy_control_sub_with_diagnosis["isSubjectGroup"]["identifier"]
         == "ncit:C94342"
+    )
+    assert len(healthy_control_sub_with_diagnosis["hasDiagnosis"]) == 1
+    assert (
+        healthy_control_sub_with_diagnosis["hasDiagnosis"][0]["identifier"]
+        == "snomed:21897009"
     )
 
 

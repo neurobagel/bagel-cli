@@ -23,8 +23,8 @@
 | 16 | Invalid, same as example2.csv, but with a sneaky .tsv file ending | Valid, same as example2 | fail |
 | 17 | Valid, contains data for three subjects, but no session column | Same as example 2 JSON, without `session_id` column | pass |
 | 18 | Invalid, example2.tsv without `session_id` column, so there are non-unique participant rows | Same as example 2 JSON, without session_id column | fail |
-| 19 | Example with two columns about diagnosis | Valid | pass |
-| 20 | Valid, based on example 19 but contains multiple annotated columns about age and sex | Valid | pass |
+| 19 | Example with two diagnosis columns and a separate subject group column | Valid | pass |
+| 20 | Valid, based on example 19 but contains multiple annotated columns about age, sex, and subject group | Valid | pass |
 | 21 | Valid, based on example 2 but contains a dash in a column name | Valid | pass |
 | iso88591 | invalid, ISO-8859-1 encoded and contains French characters in the age column | invalid, ISO-8859-1 encoded and contains French characters in the age column | fail |
 | invalid_json | - | not valid JSON, contains trailing comma after `group` key-value pair | fail |

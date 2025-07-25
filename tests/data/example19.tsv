@@ -1,4 +1,4 @@
-participant_id	session_id	group	diagnosis	sex	participant_age
-sub-01	ses-01	PD	SPD	M	P60Y6M
-sub-02	ses-01	CTRL		F	P56Y4M
-sub-03	ses-01	CTRL	AD	F	P60Y6M
+participant_id	session_id	group	primary_diag	secondary_diag	sex	participant_age
+sub-01	ses-01	PD	SPD	MDD	M	P60Y6M
+sub-02	ses-01	CTRL			F	P56Y4M
+sub-03	ses-01	CTRL	GAD		F	P60Y6M

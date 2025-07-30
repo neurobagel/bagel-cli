@@ -8,7 +8,7 @@ import isodate
 import jsonschema
 import pandas as pd
 import pydantic
-from typer import BadParameter
+from typer import BadParameter, CallbackParam
 
 from bagel import dictionary_models, mappings
 from bagel.logger import log_error, logger
@@ -31,11 +31,11 @@ AGE_FORMATS = {
 }
 
 
-def validate_dataset_name(name: str) -> str:
-    """Custom validation that dataset name is not an empty string or just whitespace."""
-    if name.isspace() or name == "":
-        raise BadParameter("Dataset name cannot be an empty string.")
-    return name
+def check_param_not_whitespace(param: CallbackParam, value: str) -> str:
+    """Custom validation that the value for a string argument is not an empty string or just whitespace."""
+    if value.isspace() or value == "":
+        raise BadParameter(f"{param.name} cannot be an empty string.")
+    return value
 
 
 def validate_portal_uri(portal: Optional[str]) -> Optional[str]:

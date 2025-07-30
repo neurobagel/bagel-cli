@@ -154,7 +154,7 @@ def pheno(
         ...,
         "--name",
         "-n",
-        callback=pheno_utils.validate_dataset_name,
+        callback=pheno_utils.check_param_not_whitespace,
         help="The full name of the dataset. "
         "This name will be displayed when users discover the dataset in a Neurobagel query. "
         "For a dataset with BIDS data, the name should ideally match the dataset_description.json 'name' field. "
@@ -175,6 +175,15 @@ def pheno(
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
+    ),
+    config: str = typer.Option(
+        "Neurobagel",
+        "--config",
+        "-c",
+        callback=pheno_utils.check_param_not_whitespace,
+        help="The name of the vocabulary configuration used in the annotation tool for generating the data dictionary. "
+        "This will be used to verify that all vocabularies used in the data dictionary are supported in the specified configuration.",
+        # TODO: Should we provide a link to the communities repo for users to find the config names?
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),

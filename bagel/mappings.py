@@ -45,7 +45,6 @@ NEUROBAGEL = {
     "sex": NB.pf + ":Sex",
     "age": NB.pf + ":Age",
     "diagnosis": NB.pf + ":Diagnosis",
-    # "healthy_control": NCIT.pf + ":C94342",
     "subject_group": NB.pf + ":SubjectGroup",
     "assessment_tool": NB.pf + ":Assessment",
 }

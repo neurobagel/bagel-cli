@@ -15,12 +15,6 @@
                 "subject": "[pre-commit.ci]",
                 "labels": ["_bot", "skip-release"]
             }
-        ],
-        [
-            "exec",
-            {
-                "afterRelease": "python -m build && twine upload dist/*"
-            }
         ]
     ],
     "labels": [

@@ -9,6 +9,8 @@ DEFAULT_CONFIG = "Neurobagel"
 # we cannot remove these hardcoded namespaces yet as they are currently tied to handling logic for specific standardized variables.
 # This should be addressed as part of https://github.com/neurobagel/bagel-cli/issues/497.
 Namespace = namedtuple("Namespace", ["pf", "url"])
+# NOTE: We are keeping the cogatlas namespace for now to warn about its deprecation.
+# Remove once we officially support custom vocabularies/namespaces.
 COGATLAS = Namespace("cogatlas", "https://www.cognitiveatlas.org/task/id/")
 NB = Namespace("nb", "http://neurobagel.org/vocab/")
 NCIT = Namespace("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#")
@@ -40,7 +42,7 @@ NEUROBAGEL = {
     "sex": NB.pf + ":Sex",
     "age": NB.pf + ":Age",
     "diagnosis": NB.pf + ":Diagnosis",
-    "healthy_control": NCIT.pf + ":C94342",
+    "subject_group": NB.pf + ":SubjectGroup",
     "assessment_tool": NB.pf + ":Assessment",
 }
 

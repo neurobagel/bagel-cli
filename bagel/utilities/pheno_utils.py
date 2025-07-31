@@ -12,11 +12,7 @@ from typer import BadParameter, CallbackParam
 
 from bagel import dictionary_models, mappings
 from bagel.logger import log_error, logger
-from bagel.mappings import (
-    DEPRECATED_NAMESPACE_PREFIXES,
-    NB,
-    SUPPORTED_NAMESPACE_PREFIXES,
-)
+from bagel.mappings import DEPRECATED_NAMESPACE_PREFIXES, NB
 
 # TODO: Once we remove support for v1 annotation tool data dictionaries, revert to using this version for data dictionary schema validation
 # DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()
@@ -112,6 +108,7 @@ def recursive_find_values_for_key(data: dict, target: str) -> list:
 
 def find_unsupported_namespaces_and_term_urls(
     data_dict: dict,
+    config: str,
 ) -> tuple[list, dict]:
     """
     From a provided data dictionary, find all term URLs that contain an unsupported namespace prefix.
@@ -120,12 +117,14 @@ def find_unsupported_namespaces_and_term_urls(
     unsupported_prefixes = set()
     unrecognized_term_urls = {}
 
+    supported_namespaces = mappings.get_supported_namespaces_for_config(config)
+
     for col, content in get_annotated_columns(data_dict):
         for col_term_url in recursive_find_values_for_key(
             content["Annotations"], "TermURL"
         ):
             prefix = col_term_url.split(":")[0]
-            if prefix not in SUPPORTED_NAMESPACE_PREFIXES:
+            if prefix not in supported_namespaces:
                 unsupported_prefixes.add(prefix)
                 unrecognized_term_urls[col] = col_term_url
 
@@ -381,7 +380,7 @@ def construct_dictionary_schema_for_validation() -> dict:
     return patched_schema
 
 
-def validate_data_dict(data_dict: dict) -> None:
+def validate_data_dict(data_dict: dict, config: str) -> None:
     try:
         jsonschema.validate(
             data_dict, construct_dictionary_schema_for_validation()
@@ -411,7 +410,7 @@ def validate_data_dict(data_dict: dict) -> None:
         )
 
     unsupported_namespaces, unrecognized_term_urls = (
-        find_unsupported_namespaces_and_term_urls(data_dict)
+        find_unsupported_namespaces_and_term_urls(data_dict, config)
     )
     if unsupported_namespaces:
         namespace_deprecation_msg = ""
@@ -508,9 +507,11 @@ def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
         )
 
 
-def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
+def validate_inputs(
+    data_dict: dict, pheno_df: pd.DataFrame, config: str
+) -> None:
     """Determines whether input data are valid"""
-    validate_data_dict(data_dict)
+    validate_data_dict(data_dict, config)
 
     if missing_annotated_cols := find_missing_annotated_cols(
         data_dict, pheno_df

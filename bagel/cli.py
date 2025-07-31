@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import bids2table as b2t2
+import click
 import pandas as pd
 import typer
 from bids import BIDSLayout, exceptions
@@ -177,13 +178,15 @@ def pheno(
         resolve_path=True,
     ),
     config: str = typer.Option(
-        "Neurobagel",
+        mappings.DEFAULT_CONFIG,
         "--config",
         "-c",
-        callback=pheno_utils.check_param_not_whitespace,
+        # Solution for providing preset choices taken from https://github.com/fastapi/typer/issues/182#issuecomment-1708245110
+        # NOTE: An alternative solution is to simply use a callback to validate the config name and list the options in the help text.
+        # This might be useful once/if we have many community configurations to choose from.
+        click_type=click.Choice(mappings.AVAILABLE_COMMUNITY_CONFIGS),
         help="The name of the vocabulary configuration used in the annotation tool for generating the data dictionary. "
         "This will be used to verify that all vocabularies used in the data dictionary are supported in the specified configuration.",
-        # TODO: Should we provide a link to the communities repo for users to find the config names?
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
@@ -208,7 +211,7 @@ def pheno(
     width = 26
     logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
     logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
-    pheno_utils.validate_inputs(data_dictionary, pheno_df)
+    pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
 
     # TODO: Remove once we no longer support annotation tool v1 data dictionaries
     data_dictionary = pheno_utils.convert_transformation_to_format(
@@ -308,7 +311,7 @@ def pheno(
     )
 
     file_utils.save_jsonld(
-        data=model_utils.add_context_to_graph_dataset(dataset),
+        data=model_utils.add_context_to_graph_dataset(dataset, config),
         filename=output,
     )
 
@@ -467,7 +470,10 @@ def bids(
                 existing_subject.hasSession.append(new_imaging_session)
 
     file_utils.save_jsonld(
-        data=model_utils.add_context_to_graph_dataset(jsonld_dataset),
+        # TODO: Decide whether to regenerate the context or not
+        data=model_utils.add_context_to_graph_dataset(
+            jsonld_dataset, config=mappings.DEFAULT_CONFIG
+        ),
         filename=output,
     )
 
@@ -596,6 +602,9 @@ def derivatives(
                 existing_subject.hasSession.append(new_img_session)
 
     file_utils.save_jsonld(
-        data=model_utils.add_context_to_graph_dataset(jsonld_dataset),
+        # TODO: Decide whether to regenerate the context or not
+        data=model_utils.add_context_to_graph_dataset(
+            jsonld_dataset, config=mappings.DEFAULT_CONFIG
+        ),
         filename=output,
     )

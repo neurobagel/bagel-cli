@@ -7,3 +7,6 @@
 [submodule "pipeline-catalog"]
 	path = bagel/pipeline-catalog
 	url = https://github.com/nipoppy/pipeline-catalog.git
+[submodule "bagel/communities"]
+	path = bagel/communities
+	url = https://github.com/neurobagel/communities.git

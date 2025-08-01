@@ -27,6 +27,23 @@ AGE_FORMATS = {
 }
 
 
+def check_if_remote_configs_used():
+    """Check if the remote community configurations are available."""
+    if mappings.CONFIG_FETCHING_ERR:
+        if mappings.CONFIG_NAMESPACES_MAPPING:
+            logger.warning(
+                f"Failed to fetch configuration from {mappings.CONFIG_NAMESPACES_URL}. Error: {mappings.CONFIG_FETCHING_ERR}. "
+                "Using a packaged backup configuration instead *which may be outdated*. "
+                "Check your internet connection?"
+            )
+        else:
+            log_error(
+                logger,
+                f"Failed to locate any community configurations. Error: {mappings.CONFIG_FETCHING_ERR} "
+                "Please check that you have an internet connection and try again, or open an issue in https://github.com/neurobagel/bagel-cli/issues if the problem persists.",
+            )
+
+
 def check_param_not_whitespace(param: CallbackParam, value: str) -> str:
     """Custom validation that the value for a string argument is not an empty string or just whitespace."""
     if value.isspace() or value == "":

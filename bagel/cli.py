@@ -184,7 +184,9 @@ def pheno(
         # Solution for providing preset choices taken from https://github.com/fastapi/typer/issues/182#issuecomment-1708245110
         # NOTE: An alternative solution is to simply use a callback to validate the config name and list the options in the help text.
         # This might be useful once/if we have many community configurations to choose from.
-        click_type=click.Choice(mappings.AVAILABLE_COMMUNITY_CONFIGS),
+        click_type=click.Choice(
+            mappings.get_available_configs(mappings.CONFIG_NAMESPACES_MAPPING)
+        ),
         help="The name of the vocabulary configuration used in the annotation tool for generating the data dictionary. "
         "This will be used to verify that all vocabularies used in the data dictionary are supported in the specified configuration.",
     ),
@@ -204,6 +206,8 @@ def pheno(
 
     data_dictionary = file_utils.load_json(dictionary)
     pheno_df = file_utils.load_tabular(pheno)
+
+    pheno_utils.check_if_remote_configs_used()
 
     logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
@@ -525,6 +529,7 @@ def derivatives(
     """
 
     file_utils.check_overwrite(output, overwrite)
+    derivative_utils.check_if_remote_pipeline_catalog_used()
 
     width = 51
     logger.info("Processing subject-level derivative metadata...")

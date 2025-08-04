@@ -207,7 +207,7 @@ def pheno(
     data_dictionary = file_utils.load_json(dictionary)
     pheno_df = file_utils.load_tabular(pheno)
 
-    pheno_utils.check_if_configs_available()
+    pheno_utils.check_if_config_namespaces_available()
 
     logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.

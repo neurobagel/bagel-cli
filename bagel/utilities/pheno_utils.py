@@ -27,8 +27,8 @@ AGE_FORMATS = {
 }
 
 
-def check_if_configs_available():
-    """Check if the remote community configurations are available."""
+def check_if_config_namespaces_available():
+    """Check if the community configuration namespaces have been successfully fetched from the remote source."""
     if mappings.CONFIG_FETCHING_ERR:
         if mappings.CONFIG_NAMESPACES_MAPPING != []:
             logger.warning(

@@ -54,10 +54,12 @@ CONFIG_NAMESPACES_URL = "https://raw.githubusercontent.com/neurobagel/communitie
 
 
 def get_available_configs(config_namespaces_mapping: list) -> list:
+    """Return the list of names of available community configurations."""
     return [config["config_name"] for config in config_namespaces_mapping]
 
 
 def get_supported_namespaces_for_config(config_name: str) -> dict:
+    """Return a dictionary of supported namespace prefixes and their corresponding full URLs for a given community configuration."""
     config_namespaces = next(
         config["namespaces"]
         for config in CONFIG_NAMESPACES_MAPPING

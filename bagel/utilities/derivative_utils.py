@@ -20,7 +20,7 @@ PROC_STATUS_COLS = {
 
 def check_if_pipeline_catalog_available():
     """
-    Check if the remote pipeline catalog is used in the processing status file.
+    Check if the pipeline catalog has been successfully fetched from the remote source.
     """
     if mappings.PIPELINES_FETCHING_ERR:
         if mappings.PIPELINE_CATALOG != []:

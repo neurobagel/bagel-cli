@@ -556,8 +556,14 @@ def derivatives(
             f"We found missing values in the following rows (first row is zero): {row_indices}.",
         )
 
+    known_pipeline_uris, known_pipeline_versions = (
+        mappings.parse_pipeline_catalog(mappings.PIPELINE_CATALOG)
+    )
+
     derivative_utils.check_at_least_one_pipeline_version_is_recognized(
-        status_df=status_df
+        status_df=status_df,
+        known_pipeline_uris=known_pipeline_uris,
+        known_pipeline_versions=known_pipeline_versions,
     )
 
     jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
@@ -587,7 +593,9 @@ def derivatives(
             PROC_STATUS_COLS["session"]
         ):
             completed_pipelines = derivative_utils.create_completed_pipelines(
-                sub_ses_proc_df
+                session_proc_df=sub_ses_proc_df,
+                known_pipeline_uris=known_pipeline_uris,
+                known_pipeline_versions=known_pipeline_versions,
             )
 
             if not completed_pipelines:

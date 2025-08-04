@@ -10,7 +10,6 @@ COGATLAS = Namespace("cogatlas", "https://www.cognitiveatlas.org/task/id/")
 NB = Namespace("nb", "http://neurobagel.org/vocab/")
 NCIT = Namespace("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#")
 NIDM = Namespace("nidm", "http://purl.org/nidash/nidm#")
-# SNOMED = Namespace("snomed", "http://purl.bioontology.org/ontology/SNOMEDCT/")
 NP = Namespace(
     "np", "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/"
 )
@@ -93,10 +92,6 @@ def parse_pipeline_catalog(pipeline_catalog: list) -> tuple[dict, dict]:
 # handles lazy loading of the remote content, i.e. only when accessed
 PIPELINE_CATALOG, PIPELINES_FETCHING_ERR = file_utils.request_file(
     url=PROCESSING_PIPELINE_URL, backup_path=PROCESSING_PIPELINE_PATH
-)
-# TODO: Refactor to eliminate constants
-KNOWN_PIPELINE_URIS, KNOWN_PIPELINE_VERSIONS = parse_pipeline_catalog(
-    PIPELINE_CATALOG
 )
 CONFIG_NAMESPACES_MAPPING, CONFIG_FETCHING_ERR = file_utils.request_file(
     url=CONFIG_NAMESPACES_URL, backup_path=CONFIG_NAMESPACES_PATH

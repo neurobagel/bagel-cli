@@ -32,7 +32,7 @@ def check_if_pipeline_catalog_available():
         else:
             log_error(
                 logger,
-                f"Failed to locate a pipeline catalog. Error: {mappings.PIPELINES_FETCHING_ERR} "
+                f"Failed to load the pipeline catalog. Error: {mappings.PIPELINES_FETCHING_ERR} "
                 "Please check that you have an internet connection and try again, or open an issue in https://github.com/neurobagel/bagel-cli/issues if the problem persists.",
             )
 

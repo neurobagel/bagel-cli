@@ -80,11 +80,5 @@ def test_resource_empty_if_remote_and_local_file_fetching_fail(
         url=nonsense_url, backup_path=tmp_path / "does_not_exist.json"
     )
 
-    # assert len(caplog.records) == 2
-    # assert "Unable to download pipeline catalog" in caplog.records[0].message
-    # assert (
-    #     "Have you correctly initialized the submodules"
-    #     in caplog.records[1].message
-    # )
     assert result == []
     assert err is not None

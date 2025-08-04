@@ -207,7 +207,7 @@ def pheno(
     data_dictionary = file_utils.load_json(dictionary)
     pheno_df = file_utils.load_tabular(pheno)
 
-    pheno_utils.check_if_remote_configs_used()
+    pheno_utils.check_if_configs_available()
 
     logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
@@ -529,7 +529,7 @@ def derivatives(
     """
 
     file_utils.check_overwrite(output, overwrite)
-    derivative_utils.check_if_remote_pipeline_catalog_used()
+    derivative_utils.check_if_pipeline_catalog_available()
 
     width = 51
     logger.info("Processing subject-level derivative metadata...")

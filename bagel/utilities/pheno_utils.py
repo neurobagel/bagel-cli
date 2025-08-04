@@ -27,10 +27,10 @@ AGE_FORMATS = {
 }
 
 
-def check_if_remote_configs_used():
+def check_if_configs_available():
     """Check if the remote community configurations are available."""
     if mappings.CONFIG_FETCHING_ERR:
-        if mappings.CONFIG_NAMESPACES_MAPPING:
+        if mappings.CONFIG_NAMESPACES_MAPPING != []:
             logger.warning(
                 f"Failed to fetch configuration from {mappings.CONFIG_NAMESPACES_URL}. Error: {mappings.CONFIG_FETCHING_ERR}. "
                 "Using a packaged backup configuration instead *which may be outdated*. "

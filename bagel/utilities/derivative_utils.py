@@ -18,12 +18,12 @@ PROC_STATUS_COLS = {
 }
 
 
-def check_if_remote_pipeline_catalog_used():
+def check_if_pipeline_catalog_available():
     """
     Check if the remote pipeline catalog is used in the processing status file.
     """
     if mappings.PIPELINES_FETCHING_ERR:
-        if mappings.PIPELINE_CATALOG:
+        if mappings.PIPELINE_CATALOG != []:
             logger.warning(
                 f"Failed to fetch pipeline catalog from {mappings.PROCESSING_PIPELINE_URL}. Error: {mappings.PIPELINES_FETCHING_ERR}. "
                 "Using a packaged backup pipeline catalog instead *which may be outdated*. "

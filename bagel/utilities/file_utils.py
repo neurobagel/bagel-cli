@@ -97,7 +97,7 @@ def save_jsonld(data: dict, filename: Path):
     logger.info(f"Saved output to:  {filename}")
 
 
-def request_file(url: str, backup_path: Path) -> tuple[list, Exception | None]:
+def request_file(url: str, backup_path: Path) -> tuple[list, str | None]:
     contents = []
     err = None
 
@@ -111,8 +111,8 @@ def request_file(url: str, backup_path: Path) -> tuple[list, Exception | None]:
             # Otherwise, there may be exceptions on import, meaning there will be errors even if the user runs just bagel --help.
             with open(backup_path, "r", encoding="utf-8") as f:
                 contents = json.load(f)
-                err = request_err
+                err = str(request_err)
         except Exception as load_err:
-            err = load_err
+            err = str(load_err)
 
     return contents, err

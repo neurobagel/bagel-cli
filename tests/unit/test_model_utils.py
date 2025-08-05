@@ -3,8 +3,8 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 from pydantic import ValidationError
 
-from bagel import dictionary_models, models
-from bagel.utilities import model_utils
+from bagel import dictionary_models, mappings, models
+from bagel.utilities import model_utils, pheno_utils
 
 
 @pytest.fixture
@@ -197,23 +197,24 @@ def test_get_imaging_session_instances():
     assert list(imaging_sessions.keys()) == ["ses-im01"]
 
 
-# TODO: Refactor to fetch Neurobagel namespaces
-# def test_used_namespaces_in_context(test_data_upload_path, load_test_json):
-#     """
-#     Test that all namespaces used internally by the CLI for JSONLD dataset creation are defined
-#     in the @context of reference example .jsonld files.
-#     """
-#     # Fetch all .jsonld files to avoid having to add a test parameter whenever we add a new JSONLD
-#     example_jsonld_files = list(test_data_upload_path.rglob("*.jsonld"))
-#     for jsonld in example_jsonld_files:
-#         jsonld_context = load_test_json(test_data_upload_path / jsonld)[
-#             "@context"
-#         ]
+def test_used_namespaces_in_context(test_data_upload_path, load_test_json):
+    """
+    Test that all namespaces in the Neurobagel config used internally by the CLI for JSONLD dataset creation
+    are defined in the @context of reference example .jsonld files.
+    """
+    # Fetch all .jsonld files to avoid having to add a test parameter whenever we add a new JSONLD
+    example_jsonld_files = list(test_data_upload_path.rglob("*.jsonld"))
+    for jsonld in example_jsonld_files:
+        jsonld_context = load_test_json(test_data_upload_path / jsonld)[
+            "@context"
+        ]
 
-#         for ns in mappings.SUPPORTED_NAMESPACES:
-#             assert (
-#                 ns.pf in jsonld_context.keys()
-#             ), f"The namespace '{ns.pf}' was not found in the @context of {jsonld}."
+        for ns in pheno_utils.get_supported_namespaces_for_config(
+            mappings.DEFAULT_CONFIG
+        ):
+            assert (
+                ns in jsonld_context.keys()
+            ), f"The namespace '{ns}' was not found in the @context of {jsonld}."
 
 
 def test_add_context_to_graph_dataset(test_config):

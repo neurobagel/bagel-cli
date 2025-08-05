@@ -42,7 +42,8 @@ bagel = "bagel.cli:bagel"
 [tool.hatch.build.targets.wheel]
 packages = ["bagel"]
 include = [
-  "bagel/pipeline-catalog/**/*"
+  "bagel/pipeline-catalog/**/*",
+  "bagel/communities/**/*",
 ]
 
 [tool.hatch.build.targets.sdist]

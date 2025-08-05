@@ -1,4 +1,3 @@
-import httpx
 import pandas as pd
 import pytest
 import typer
@@ -7,104 +6,30 @@ from bagel import mappings
 from bagel.utilities import derivative_utils
 
 
-def test_get_pipeline_from_backup_if_remote_fails(
-    monkeypatch, caplog, propagate_warnings
-):
-    """
-    Test that the pipeline catalog is loaded from the local backup if the remote location is unreachable.
-
-    NOTE: This test will fail if the submodule has not been correctly initialized.
-    """
-    nonsense_url = "https://does.not.exist.url"
-
-    def mock_httpx_get(*args, **kwargs):
-        response = httpx.Response(
-            status_code=400,
-            json={},
-            text="Some error",
-            request=httpx.Request("GET", nonsense_url),
-        )
-        # This slightly odd construction is necessary to create a Response object
-        # that has the correct URL already baked in (I think), because otherwise we get the following
-        # RuntimeError: Cannot call `raise_for_status` as the request instance has not been set on this response.
-        return response
-
-    monkeypatch.setattr(httpx, "get", mock_httpx_get)
-
-    result = mappings.get_pipeline_catalog(
-        url=nonsense_url, path=mappings.PROCESSING_PIPELINE_PATH
-    )
-
-    assert all(isinstance(item, dict) for item in result)
-    assert "Unable to download pipeline catalog" in caplog.text
+@pytest.fixture(scope="session")
+def known_pipeline_uris():
+    """Return a dictionary of known pipeline URIs as parsed from the pipeline catalog."""
+    return {
+        "fmriprep": "np:fmriprep",
+        "freesurfer": "np:freesurfer",
+    }
 
 
-def test_raises_exception_if_remote_and_local_pipeline_catalog_fails(
-    monkeypatch, tmp_path, caplog, propagate_warnings
-):
-    """
-    If I cannot get the pipeline catalog from both the remote location and the local backup, I should raise an exception.
-    """
-    nonsense_url = "https://does.not.exist.url"
-
-    def mock_httpx_get(*args, **kwargs):
-        response = httpx.Response(
-            status_code=400,
-            json={},
-            text="Some error",
-            request=httpx.Request("GET", nonsense_url),
-        )
-        # This slightly odd construction is necessary to create a Response object
-        # that has the correct URL already baked in (I think), because otherwise we get the following
-        # RuntimeError: Cannot call `raise_for_status` as the request instance has not been set on this response.
-        return response
-
-    monkeypatch.setattr(httpx, "get", mock_httpx_get)
-
-    with pytest.raises(typer.Exit):
-        mappings.get_pipeline_catalog(
-            url=nonsense_url, path=tmp_path / "does_not_exist.json"
-        )
-
-    assert len(caplog.records) == 2
-    assert "Unable to download pipeline catalog" in caplog.records[0].message
-    assert (
-        "Have you correctly initialized the submodules"
-        in caplog.records[1].message
-    )
-
-
-def test_get_pipeline_from_remote_succeeds(monkeypatch):
-    nonsense_url = "https://made.up.url/pipeline_catalog.json"
-    mock_pipeline_catalog = [
-        {"name": "sillypipe", "versions": ["1", "2"]},
-        {"name": "funpipe", "versions": ["10", "11"]},
-    ]
-
-    def mock_httpx_get(*args, **kwargs):
-        response = httpx.Response(
-            status_code=200,
-            json=mock_pipeline_catalog,
-            request=httpx.Request("GET", nonsense_url),
-        )
-        # This slightly odd construction is necessary to create a Response object
-        # that has the correct URL already baked in (I think), because otherwise we get the following
-        # RuntimeError: Cannot call `raise_for_status` as the request instance has not been set on this response.
-        return response
-
-    monkeypatch.setattr(httpx, "get", mock_httpx_get)
-
-    result = mappings.get_pipeline_catalog(
-        url=nonsense_url, path=mappings.PROCESSING_PIPELINE_PATH
-    )
-
-    assert result == mock_pipeline_catalog
+@pytest.fixture(scope="session")
+def known_pipeline_versions():
+    """Return a dictionary of known pipeline versions as parsed from the pipeline catalog."""
+    return {
+        "fmriprep": ["20.2.7", "23.1.3"],
+        "freesurfer": ["6.0.1", "7.3.2"],
+    }
 
 
 def test_pipeline_uris_are_loaded():
     """Test that pipeline URIs are loaded from the pipeline-catalog submodule."""
 
-    uri_dict, _ = mappings.parse_pipeline_catalog()
+    uri_dict, _ = derivative_utils.parse_pipeline_catalog(
+        mappings.PIPELINE_CATALOG
+    )
     assert all(
         ((mappings.NP.pf in pipe_uri) and (" " not in pipe_uri))
         for pipe_uri in uri_dict.values()
@@ -114,7 +39,9 @@ def test_pipeline_uris_are_loaded():
 def test_pipeline_versions_are_loaded():
     """Test that pipeline versions are loaded from the pipeline-catalog submodule."""
 
-    _, version_dict = mappings.parse_pipeline_catalog()
+    _, version_dict = derivative_utils.parse_pipeline_catalog(
+        mappings.PIPELINE_CATALOG
+    )
     assert all(
         isinstance(pipe_versions, list) and len(pipe_versions) > 0
         for pipe_versions in version_dict.values()
@@ -122,7 +49,7 @@ def test_pipeline_versions_are_loaded():
 
 
 def test_warning_raised_when_some_pipeline_names_unrecognized(
-    caplog, propagate_warnings
+    caplog, propagate_warnings, known_pipeline_uris
 ):
     """
     Test that when a subset of pipeline names are not found in the pipeline catalog,
@@ -130,7 +57,9 @@ def test_warning_raised_when_some_pipeline_names_unrecognized(
     """
     pipelines = ["fmriprep", "fakepipeline1"]
 
-    recognized_pipelines = derivative_utils.get_recognized_pipelines(pipelines)
+    recognized_pipelines = derivative_utils.get_recognized_pipelines(
+        pipelines, known_pipeline_uris
+    )
 
     assert all(
         substr in caplog.text
@@ -140,7 +69,7 @@ def test_warning_raised_when_some_pipeline_names_unrecognized(
 
 
 def test_error_raised_when_no_pipeline_names_recognized(
-    caplog, propagate_errors
+    caplog, propagate_errors, known_pipeline_uris
 ):
     """
     Test that when no provided pipeline names are found in the pipeline catalog,
@@ -149,7 +78,9 @@ def test_error_raised_when_no_pipeline_names_recognized(
     pipelines = ["fakepipeline1", "fakepipeline2"]
 
     with pytest.raises(typer.Exit):
-        derivative_utils.get_recognized_pipelines(pipelines)
+        derivative_utils.get_recognized_pipelines(
+            pipelines, known_pipeline_uris
+        )
 
     assert "no recognized pipelines" in caplog.text
 
@@ -162,12 +93,17 @@ def test_error_raised_when_no_pipeline_names_recognized(
     ],
 )
 def test_pipeline_versions_classified_correctly(
-    fmriprep_versions, expected_recog_versions, expected_unrecog_versions
+    fmriprep_versions,
+    expected_recog_versions,
+    expected_unrecog_versions,
+    known_pipeline_versions,
 ):
     """Test that versions of a pipeline are correctly classified as recognized or unrecognized according to the pipeline catalog."""
     recog_versions, unrecog_versions = (
         derivative_utils.validate_pipeline_versions(
-            "fmriprep", fmriprep_versions
+            pipeline="fmriprep",
+            versions=fmriprep_versions,
+            known_pipeline_versions=known_pipeline_versions,
         )
     )
     # The order of the versions in the lists is not guaranteed
@@ -175,7 +111,9 @@ def test_pipeline_versions_classified_correctly(
     assert set(unrecog_versions) == set(expected_unrecog_versions)
 
 
-def test_create_completed_pipelines():
+def test_create_completed_pipelines(
+    known_pipeline_uris, known_pipeline_versions
+):
     """
     Test that completed pipelines for a subject-session are accurately identified,
     where a completed pipeline is one meeting the condition that *all* steps of that pipeline
@@ -227,7 +165,9 @@ def test_create_completed_pipelines():
         data=sub_ses_data,
     )
     completed_pipelines = derivative_utils.create_completed_pipelines(
-        example_ses_proc_df
+        session_proc_df=example_ses_proc_df,
+        known_pipeline_uris=known_pipeline_uris,
+        known_pipeline_versions=known_pipeline_versions,
     )
 
     assert len(completed_pipelines) == 1
@@ -236,3 +176,29 @@ def test_create_completed_pipelines():
         == f"{mappings.NP.pf}:fmriprep"
     )
     assert completed_pipelines[0].hasPipelineVersion == "23.1.3"
+
+
+def test_parse_pipeline_catalog():
+    """Test the function correctly parses a pipeline catalog file into two dictionaries for pipeline URIs and recognized versions."""
+    mock_pipeline_catalog = [
+        {
+            "name": "fmriprep",
+            "versions": [
+                "20.2.0",
+                "20.2.7",
+                "23.1.3",
+            ],
+        },
+        {"name": "freesurfer", "versions": ["6.0.1", "7.3.2"]},
+    ]
+    uri_dict, version_dict = derivative_utils.parse_pipeline_catalog(
+        mock_pipeline_catalog
+    )
+    assert uri_dict == {
+        "fmriprep": "np:fmriprep",
+        "freesurfer": "np:freesurfer",
+    }
+    assert version_dict == {
+        "fmriprep": ["20.2.0", "20.2.7", "23.1.3"],
+        "freesurfer": ["6.0.1", "7.3.2"],
+    }

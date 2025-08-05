@@ -2,6 +2,7 @@ import os
 
 import pytest
 
+from bagel import mappings
 from bagel.cli import bagel
 
 
@@ -934,3 +935,44 @@ def test_empty_string_dataset_name_raises_error(
 
     assert result.exit_code != 0
     assert "cannot be an empty string" in result.output
+
+
+def test_backup_used_with_warning_when_request_for_config_namespaces_fails(
+    runner,
+    test_data_upload_path,
+    default_pheno_output_path,
+    caplog,
+    propagate_warnings,
+    monkeypatch,
+    disable_rich_markup,
+):
+    """
+    Test that when config namespaces cannot be fetched from the remote source,
+    the pheno command raises a warning and uses the backup configuration.
+    """
+    monkeypatch.setattr(
+        mappings, "CONFIG_NAMESPACES_FETCHING_ERR", "Network unreachable"
+    )
+
+    result = runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data_upload_path / "example_synthetic.tsv",
+            "--dictionary",
+            test_data_upload_path / "example_synthetic.json",
+            "--config",
+            "neuroBagel",
+            "--name",
+            "Config test",
+            "--output",
+            default_pheno_output_path,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0
+    assert default_pheno_output_path.exists()
+    assert len(caplog.records) == 1
+    assert "Using a packaged backup configuration" in caplog.text

@@ -7,17 +7,15 @@ from pydantic import ValidationError
 
 from bagel import models
 from bagel.logger import log_error, logger
-from bagel.mappings import NB, SUPPORTED_NAMESPACES
-from bagel.utilities import file_utils
+from bagel.mappings import NB
+from bagel.utilities import file_utils, pheno_utils
 
 
-def generate_context():
+def generate_context(config: str) -> dict:
     # Adapted from the dandi-schema context generation function
     # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
-    field_preamble = {
-        namespace.pf: namespace.url for namespace in SUPPORTED_NAMESPACES
-    }
-    fields = {}
+    field_preamble = pheno_utils.get_supported_namespaces_for_config(config)
+    fields: dict[str, str | dict[str, str]] = {}
     for klass_name, klass in inspect.getmembers(models):
         if inspect.isclass(klass) and issubclass(klass, pydantic.BaseModel):
             fields[klass_name] = f"{NB.pf}:{klass_name}"
@@ -34,9 +32,9 @@ def generate_context():
     return {"@context": field_preamble}
 
 
-def add_context_to_graph_dataset(dataset: models.Dataset) -> dict:
-    """Add the Neurobagel context to a graph-ready dataset to form a JSONLD dictionary."""
-    context = generate_context()
+def add_context_to_graph_dataset(dataset: models.Dataset, config: str) -> dict:
+    """Generate and add the Neurobagel context to a graph-ready dataset to form a JSONLD dictionary."""
+    context = generate_context(config)
     # We can't just exclude_unset here because the identifier and schemaKey
     # for each instance are created as default values and so technically are never set
     # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
@@ -72,13 +70,15 @@ def confirm_subs_match_pheno_data(
         )
 
 
-def extract_and_validate_jsonld_dataset(file_path: Path) -> models.Dataset:
+def extract_and_validate_jsonld_dataset(
+    file_path: Path,
+) -> tuple[dict, models.Dataset]:
     """
-    Strip the context from a user-provided JSONLD and validate the remaining contents
+    Separate the context out from a user-provided JSONLD and validate the remaining contents
     against the data model for a Neurobagel dataset.
     """
     jsonld = file_utils.load_json(file_path)
-    jsonld.pop("@context")
+    context = jsonld.pop("@context")
     try:
         jsonld_dataset = models.Dataset.model_validate(jsonld)
     except ValidationError as err:
@@ -89,7 +89,7 @@ def extract_and_validate_jsonld_dataset(file_path: Path) -> models.Dataset:
             f"Validation errors: {str(err)}",
         )
 
-    return jsonld_dataset
+    return context, jsonld_dataset
 
 
 def get_subject_instances(

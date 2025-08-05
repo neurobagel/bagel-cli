@@ -27,6 +27,11 @@ AGE_FORMATS = {
 }
 
 
+def get_available_configs(config_namespaces_mapping: list) -> list:
+    """Return the list of names of available community configurations."""
+    return [config["config_name"] for config in config_namespaces_mapping]
+
+
 def additional_config_help_text() -> str:
     """
     Construct a warning to be added in the help text for the --config option when no configurations are available.
@@ -53,6 +58,24 @@ def check_if_remote_config_namespaces_used():
             "Using a packaged backup configuration instead *which may be outdated*. "
             "Check your internet connection?"
         )
+
+
+def get_supported_namespaces_for_config(config_name: str) -> dict:
+    """Return a dictionary of supported namespace prefixes and their corresponding full URLs for a given community configuration."""
+    config_namespaces = next(
+        config["namespaces"]
+        for config in mappings.CONFIG_NAMESPACES_MAPPING
+        if config["config_name"] == config_name
+    )
+
+    config_namespaces_dict = {}
+    for namespace_group in config_namespaces.values():
+        for namespace in namespace_group:
+            config_namespaces_dict[namespace["namespace_prefix"]] = namespace[
+                "namespace_url"
+            ]
+
+    return config_namespaces_dict
 
 
 def check_param_not_whitespace(param: CallbackParam, value: str) -> str:
@@ -145,7 +168,7 @@ def find_unsupported_namespaces_and_term_urls(
     unsupported_prefixes = set()
     unrecognized_term_urls = {}
 
-    supported_namespaces = mappings.get_supported_namespaces_for_config(config)
+    supported_namespaces = get_supported_namespaces_for_config(config)
 
     for col, content in get_annotated_columns(data_dict):
         for col_term_url in recursive_find_values_for_key(

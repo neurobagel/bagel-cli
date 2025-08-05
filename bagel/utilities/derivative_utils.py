@@ -37,6 +37,20 @@ def check_if_pipeline_catalog_available():
             )
 
 
+def parse_pipeline_catalog(pipeline_catalog: list) -> tuple[dict, dict]:
+    """
+    Load the pipeline catalog and return a dictionary of pipeline names and their URIs in the Nipoppy namespace,
+    and a dictionary of pipeline names and their supported versions in Nipoppy.
+    """
+    version_dict = {}
+    uri_dict = {}
+    for pipeline in pipeline_catalog:
+        version_dict[pipeline["name"]] = pipeline["versions"]
+        uri_dict[pipeline["name"]] = f"{mappings.NP.pf}:{pipeline['name']}"
+
+    return uri_dict, version_dict
+
+
 def get_recognized_pipelines(
     pipelines: Iterable[str], known_pipeline_uris: dict
 ) -> list:

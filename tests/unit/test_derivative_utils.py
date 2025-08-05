@@ -27,7 +27,9 @@ def known_pipeline_versions():
 def test_pipeline_uris_are_loaded():
     """Test that pipeline URIs are loaded from the pipeline-catalog submodule."""
 
-    uri_dict, _ = mappings.parse_pipeline_catalog(mappings.PIPELINE_CATALOG)
+    uri_dict, _ = derivative_utils.parse_pipeline_catalog(
+        mappings.PIPELINE_CATALOG
+    )
     assert all(
         ((mappings.NP.pf in pipe_uri) and (" " not in pipe_uri))
         for pipe_uri in uri_dict.values()
@@ -37,7 +39,7 @@ def test_pipeline_uris_are_loaded():
 def test_pipeline_versions_are_loaded():
     """Test that pipeline versions are loaded from the pipeline-catalog submodule."""
 
-    _, version_dict = mappings.parse_pipeline_catalog(
+    _, version_dict = derivative_utils.parse_pipeline_catalog(
         mappings.PIPELINE_CATALOG
     )
     assert all(
@@ -174,3 +176,29 @@ def test_create_completed_pipelines(
         == f"{mappings.NP.pf}:fmriprep"
     )
     assert completed_pipelines[0].hasPipelineVersion == "23.1.3"
+
+
+def test_parse_pipeline_catalog():
+    """Test the function correctly parses a pipeline catalog file into two dictionaries for pipeline URIs and recognized versions."""
+    mock_pipeline_catalog = [
+        {
+            "name": "fmriprep",
+            "versions": [
+                "20.2.0",
+                "20.2.7",
+                "23.1.3",
+            ],
+        },
+        {"name": "freesurfer", "versions": ["6.0.1", "7.3.2"]},
+    ]
+    uri_dict, version_dict = derivative_utils.parse_pipeline_catalog(
+        mock_pipeline_catalog
+    )
+    assert uri_dict == {
+        "fmriprep": "np:fmriprep",
+        "freesurfer": "np:freesurfer",
+    }
+    assert version_dict == {
+        "fmriprep": ["20.2.0", "20.2.7", "23.1.3"],
+        "freesurfer": ["6.0.1", "7.3.2"],
+    }

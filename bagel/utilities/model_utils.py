@@ -7,14 +7,14 @@ from pydantic import ValidationError
 
 from bagel import models
 from bagel.logger import log_error, logger
-from bagel.mappings import NB, get_supported_namespaces_for_config
-from bagel.utilities import file_utils
+from bagel.mappings import NB
+from bagel.utilities import file_utils, pheno_utils
 
 
 def generate_context(config: str) -> dict:
     # Adapted from the dandi-schema context generation function
     # https://github.com/dandi/dandi-schema/blob/c616d87eaae8869770df0cb5405c24afdb9db096/dandischema/metadata.py
-    field_preamble = get_supported_namespaces_for_config(config)
+    field_preamble = pheno_utils.get_supported_namespaces_for_config(config)
     fields: dict[str, str | dict[str, str]] = {}
     for klass_name, klass in inspect.getmembers(models):
         if inspect.isclass(klass) and issubclass(klass, pydantic.BaseModel):

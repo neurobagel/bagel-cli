@@ -187,7 +187,9 @@ def pheno(
         # instead of using click.Choice which handles displaying the choices and validation automatically.
         # This might be useful once/if we have many community configurations to choose from or want more flexibility in errors.
         click_type=click.Choice(
-            mappings.get_available_configs(mappings.CONFIG_NAMESPACES_MAPPING),
+            pheno_utils.get_available_configs(
+                mappings.CONFIG_NAMESPACES_MAPPING
+            ),
             case_sensitive=False,
         ),
         help="The name of the vocabulary configuration used in the annotation tool for generating the data dictionary. "
@@ -566,7 +568,7 @@ def derivatives(
         )
 
     known_pipeline_uris, known_pipeline_versions = (
-        mappings.parse_pipeline_catalog(mappings.PIPELINE_CATALOG)
+        derivative_utils.parse_pipeline_catalog(mappings.PIPELINE_CATALOG)
     )
 
     derivative_utils.check_at_least_one_pipeline_version_is_recognized(

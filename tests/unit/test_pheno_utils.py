@@ -689,3 +689,12 @@ def test_convert_transformation_to_format(
     # Only check the warning message if there are any warnings
     for warning in caplog.records:
         assert "contains a deprecated 'Transformation' key" in warning.message
+
+
+def test_additional_config_help_text(monkeypatch):
+    """Test that the additional help text for the config option is generated correctly when no configurations are available."""
+    monkeypatch.setattr(mappings, "CONFIG_NAMESPACES_MAPPING", [])
+    assert (
+        "Failed to locate any community configurations."
+        in pheno_utils.additional_config_help_text()
+    )

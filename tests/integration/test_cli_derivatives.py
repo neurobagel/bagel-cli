@@ -343,7 +343,7 @@ def test_failed_pipeline_catalog_fetching_does_not_raise_error_for_help(
                 {"name": "freesurfer", "versions": ["6.0.1", "7.3.2"]},
             ],
             0,
-            "Failed to fetch pipeline catalog",
+            "Using a packaged backup pipeline catalog",
             True,
         ),
         ([], 1, "Failed to load the pipeline catalog", False),

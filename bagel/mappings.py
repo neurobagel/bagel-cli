@@ -98,6 +98,8 @@ def parse_pipeline_catalog(pipeline_catalog: list) -> tuple[dict, dict]:
 PIPELINE_CATALOG, PIPELINES_FETCHING_ERR = file_utils.request_file(
     url=PROCESSING_PIPELINE_URL, backup_path=PROCESSING_PIPELINE_PATH
 )
-CONFIG_NAMESPACES_MAPPING, CONFIG_FETCHING_ERR = file_utils.request_file(
-    url=CONFIG_NAMESPACES_URL, backup_path=CONFIG_NAMESPACES_PATH
+CONFIG_NAMESPACES_MAPPING, CONFIG_NAMESPACES_FETCHING_ERR = (
+    file_utils.request_file(
+        url=CONFIG_NAMESPACES_URL, backup_path=CONFIG_NAMESPACES_PATH
+    )
 )

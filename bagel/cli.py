@@ -182,14 +182,17 @@ def pheno(
         "--config",
         "-c",
         # Solution for providing preset choices taken from https://github.com/fastapi/typer/issues/182#issuecomment-1708245110
-        # NOTE: An alternative solution is to simply use a callback to validate the config name and list the options in the help text.
-        # This might be useful once/if we have many community configurations to choose from.
+        # NOTE: Alternatively, we could dynamically create a string listing the available config names
+        # to include in the option description in the help text. We would then use a callback to validate the config name manually,
+        # instead of using click.Choice which handles displaying the choices and validation automatically.
+        # This might be useful once/if we have many community configurations to choose from or want more flexibility in errors.
         click_type=click.Choice(
             mappings.get_available_configs(mappings.CONFIG_NAMESPACES_MAPPING),
             case_sensitive=False,
         ),
         help="The name of the vocabulary configuration used in the annotation tool for generating the data dictionary. "
-        "This will be used to verify that all vocabularies used in the data dictionary are supported in the specified configuration.",
+        "This will be used to verify that all vocabularies used in the data dictionary are supported in the specified configuration. "
+        f"{pheno_utils.additional_config_help_text()}",
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
@@ -208,7 +211,7 @@ def pheno(
     data_dictionary = file_utils.load_json(dictionary)
     pheno_df = file_utils.load_tabular(pheno)
 
-    pheno_utils.check_if_config_namespaces_available()
+    pheno_utils.check_if_remote_config_namespaces_used()
 
     logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.

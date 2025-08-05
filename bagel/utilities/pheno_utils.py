@@ -27,21 +27,32 @@ AGE_FORMATS = {
 }
 
 
-def check_if_config_namespaces_available():
-    """Check if the community configuration namespaces have been successfully fetched from the remote source."""
-    if mappings.CONFIG_FETCHING_ERR:
-        if mappings.CONFIG_NAMESPACES_MAPPING != []:
-            logger.warning(
-                f"Failed to fetch configuration from {mappings.CONFIG_NAMESPACES_URL}. Error: {mappings.CONFIG_FETCHING_ERR}. "
-                "Using a packaged backup configuration instead *which may be outdated*. "
-                "Check your internet connection?"
-            )
-        else:
-            log_error(
-                logger,
-                f"Failed to locate any community configurations. Error: {mappings.CONFIG_FETCHING_ERR} "
-                "Please check that you have an internet connection and try again, or open an issue in https://github.com/neurobagel/bagel-cli/issues if the problem persists.",
-            )
+def additional_config_help_text() -> str:
+    """
+    Construct a warning to be added in the help text for the --config option when no configurations are available.
+    This is to inform the user explicitly in the rare case when no configurations are available, i.e. when fetching the remote file fails and there is no local backup found
+    (if submodules were not properly initialized). In this case, allowed choices for --config would be shown as an empty list [],
+    meaning even the default "Neurobagel" option would result in an invalid parameter error (and the `pheno` command cannot run).
+    """
+    if mappings.CONFIG_NAMESPACES_MAPPING == []:
+        return (
+            "[bold red]WARNING: Failed to locate any community configurations. "
+            "Please check that you have an internet connection, or open an issue in https://github.com/neurobagel/bagel-cli/issues if the problem persists.[/bold red]"
+        )
+    return ""
+
+
+def check_if_remote_config_namespaces_used():
+    """Warn if the community configuration namespaces could not be fetched from the remote source."""
+    if (
+        mappings.CONFIG_NAMESPACES_FETCHING_ERR
+        and mappings.CONFIG_NAMESPACES_MAPPING != []
+    ):
+        logger.warning(
+            f"Failed to fetch configuration from {mappings.CONFIG_NAMESPACES_URL}. Error: {mappings.CONFIG_NAMESPACES_FETCHING_ERR}. "
+            "Using a packaged backup configuration instead *which may be outdated*. "
+            "Check your internet connection?"
+        )
 
 
 def check_param_not_whitespace(param: CallbackParam, value: str) -> str:
@@ -431,19 +442,19 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
     )
     if unsupported_namespaces:
         namespace_deprecation_msg = ""
-        if deprecated_namespaces := find_deprecated_namespaces(
-            unsupported_namespaces
-        ):
-            namespace_deprecation_msg = (
-                f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
-                "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
-            )
+        if config == mappings.DEFAULT_CONFIG:
+            if deprecated_namespaces := find_deprecated_namespaces(
+                unsupported_namespaces
+            ):
+                namespace_deprecation_msg = (
+                    f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
+                    "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
+                )
         log_error(
             logger,
             f"The provided data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
             f"Unsupported vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
-            "Please ensure that the data dictionary only includes terms from Neurobagel recognized vocabularies. "
-            "(See https://neurobagel.org/data_models/dictionaries/.)"
+            f"Please ensure that the data dictionary only includes terms from vocabularies recognized by {config}. "
             f"{namespace_deprecation_msg}",
         )
 

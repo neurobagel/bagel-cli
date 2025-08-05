@@ -185,7 +185,8 @@ def pheno(
         # NOTE: An alternative solution is to simply use a callback to validate the config name and list the options in the help text.
         # This might be useful once/if we have many community configurations to choose from.
         click_type=click.Choice(
-            mappings.get_available_configs(mappings.CONFIG_NAMESPACES_MAPPING)
+            mappings.get_available_configs(mappings.CONFIG_NAMESPACES_MAPPING),
+            case_sensitive=False,
         ),
         help="The name of the vocabulary configuration used in the annotation tool for generating the data dictionary. "
         "This will be used to verify that all vocabularies used in the data dictionary are supported in the specified configuration.",
@@ -402,8 +403,8 @@ def bids(
             dataset_source_dir,
         )
 
-    jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
-        jsonld_path
+    jsonld_context, jsonld_dataset = (
+        model_utils.extract_and_validate_jsonld_dataset(jsonld_path)
     )
     bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
 
@@ -473,11 +474,16 @@ def bids(
                 )
                 existing_subject.hasSession.append(new_imaging_session)
 
+    # NOTE: We currently reuse the context from the input JSONLD instead of regenerating it to avoid
+    # asking the user to specify a config for each command.
+    # However, this means that we are not fully protected against the (hopefully rare) case where the context has changed between
+    # the generation of the input JSONLD and when this command is run (e.g., if the data model underwent an update in the interim).
+    # This may be resolved with https://github.com/neurobagel/bagel-cli/issues/492.
     file_utils.save_jsonld(
-        # TODO: Decide whether to regenerate the context or not
-        data=model_utils.add_context_to_graph_dataset(
-            jsonld_dataset, config=mappings.DEFAULT_CONFIG
-        ),
+        data={
+            **jsonld_context,
+            **jsonld_dataset.model_dump(exclude_none=True),
+        },
         filename=output,
     )
 
@@ -566,8 +572,8 @@ def derivatives(
         known_pipeline_versions=known_pipeline_versions,
     )
 
-    jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
-        jsonld_path
+    jsonld_context, jsonld_dataset = (
+        model_utils.extract_and_validate_jsonld_dataset(jsonld_path)
     )
 
     existing_subs_dict = model_utils.get_subject_instances(jsonld_dataset)
@@ -614,10 +620,15 @@ def derivatives(
                 )
                 existing_subject.hasSession.append(new_img_session)
 
+    # NOTE: We currently reuse the context from the input JSONLD instead of regenerating it to avoid
+    # asking the user to specify a config for each command.
+    # However, this means that we are not fully protected against the (hopefully rare) case where the context has changed between
+    # the generation of the input JSONLD and when this command is run (e.g., if the data model underwent an update in the interim).
+    # This may be resolved with https://github.com/neurobagel/bagel-cli/issues/492.
     file_utils.save_jsonld(
-        # TODO: Decide whether to regenerate the context or not
-        data=model_utils.add_context_to_graph_dataset(
-            jsonld_dataset, config=mappings.DEFAULT_CONFIG
-        ),
+        data={
+            **jsonld_context,
+            **jsonld_dataset.model_dump(exclude_none=True),
+        },
         filename=output,
     )

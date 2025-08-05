@@ -33,7 +33,7 @@ def generate_context(config: str) -> dict:
 
 
 def add_context_to_graph_dataset(dataset: models.Dataset, config: str) -> dict:
-    """Add the Neurobagel context to a graph-ready dataset to form a JSONLD dictionary."""
+    """Generate and add the Neurobagel context to a graph-ready dataset to form a JSONLD dictionary."""
     context = generate_context(config)
     # We can't just exclude_unset here because the identifier and schemaKey
     # for each instance are created as default values and so technically are never set
@@ -70,13 +70,15 @@ def confirm_subs_match_pheno_data(
         )
 
 
-def extract_and_validate_jsonld_dataset(file_path: Path) -> models.Dataset:
+def extract_and_validate_jsonld_dataset(
+    file_path: Path,
+) -> tuple[dict, models.Dataset]:
     """
-    Strip the context from a user-provided JSONLD and validate the remaining contents
+    Separate the context out from a user-provided JSONLD and validate the remaining contents
     against the data model for a Neurobagel dataset.
     """
     jsonld = file_utils.load_json(file_path)
-    jsonld.pop("@context")
+    context = jsonld.pop("@context")
     try:
         jsonld_dataset = models.Dataset.model_validate(jsonld)
     except ValidationError as err:
@@ -87,7 +89,7 @@ def extract_and_validate_jsonld_dataset(file_path: Path) -> models.Dataset:
             f"Validation errors: {str(err)}",
         )
 
-    return jsonld_dataset
+    return context, jsonld_dataset
 
 
 def get_subject_instances(

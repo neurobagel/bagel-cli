@@ -5,6 +5,9 @@ from .utilities import file_utils
 
 DEFAULT_CONFIG = "Neurobagel"
 
+# NOTE: Even though we now support loading of custom namespaces from community configs,
+# we cannot remove these hardcoded namespaces yet as they are currently tied to handling logic for specific standardized variables.
+# This should be addressed as part of https://github.com/neurobagel/bagel-cli/issues/497.
 Namespace = namedtuple("Namespace", ["pf", "url"])
 COGATLAS = Namespace("cogatlas", "https://www.cognitiveatlas.org/task/id/")
 NB = Namespace("nb", "http://neurobagel.org/vocab/")

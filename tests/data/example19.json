@@ -61,7 +61,8 @@
           "Label": "Generalized anxiety disorder"
         }
       },
-      "MissingValues": [""]
+      "MissingValues": [""],
+      "VariableType": "Categorical"
     }
   },
   "secondary_diag": {

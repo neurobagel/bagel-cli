@@ -57,7 +57,8 @@
                     "Label": "Healthy control"
                 }
             },
-            "MissingValues": ["false"]
+            "MissingValues": ["false"],
+            "VariableType": "Categorical"
         }
     },
     "tool_item1": {

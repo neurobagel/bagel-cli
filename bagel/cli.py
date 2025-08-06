@@ -112,7 +112,7 @@ def bids2tsv(
     dataset_tab = b2t2.index_dataset(bids_dir)
     dataset_df = dataset_tab.to_pandas()
 
-    dataset_df = dataset_df.query('ext in [".nii", ".nii.gz"]')
+    dataset_df = dataset_df.query('ext in [".nii", ".nii.gz"]').copy()
     dataset_df["path"] = dataset_df.apply(
         lambda row: (Path(row["root"]) / row["path"]).as_posix(), axis=1
     )

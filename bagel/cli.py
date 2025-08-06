@@ -6,7 +6,7 @@ import typer
 from bids import BIDSLayout, exceptions
 from rich.progress import Progress, SpinnerColumn, TextColumn, track
 
-from bagel import mappings, models
+from bagel import models
 
 from .logger import VerbosityLevel, configure_logger, log_error, logger
 from .utilities import (
@@ -249,19 +249,22 @@ def pheno(
                 _dx_vals = pheno_utils.get_transformed_values(
                     column_mapping["diagnosis"], _ses_pheno, data_dictionary
                 )
-                if not _dx_vals:
-                    pass
-                # NOTE: If the subject has both a diagnosis value and a value of healthy control, we assume the healthy control designation is more important
-                # and do not assign diagnoses to the subject
-                elif mappings.NEUROBAGEL["healthy_control"] in _dx_vals:
-                    session.isSubjectGroup = models.SubjectGroup(
-                        identifier=mappings.NEUROBAGEL["healthy_control"],
-                    )
-                else:
+                if _dx_vals:
                     session.hasDiagnosis = [
                         models.Diagnosis(identifier=_dx_val)
                         for _dx_val in _dx_vals
                     ]
+
+            if "subject_group" in column_mapping.keys():
+                _group_vals = pheno_utils.get_transformed_values(
+                    column_mapping["subject_group"],
+                    _ses_pheno,
+                    data_dictionary,
+                )
+                if _group_vals:
+                    session.isSubjectGroup = models.SubjectGroup(
+                        identifier=_group_vals[0]
+                    )
 
             if "age" in column_mapping.keys():
                 # NOTE: At the moment, our data model only supports a single age value per subject.

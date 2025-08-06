@@ -35,13 +35,9 @@
                 "PAT": {
                     "TermURL": "snomed:49049000",
                     "Label": "Parkinson's disease"
-                },
-                "CTRL": {
-                    "TermURL": "ncit:C94342",
-                    "Label": "Healthy Control"
                 }
             },
-            "MissingValues": ["OTHER", "NOT IN TSV"]
+            "MissingValues": ["CTRL", "OTHER", "NOT IN TSV"]
         }
     },
     "tool_item1": {

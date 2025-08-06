@@ -19,11 +19,11 @@
             "VariableType": "Identifier"
         }
     },
-    "group": {
-        "Description": "Group variable",
+    "dx": {
+        "Description": "Clinical diagnosis",
         "Levels": {
-            "PAT": "Patient",
-            "CTRL": "Control subject"
+            "PD": "Parkinson's Disease",
+            "OTHER": "Other diagnosis"
         },
         "Annotations": {
             "IsAbout": {
@@ -32,16 +32,32 @@
             },
             "VariableType": "Categorical",
             "Levels": {
-                "PAT": {
+                "PD": {
                     "TermURL": "snomed:49049000",
                     "Label": "Parkinson's disease"
-                },
-                "CTRL": {
-                    "TermURL": "ncit:C94342",
-                    "Label": "Healthy Control"
                 }
             },
-            "MissingValues": ["OTHER"]
+            "MissingValues": ["OTHER", ""]
+        }
+    },
+    "is_control": {
+        "Description": "Healthy control status",
+        "Levels": {
+            "true": "Healthy control",
+            "false": "Patient"
+        },
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:SubjectGroup",
+                "Label": "Study subject group"
+            },
+            "Levels": {
+                "true": {
+                    "TermURL": "ncit:C94342",
+                    "Label": "Healthy control"
+                }
+            },
+            "MissingValues": ["false"]
         }
     },
     "tool_item1": {

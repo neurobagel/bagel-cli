@@ -5,7 +5,8 @@
       "IsAbout": {
         "TermURL": "nb:ParticipantID",
         "Label": "Unique participant identifier"
-      }
+      },
+      "VariableType": "Identifier"
     }
   },
   "session_id": {
@@ -14,7 +15,8 @@
       "IsAbout": {
         "TermURL": "nb:SessionID",
         "Label": "Unique session identifier"
-      }
+      },
+      "VariableType": "Identifier"
     }
   },
   "group": {
@@ -37,7 +39,8 @@
           "TermURL": "ncit:C94342",
           "Label": "Healthy Control"
         }
-      }
+      },
+      "VariableType": "Categorical"
     }
   },
   "diagnosis": {
@@ -65,7 +68,8 @@
           "Label": "Alzheimer's disease"
         }
       },
-      "MissingValues": [""]
+      "MissingValues": [""],
+      "VariableType": "Categorical"
     }
   },
   "sex": {
@@ -88,7 +92,8 @@
           "TermURL": "snomed:248152002",
           "Label": "Female"
         }
-      }
+      },
+      "VariableType": "Categorical"
     }
   },
   "sex_full": {
@@ -111,7 +116,8 @@
           "TermURL": "snomed:248152002",
           "Label": "Female"
         }
-      }
+      },
+      "VariableType": "Categorical"
     }
   },
   "participant_age": {
@@ -124,7 +130,8 @@
       "Format": {
         "TermURL": "nb:FromISO8601",
         "Label": "A period of time defined according to the ISO8601 standard"
-      }
+      },
+      "VariableType": "Continuous"
     }
   },
   "participant_age_float": {
@@ -137,7 +144,8 @@
       "Format": {
         "TermURL": "nb:FromFloat",
         "Label": "Age as a floating point number"
-      }
+      },
+      "VariableType": "Continuous"
     }
   }
 }

@@ -18,13 +18,15 @@ from bagel.utilities import pheno_utils
                         "IsAbout": {
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
-                        }
+                        },
+                        "VariableType": "Identifier",
                     },
                 },
                 "sex": {
                     "Description": "Participant sex",
                     "Annotations": {
-                        "IsAbout": {"TermURL": "nb:Sex", "Label": ""}
+                        "IsAbout": {"TermURL": "nb:Sex", "Label": ""},
+                        "VariableType": "Categorical",
                     },
                 },
             },
@@ -39,7 +41,8 @@ from bagel.utilities import pheno_utils
                         "IsAbout": {
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
-                        }
+                        },
+                        "VariableType": "Identifier",
                     },
                 },
                 "age": {
@@ -48,7 +51,8 @@ from bagel.utilities import pheno_utils
                         "IsAbout": {
                             "TermURL": "nb:Age",
                             "Label": "Chronological age",
-                        }
+                        },
+                        "VariableType": "Continuous",
                     },
                 },
             },
@@ -63,7 +67,8 @@ from bagel.utilities import pheno_utils
                         "IsAbout": {
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
-                        }
+                        },
+                        "VariableType": "Identifier",
                     },
                 },
                 "age": {
@@ -78,6 +83,7 @@ from bagel.utilities import pheno_utils
                             "TermURL": "nb:FromEuro",
                             "Label": "european decimal value",
                         },
+                        "VariableType": "Continuous",
                     },
                 },
             },
@@ -126,7 +132,8 @@ def test_get_columns_with_annotations():
                 "IsAbout": {
                     "TermURL": "nb:ParticipantID",
                     "Label": "Unique participant identifier",
-                }
+                },
+                "VariableType": "Identifier",
             },
         },
     }
@@ -144,7 +151,8 @@ def test_find_unsupported_namespaces_and_term_urls():
                 "IsAbout": {
                     "TermURL": "nb:ParticipantID",
                     "Label": "Unique participant identifier",
-                }
+                },
+                "VariableType": "Identifier",
             },
         },
         "group": {
@@ -162,6 +170,7 @@ def test_find_unsupported_namespaces_and_term_urls():
                         "Label": "Healthy control",
                     },
                 },
+                "VariableType": "Categorical",
             },
         },
         "updrs_total": {
@@ -175,6 +184,7 @@ def test_find_unsupported_namespaces_and_term_urls():
                     "TermURL": "deprecatedvocab:1234",
                     "Label": "Unified Parkinson's Disease Rating Scale",
                 },
+                "VariableType": "Collection",
             },
         },
     }
@@ -269,6 +279,7 @@ def test_get_transformed_categorical_values(
                         "Levels": {
                             "val1": {"TermURL": "something", "Label": "other"}
                         },
+                        "VariableType": "Categorical",
                     }
                 }
             },
@@ -281,6 +292,7 @@ def test_get_transformed_categorical_values(
                     "Annotations": {
                         "IsAbout": {"TermURL": "something", "Labels": "other"}
                     },
+                    "VariableType": "Categorical",
                 }
             },
             False,
@@ -415,7 +427,8 @@ def test_invalid_age_format(caplog, propagate_errors):
                     "IsAbout": {
                         "TermURL": "nb:ParticipantID",
                         "Label": "Unique participant identifier",
-                    }
+                    },
+                    "VariableType": "Identifier",
                 },
             },
             "age": {
@@ -426,6 +439,7 @@ def test_invalid_age_format(caplog, propagate_errors):
                         "TermURL": "nb:FromEuro",
                         "Label": "european decimal value",
                     },
+                    "VariableType": "Continuous",
                 },
             },
         },
@@ -436,7 +450,8 @@ def test_invalid_age_format(caplog, propagate_errors):
                     "IsAbout": {
                         "TermURL": "nb:ParticipantID",
                         "Label": "Unique participant identifier",
-                    }
+                    },
+                    "VariableType": "Identifier",
                 },
             },
             "age": {
@@ -447,6 +462,7 @@ def test_invalid_age_format(caplog, propagate_errors):
                         "TermURL": "nb:FromEuro",
                         "Label": "european decimal value",
                     },
+                    "VariableType": "Continuous",
                 },
             },
         },
@@ -457,7 +473,8 @@ def test_invalid_age_format(caplog, propagate_errors):
                     "IsAbout": {
                         "TermURL": "nb:ParticipantID",
                         "Label": "Unique participant identifier",
-                    }
+                    },
+                    "VariableType": "Identifier",
                 },
             },
             "age_iso8601": {
@@ -468,6 +485,7 @@ def test_invalid_age_format(caplog, propagate_errors):
                         "TermURL": "nb:FromISO8601",
                         "Label": "period of time defined according to the ISO8601 standard",
                     },
+                    "VariableType": "Continuous",
                 },
             },
             "age": {
@@ -478,6 +496,7 @@ def test_invalid_age_format(caplog, propagate_errors):
                         "TermURL": "nb:FromFloat",
                         "Label": "float value",
                     },
+                    "VariableType": "Continuous",
                 },
             },
         },
@@ -505,7 +524,8 @@ def test_format_and_transformation_schema_validation(
                         "IsAbout": {
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
-                        }
+                        },
+                        "VariableType": "Identifier",
                     },
                 },
                 "age": {
@@ -516,6 +536,7 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:FromEuro",
                             "Label": "european decimal value",
                         },
+                        "VariableType": "Continuous",
                     },
                 },
             },
@@ -526,7 +547,8 @@ def test_format_and_transformation_schema_validation(
                         "IsAbout": {
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
-                        }
+                        },
+                        "VariableType": "Identifier",
                     },
                 },
                 "age": {
@@ -537,6 +559,7 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:FromEuro",
                             "Label": "european decimal value",
                         },
+                        "VariableType": "Continuous",
                     },
                 },
             },
@@ -551,6 +574,7 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
                         },
+                        "VariableType": "Identifier",
                     },
                 },
                 "recruitment_age": {
@@ -561,6 +585,7 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:FromEuro",
                             "Label": "european decimal value",
                         },
+                        "VariableType": "Continuous",
                     },
                 },
             },
@@ -572,6 +597,7 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
                         },
+                        "VariableType": "Identifier",
                     },
                 },
                 "recruitment_age": {
@@ -582,6 +608,7 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:FromEuro",
                             "Label": "european decimal value",
                         },
+                        "VariableType": "Continuous",
                     },
                 },
             },
@@ -596,6 +623,7 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
                         },
+                        "VariableType": "Identifier",
                     },
                 },
                 "age_iso8601": {
@@ -606,6 +634,7 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:FromISO8601",
                             "Label": "period of time defined according to the ISO8601 standard",
                         },
+                        "VariableType": "Continuous",
                     },
                 },
                 "age": {
@@ -616,6 +645,7 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:FromFloat",
                             "Label": "float value",
                         },
+                        "VariableType": "Continuous",
                     },
                 },
             },
@@ -627,6 +657,7 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:ParticipantID",
                             "Label": "Unique participant identifier",
                         },
+                        "VariableType": "Identifier",
                     },
                 },
                 "age_iso8601": {
@@ -637,6 +668,7 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:FromISO8601",
                             "Label": "period of time defined according to the ISO8601 standard",
                         },
+                        "VariableType": "Continuous",
                     },
                 },
                 "age": {
@@ -647,6 +679,7 @@ def test_format_and_transformation_schema_validation(
                             "TermURL": "nb:FromFloat",
                             "Label": "float value",
                         },
+                        "VariableType": "Continuous",
                     },
                 },
             },

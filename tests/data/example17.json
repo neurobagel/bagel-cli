@@ -5,7 +5,8 @@
       "IsAbout": {
         "TermURL": "nb:ParticipantID",
         "Label": "Unique participant identifier"
-      }
+      },
+      "VariableType": "Identifier"
     }
   },
   "group": {
@@ -19,6 +20,7 @@
         "TermURL": "nb:Diagnosis",
         "Label": "Diagnosis"
       },
+      "VariableType": "Categorical",
       "Levels": {
         "PAT": {
           "TermURL": "snomed:49049000",
@@ -42,6 +44,7 @@
         "TermURL": "nb:Sex",
         "Label": "Sex"
       },
+      "VariableType": "Categorical",
       "Levels": {
         "M": {
           "TermURL": "snomed:248153007",
@@ -61,6 +64,7 @@
         "TermURL": "nb:Age",
         "Label": "Chronological age"
       },
+      "VariableType": "Continuous",
       "Format": {
         "TermURL": "nb:FromISO8601",
         "Label": "A period of time defined according to the ISO8601 standard"

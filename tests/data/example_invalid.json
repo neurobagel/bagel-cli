@@ -4,7 +4,8 @@
         "Annotations": {
             "IsAbout": {
                 "Label": "Unique participant identifier"
-            }
+            },
+            "VariableType": "Identifier"
         }
     },
     "session_id": {
@@ -12,7 +13,8 @@
         "Annotations": {
             "IsAbout": {
                 "Label": "Unique session identifier"
-            }
+            },
+            "VariableType": "Identifier"
         }
     },
     "group": {
@@ -32,7 +34,8 @@
                 "CTRL": {
                     "Label": "Healthy Control"
                 }
-            }
+            },
+            "VariableType": "Categorical"
         }
     }
 }

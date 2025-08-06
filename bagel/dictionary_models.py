@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Literal, Union
 
 from pydantic import (
     AfterValidator,
@@ -30,6 +30,7 @@ def validate_unique_list(values: List[str]) -> List[str]:
     return values
 
 
+# TODO: Rename "Identifier" to "Term" to avoid confusion with the IdentifierNeurobagel class?
 class Identifier(BaseModel):
     """An identifier of a controlled term with an IRI"""
 
@@ -77,8 +78,8 @@ class IdentifierNeurobagel(BaseModel):
         description="The concept or controlled term that describes this column",
         alias="IsAbout",
     )
+    variableType: Literal["Identifier"] = Field(..., alias="VariableType")
 
-    # We need to forbid extra fields to prevent partially annotated columns from being parsed as IdentifierNeurobagel
     model_config = ConfigDict(extra="forbid")
 
 
@@ -92,6 +93,7 @@ class CategoricalNeurobagel(Neurobagel):
         "term (URI and label) they are unambiguously mapped to.",
         alias="Levels",
     )
+    variableType: Literal["Categorical"] = Field(..., alias="VariableType")
 
 
 class ContinuousNeurobagel(Neurobagel):
@@ -105,6 +107,7 @@ class ContinuousNeurobagel(Neurobagel):
         "data element referenced in the IsAbout attribute.",
         alias="Format",
     )
+    variableType: Literal["Continuous"] = Field(..., alias="VariableType")
 
 
 class ToolNeurobagel(Neurobagel):
@@ -118,6 +121,7 @@ class ToolNeurobagel(Neurobagel):
         "then the assessment tool should be specified here.",
         alias="IsPartOf",
     )
+    variableType: Literal["Collection"] = Field(..., alias="VariableType")
 
 
 class Column(BaseModel):

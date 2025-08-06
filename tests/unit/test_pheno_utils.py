@@ -275,7 +275,7 @@ def test_get_transformed_categorical_values(
             {
                 "column": {
                     "Annotations": {
-                        "IsAbout": {"TermURL": "something", "Labels": "other"},
+                        "IsAbout": {"TermURL": "something", "Label": "other"},
                         "Levels": {
                             "val1": {"TermURL": "something", "Label": "other"}
                         },
@@ -290,9 +290,9 @@ def test_get_transformed_categorical_values(
                 "column": {
                     "Levels": {"val1": "some description"},
                     "Annotations": {
-                        "IsAbout": {"TermURL": "something", "Labels": "other"}
+                        "IsAbout": {"TermURL": "something", "Label": "other"},
+                        "VariableType": "Categorical",
                     },
-                    "VariableType": "Categorical",
                 }
             },
             False,

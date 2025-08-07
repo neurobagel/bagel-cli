@@ -6,7 +6,7 @@
         "TermURL": "nb:ParticipantID",
         "Label": "Unique participant identifier"
       },
-      "Identifies": "participant"
+      "VariableType": "Identifier"
     }
   },
   "session_id": {
@@ -16,7 +16,7 @@
         "TermURL": "nb:SessionID",
         "Label": "Unique session identifier"
       },
-      "Identifies": "session"
+      "VariableType": "Identifier"
     }
   },
   "group": {
@@ -36,7 +36,8 @@
           "Label": "Healthy Control"
         }
       },
-      "MissingValues": ["PAT"]
+      "MissingValues": ["PAT"],
+      "VariableType": "Categorical"
     }
   },
   "clinical_group": {
@@ -56,7 +57,8 @@
           "Label": "Healthy Control"
         }
       },
-      "MissingValues": ["PD"]
+      "MissingValues": ["PD"],
+      "VariableType": "Categorical"
     }
   },
   "sex": {
@@ -79,7 +81,8 @@
           "TermURL": "snomed:248152002",
           "Label": "Female"
         }
-      }
+      },
+      "VariableType": "Categorical"
     }
   },
   "sex_full": {
@@ -102,7 +105,8 @@
           "TermURL": "snomed:248152002",
           "Label": "Female"
         }
-      }
+      },
+      "VariableType": "Categorical"
     }
   },
   "participant_age": {
@@ -115,7 +119,8 @@
       "Format": {
         "TermURL": "nb:FromISO8601",
         "Label": "A period of time defined according to the ISO8601 standard"
-      }
+      },
+      "VariableType": "Continuous"
     }
   },
   "participant_age_float": {
@@ -128,7 +133,8 @@
       "Format": {
         "TermURL": "nb:FromFloat",
         "Label": "Age as a floating point number"
-      }
+      },
+      "VariableType": "Continuous"
     }
   }
 }

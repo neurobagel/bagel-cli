@@ -227,9 +227,15 @@ def is_missing_value(
 
 def is_column_categorical(column: str, data_dict: dict) -> bool:
     """Determine whether a column in a Neurobagel data dictionary is categorical"""
-    if "Levels" in data_dict[column]["Annotations"]:
+    column_annotation = data_dict[column]["Annotations"]
+
+    try:
+        dictionary_models.CategoricalNeurobagel.model_validate(
+            column_annotation
+        )
         return True
-    return False
+    except pydantic.ValidationError:
+        return False
 
 
 def map_cat_val_to_term(

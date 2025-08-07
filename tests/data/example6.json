@@ -6,7 +6,7 @@
                 "TermURL": "nb:ParticipantID",
                 "Label": "Unique participant identifier"
             },
-            "Identifies": "participant"
+            "VariableType": "Identifier"
         }
     },
     "session_id": {
@@ -16,7 +16,7 @@
                 "TermURL": "nb:SessionID",
                 "Label": "Unique session identifier"
             },
-            "Identifies": "session"
+            "VariableType": "Identifier"
         }
     },
     "dx": {
@@ -30,6 +30,7 @@
                 "TermURL": "nb:Diagnosis",
                 "Label": "Diagnosis"
             },
+            "VariableType": "Categorical",
             "Levels": {
                 "PD": {
                     "TermURL": "snomed:49049000",
@@ -56,7 +57,8 @@
                     "Label": "Healthy control"
                 }
             },
-            "MissingValues": ["false"]
+            "MissingValues": ["false"],
+            "VariableType": "Categorical"
         }
     },
     "tool_item1": {
@@ -66,6 +68,7 @@
                 "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
+            "VariableType": "Collection",
             "IsPartOf": {
                 "TermURL": "snomed:1234",
                 "Label": "Imaginary tool"
@@ -80,6 +83,7 @@
                 "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
+            "VariableType": "Collection",
             "IsPartOf": {
                 "TermURL": "snomed:1234",
                 "Label": "Imaginary tool"
@@ -94,6 +98,7 @@
                 "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
+            "VariableType": "Collection",
             "IsPartOf": {
                 "TermURL": "snomed:4321",
                 "Label": "A different imaginary tool"

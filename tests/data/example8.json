@@ -6,7 +6,7 @@
                 "TermURL": "nb:ParticipantID",
                 "Label": "Unique participant identifier"
             },
-            "Identifies": "participant"
+            "VariableType": "Identifier"
         }
     },
     "alt_participant_id": {
@@ -16,7 +16,7 @@
                 "TermURL": "nb:ParticipantID",
                 "Label": "Unique participant identifier"
             },
-            "Identifies": "participant"
+            "VariableType": "Identifier"
         }
     },
     "session_id": {
@@ -26,7 +26,7 @@
                 "TermURL": "nb:SessionID",
                 "Label": "Unique session identifier"
             },
-            "Identifies": "session"
+            "VariableType": "Identifier"
         }
     },
     "group": {
@@ -40,6 +40,7 @@
                 "TermURL": "nb:Diagnosis",
                 "Label": "Diagnosis"
             },
+            "VariableType": "Categorical",
             "Levels": {
                 "PAT": {
                     "TermURL": "snomed:49049000",

@@ -6,7 +6,7 @@
         "TermURL": "nb:ParticipantID",
         "Label": "Unique participant identifier"
       },
-      "Identifies": "participant"
+      "VariableType": "Identifier"
     }
   },
   "session_id": {
@@ -16,7 +16,7 @@
         "TermURL": "nb:SessionID",
         "Label": "Unique session identifier"
       },
-      "Identifies": "session"
+      "VariableType": "Identifier"
     }
   },
   "group": {
@@ -36,7 +36,8 @@
           "Label": "Healthy Control"
         }
       },
-      "MissingValues": ["PD"]
+      "MissingValues": ["PD"],
+      "VariableType": "Categorical"
     }
   },
   "primary_diag": {
@@ -60,7 +61,8 @@
           "Label": "Generalized anxiety disorder"
         }
       },
-      "MissingValues": [""]
+      "MissingValues": [""],
+      "VariableType": "Categorical"
     }
   },
   "secondary_diag": {
@@ -79,7 +81,8 @@
           "Label": "Major depressive disorder"
         }
       },
-      "MissingValues": [""]
+      "MissingValues": [""],
+      "VariableType": "Categorical"
     }
   },
   "sex": {
@@ -102,7 +105,8 @@
           "TermURL": "snomed:248152002",
           "Label": "Female"
         }
-      }
+      },
+      "VariableType": "Categorical"
     }
   },
   "participant_age": {
@@ -115,7 +119,8 @@
       "Format": {
         "TermURL": "nb:FromISO8601",
         "Label": "A period of time defined according to the ISO8601 standard"
-      }
+      },
+      "VariableType": "Continuous"
     }
   }
 }

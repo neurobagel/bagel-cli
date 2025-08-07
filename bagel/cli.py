@@ -7,7 +7,7 @@ import typer
 from bids import BIDSLayout, exceptions
 from rich.progress import Progress, SpinnerColumn, TextColumn, track
 
-from bagel import models
+from bagel import mappings, models
 
 from .logger import VerbosityLevel, configure_logger, log_error, logger
 from .utilities import (

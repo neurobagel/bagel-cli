@@ -192,8 +192,9 @@ def pheno(
             ),
             case_sensitive=False,
         ),
-        help="The name of the vocabulary configuration used in the annotation tool for generating the data dictionary. "
-        "This will be used to verify that all vocabularies used in the data dictionary are supported in the specified configuration. "
+        help="The name of the vocabulary configuration used to generate your data dictionary. "
+        "If you are processing data for a Neurobagel subcommunity, choose the subcommunity name here. "
+        "This should be the same as the configuration name you selected in the annotation tool."
         f"{pheno_utils.additional_config_help_text()}",
     ),
     overwrite: bool = overwrite_option(),

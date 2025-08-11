@@ -275,7 +275,6 @@ def test_error_when_no_pipeline_version_combos_recognized(
     test_data,
     test_data_upload_path,
     default_derivatives_output_path,
-    load_test_json,
     caplog,
     propagate_errors,
 ):
@@ -303,3 +302,94 @@ def test_error_when_no_pipeline_version_combos_recognized(
     assert (
         not default_derivatives_output_path.exists()
     ), "A JSONLD was created despite inputs being invalid."
+
+
+def test_failed_pipeline_catalog_fetching_does_not_raise_error_for_help(
+    runner, caplog, propagate_warnings, monkeypatch, disable_rich_markup
+):
+    """
+    Test that if the pipeline catalog fetching fails when a derivatives command has not been called,
+    this happens silently and the CLI does not raise an error.
+    """
+    monkeypatch.setattr(mappings, "PIPELINE_CATALOG", [])
+    monkeypatch.setattr(
+        mappings, "PIPELINES_FETCHING_ERR", "Network unreachable"
+    )
+
+    result = runner.invoke(
+        bagel,
+        ["--help"],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0
+    assert len(caplog.records) == 0
+    assert (
+        "To view the arguments for a specific command, run: bagel [COMMAND] --help"
+        in result.output
+    )
+    assert "Failed to locate a pipeline catalog" not in result.output
+
+
+@pytest.mark.parametrize(
+    "mock_pipeline_catalog_fetching_result,expected_exit_code,expected_err,output_created_expectation",
+    [
+        (
+            [
+                {
+                    "name": "fmriprep",
+                    "versions": ["20.2.0", "20.2.7", "23.1.3", "24.1.1"],
+                },
+                {"name": "freesurfer", "versions": ["6.0.1", "7.3.2"]},
+            ],
+            0,
+            "Using a packaged backup pipeline catalog",
+            True,
+        ),
+        ([], 1, "Failed to load the pipeline catalog", False),
+    ],
+)
+def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_command(
+    runner,
+    test_data,
+    test_data_upload_path,
+    default_derivatives_output_path,
+    caplog,
+    propagate_warnings,
+    monkeypatch,
+    mock_pipeline_catalog_fetching_result,
+    expected_exit_code,
+    expected_err,
+    output_created_expectation,
+):
+    """
+    Test that when the pipeline catalog fetching fails, the derivatives command raises an appropriate warning
+    or error depending on if the backup catalog could be loaded.
+    """
+    monkeypatch.setattr(
+        mappings, "PIPELINE_CATALOG", mock_pipeline_catalog_fetching_result
+    )
+    monkeypatch.setattr(
+        mappings, "PIPELINES_FETCHING_ERR", "Network unreachable"
+    )
+
+    result = runner.invoke(
+        bagel,
+        [
+            "derivatives",
+            "-t",
+            test_data / "proc_status_synthetic.tsv",
+            "-p",
+            test_data_upload_path / "example_synthetic.jsonld",
+            "-o",
+            default_derivatives_output_path,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == expected_exit_code
+    assert len(caplog.records) == 1
+    assert expected_err in caplog.text
+    assert (
+        default_derivatives_output_path.exists() is output_created_expectation
+    )

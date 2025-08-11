@@ -39,7 +39,12 @@ bids_table_model = pa.DataFrameSchema(
         ),
         "ses": pa.Column(
             str,
-            pa.Check.str_startswith("ses-"),
+            pa.Check(
+                lambda ses: (ses.str.strip() == "")
+                | ses.str.startswith("ses-"),
+                ignore_na=True,
+                error='Session ID must be left empty or start with the "ses-" prefix.',
+            ),
             nullable=True,
         ),
         "suffix": pa.Column(

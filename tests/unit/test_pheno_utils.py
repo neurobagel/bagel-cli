@@ -141,14 +141,16 @@ def test_schema_invalid_column_raises_error(
     invalid_column_name,
     caplog,
     propagate_errors,
-    test_config,
+    neurobagel_test_config,
 ):
     """
     Test that when an input data dictionary contains a schema invalid column annotation,
     an informative error is raised which includes the name of the offending column.
     """
     with pytest.raises(typer.Exit):
-        pheno_utils.validate_data_dict(partial_data_dict, test_config)
+        pheno_utils.validate_data_dict(
+            partial_data_dict, neurobagel_test_config
+        )
 
     for substring in [
         "not a valid Neurobagel data dictionary",
@@ -190,7 +192,7 @@ def test_get_columns_with_annotations():
     assert result[1] == example["participant_id"]
 
 
-def test_find_unsupported_namespaces_and_term_urls(test_config):
+def test_find_unsupported_namespaces_and_term_urls(neurobagel_test_config):
     """Test that term URLs with unsupported namespaces are correctly identified in a data dictionary."""
     data_dict = {
         "participant_id": {
@@ -236,7 +238,7 @@ def test_find_unsupported_namespaces_and_term_urls(test_config):
     }
 
     assert pheno_utils.find_unsupported_namespaces_and_term_urls(
-        data_dict, test_config
+        data_dict, neurobagel_test_config
     ) == (
         ["deprecatedvocab", "unknownvocab"],
         {
@@ -543,13 +545,13 @@ def test_invalid_age_format(caplog, propagate_errors):
     ],
 )
 def test_format_and_transformation_schema_validation(
-    data_dict, caplog, propagate_errors, test_config
+    data_dict, caplog, propagate_errors, neurobagel_test_config
 ):
     """
     A data dictionary where continuous columns have either a valid 'Format' or 'Transformation' field
     should pass validation without errors.
     """
-    pheno_utils.validate_data_dict(data_dict, test_config)
+    pheno_utils.validate_data_dict(data_dict, neurobagel_test_config)
     assert len(caplog.records) == 0
 
 

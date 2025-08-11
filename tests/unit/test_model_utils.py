@@ -8,9 +8,9 @@ from bagel.utilities import model_utils, pheno_utils
 
 
 @pytest.fixture
-def get_test_context(test_config):
+def get_test_context(neurobagel_test_config):
     """Generate an @context dictionary to test against."""
-    return model_utils.generate_context(config=test_config)
+    return model_utils.generate_context(config=neurobagel_test_config)
 
 
 @pytest.fixture
@@ -217,7 +217,7 @@ def test_used_namespaces_in_context(test_data_upload_path, load_test_json):
             ), f"The namespace '{ns}' was not found in the @context of {jsonld}."
 
 
-def test_add_context_to_graph_dataset(test_config):
+def test_add_context_to_graph_dataset(neurobagel_test_config):
     """Test that add_context_to_graph_dataset() correctly adds the @context to a graph dataset instance."""
     dataset = models.Dataset(
         hasLabel="test_dataset",
@@ -244,7 +244,7 @@ def test_add_context_to_graph_dataset(test_config):
     )
 
     jsonld = model_utils.add_context_to_graph_dataset(
-        dataset=dataset, config=test_config
+        dataset=dataset, config=neurobagel_test_config
     )
 
     assert "@context" in jsonld.keys()

@@ -42,7 +42,7 @@ def propagate_errors(caplog):
 
 
 @pytest.fixture(scope="session")
-def test_config():
+def neurobagel_test_config():
     """Set the configuration for data dictionaries in the tests."""
     return "Neurobagel"
 

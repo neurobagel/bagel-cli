@@ -17,6 +17,9 @@ def file_encoding_error_message(input_p: Path) -> str:
     )
 
 
+# TODO: Consider adding a function parameter to allow enabling `keep_default_na`.
+# For some tables the CLI reads (e.g., BIDS tables), parsing empty strings as NaN is useful
+# and saves us from needing additional custom string validation to catch empty cells.
 def load_tabular(
     input_p: Path, input_type: str = "phenotypic"
 ) -> pd.DataFrame:

@@ -113,7 +113,7 @@ def request_file(url: str, backup_path: Path) -> tuple[list, str | None]:
             with open(backup_path, "r", encoding="utf-8") as f:
                 contents = json.load(f)
                 err = str(request_err)
-        except (UnicodeEncodeError, json.JSONDecodeError) as load_err:
+        except Exception as load_err:
             err = str(load_err)
 
     return contents, err

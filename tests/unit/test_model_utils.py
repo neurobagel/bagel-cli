@@ -4,13 +4,13 @@ import pytest
 from pydantic import ValidationError
 
 from bagel import dictionary_models, mappings, models
-from bagel.utilities import model_utils
+from bagel.utilities import model_utils, pheno_utils
 
 
 @pytest.fixture
-def get_test_context():
+def get_test_context(neurobagel_test_config):
     """Generate an @context dictionary to test against."""
-    return model_utils.generate_context()
+    return model_utils.generate_context(config=neurobagel_test_config)
 
 
 @pytest.fixture
@@ -199,8 +199,8 @@ def test_get_imaging_session_instances():
 
 def test_used_namespaces_in_context(test_data_upload_path, load_test_json):
     """
-    Test that all namespaces used internally by the CLI for JSONLD dataset creation are defined
-    in the @context of reference example .jsonld files.
+    Test that all namespaces in the Neurobagel config used internally by the CLI for JSONLD dataset creation
+    are defined in the @context of reference example .jsonld files.
     """
     # Fetch all .jsonld files to avoid having to add a test parameter whenever we add a new JSONLD
     example_jsonld_files = list(test_data_upload_path.rglob("*.jsonld"))
@@ -209,13 +209,15 @@ def test_used_namespaces_in_context(test_data_upload_path, load_test_json):
             "@context"
         ]
 
-        for ns in mappings.SUPPORTED_NAMESPACES:
+        for ns in pheno_utils.get_supported_namespaces_for_config(
+            mappings.DEFAULT_CONFIG
+        ):
             assert (
-                ns.pf in jsonld_context.keys()
-            ), f"The namespace '{ns.pf}' was not found in the @context of {jsonld}."
+                ns in jsonld_context.keys()
+            ), f"The namespace '{ns}' was not found in the @context of {jsonld}."
 
 
-def test_add_context_to_graph_dataset():
+def test_add_context_to_graph_dataset(neurobagel_test_config):
     """Test that add_context_to_graph_dataset() correctly adds the @context to a graph dataset instance."""
     dataset = models.Dataset(
         hasLabel="test_dataset",
@@ -241,7 +243,9 @@ def test_add_context_to_graph_dataset():
         ],
     )
 
-    jsonld = model_utils.add_context_to_graph_dataset(dataset=dataset)
+    jsonld = model_utils.add_context_to_graph_dataset(
+        dataset=dataset, config=neurobagel_test_config
+    )
 
     assert "@context" in jsonld.keys()
     assert len(jsonld["hasSamples"]) == 2

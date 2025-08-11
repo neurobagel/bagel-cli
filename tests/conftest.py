@@ -42,6 +42,12 @@ def propagate_errors(caplog):
 
 
 @pytest.fixture(scope="session")
+def neurobagel_test_config():
+    """Set the configuration for data dictionaries in the tests."""
+    return "Neurobagel"
+
+
+@pytest.fixture(scope="session")
 def bids_path(tmp_path_factory):
     return Path(__file__).absolute().parent / "bids-examples"
 

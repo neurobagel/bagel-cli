@@ -365,7 +365,7 @@ def test_valid_bids_tables_pass_validation(row_data):
 def test_invalid_bids_tables_produce_error(
     row_data, invalid_column, caplog, propagate_errors
 ):
-    """Test that an invalid BIDS table produces a schema validation error"""
+    """Test that an invalid BIDS table produces an informative schema validation error"""
     bids_table = pd.DataFrame(
         row_data, columns=["sub", "ses", "suffix", "path"]
     )

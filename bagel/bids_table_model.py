@@ -1,46 +1,11 @@
 import bidsschematools as bst
+import pandas as pd
+import pandera.extensions as extensions
 import pandera.pandas as pa
-from pandera.typing.pandas import Series
 
-# BIDS_SUPPORTED_SUFFIXES =
-#     "FLAIR",
-#     "PDT2",
-#     "PDw",
-#     "T1w",
-#     "T2starw",
-#     "T2w",
-#     "UNIT1",
-#     "angio",
-#     "inplaneT1",
-#     "inplaneT2",
-#     "Chimap",
-#     "M0map",
-#     "MTRmap",
-#     "MTVmap",
-#     "MTsat",
-#     "MWFmap",
-#     "PDmap",
-#     "R1map",
-#     "R2map",
-#     "R2starmap",
-#     "RB1map",
-#     "S0map",
-#     "T1map",
-#     "T1rho",
-#     "T2map",
-#     "T2starmap",
-#     "TB1map",
-#     "bold",
-#     "cbv",
-#     "dwi",
-#     "sbref",
-#     "asl",
-#     "pet",
-#     "svs",
-#     "mrsi",
-#     "unloc",
-#     "mrsref",
-# ]
+NO_WHITESPACE_ERR = (
+    "Value must not be an empty string or contain only whitespace."
+)
 
 
 def get_bids_supported_suffixes() -> list[str]:
@@ -53,30 +18,48 @@ def get_bids_supported_suffixes() -> list[str]:
     return list(suffixes)
 
 
-class BIDSTable(pa.DataFrameModel):
+@extensions.register_check_method()
+def is_not_whitespace(pd_series: pd.Series) -> pd.Series:
     """
-    A DataFrame model for BIDS tables.
+    Check that column values are not empty strings or whitespace.
+    TODO: Should non-empty strings with leading/trailing whitespace also fail validation?
     """
+    return pd_series.str.strip() != ""
 
-    sub: str = pa.Field(
-        str_startswith="sub-",
-        ignore_na=False,
-    )
-    ses: str = pa.Field(
-        str_startswith="ses-",
-        ignore_na=True,
-    )
-    suffix: str = pa.Field(
-        isin=get_bids_supported_suffixes(),
-        ignore_na=False,
-    )
-    path: str = pa.Field(
-        ignore_na=False,
-    )
 
-    @pa.check("path")
-    def check_path_is_nifti(cls, path: Series[str]) -> Series[bool]:
-        """
-        Check if the path ends with a valid BIDS NIfTI file extension.
-        """
-        return path.str.endswith((".nii", ".nii.gz"))
+bids_table_model = pa.DataFrameSchema(
+    {
+        "sub": pa.Column(
+            str,
+            checks=[
+                pa.Check.is_not_whitespace(error=NO_WHITESPACE_ERR),
+                pa.Check.str_startswith("sub-"),
+            ],
+            nullable=False,
+        ),
+        "ses": pa.Column(
+            str,
+            pa.Check.str_startswith("ses-"),
+            nullable=True,
+        ),
+        "suffix": pa.Column(
+            str,
+            checks=[
+                pa.Check.is_not_whitespace(error=NO_WHITESPACE_ERR),
+                pa.Check.isin(get_bids_supported_suffixes()),
+            ],
+            nullable=False,
+        ),
+        "path": pa.Column(
+            str,
+            checks=[
+                pa.Check.is_not_whitespace(error=NO_WHITESPACE_ERR),
+                pa.Check(
+                    lambda path: path.str.endswith((".nii", ".nii.gz")),
+                    error="Path must end with a valid BIDS NIfTI file extension (.nii, .nii.gz).",
+                ),
+            ],
+            nullable=False,
+        ),
+    }
+)

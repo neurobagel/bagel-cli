@@ -1,9 +1,11 @@
 from pathlib import Path
 
 import pandas as pd
+import pandera.pandas as pa
 from typer import BadParameter
 
-from bagel import mappings, models
+from bagel import bids_table_model, mappings, models
+from bagel.logger import log_error, logger
 
 
 def check_absolute_path(dir_path: Path | None) -> Path | None:
@@ -20,6 +22,19 @@ def check_absolute_path(dir_path: Path | None) -> Path | None:
             "Dataset source directory must be an absolute path."
         )
     return dir_path
+
+
+def validate_bids_table(bids_table: pd.DataFrame):
+    """Error and exit if the provided BIDS table fails schema validation."""
+    try:
+        bids_table_model.bids_table_model.validate(bids_table)
+    except pa.errors.SchemaError as err:
+        # Printing the row indices helps when debugging invalid empty values
+        invalid_row_indices = err.failure_cases["index"].tolist()
+        log_error(
+            logger,
+            f"Invalid BIDS table. Rows with errors: {invalid_row_indices}. Schema validation error: {err}",
+        )
 
 
 def map_term_to_namespace(term: str, namespace: dict) -> str:

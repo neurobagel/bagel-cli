@@ -22,12 +22,15 @@ def get_bids_supported_suffixes() -> list[str]:
 def is_not_whitespace(pd_series: pd.Series) -> pd.Series:
     """
     Check that column values are not empty strings or whitespace.
+
     TODO: Should non-empty strings with leading/trailing whitespace also fail validation?
     """
     return pd_series.str.strip() != ""
 
 
 bids_table_model = pa.DataFrameSchema(
+    # NOTE: Most of the columns will implicitly fail on an empty cell via other checks,
+    # but we explicitly check for whitespace-only values to provide a more informative error message.
     {
         "sub": pa.Column(
             str,
@@ -51,7 +54,9 @@ bids_table_model = pa.DataFrameSchema(
             str,
             checks=[
                 pa.Check.is_not_whitespace(error=NO_WHITESPACE_ERR),
-                pa.Check.isin(get_bids_supported_suffixes()),
+                pa.Check.isin(
+                    get_bids_supported_suffixes()
+                ),  # NOTE: suffixes are case-sensitive
             ],
             nullable=False,
         ),

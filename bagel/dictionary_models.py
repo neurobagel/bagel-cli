@@ -30,8 +30,7 @@ def validate_unique_list(values: List[str]) -> List[str]:
     return values
 
 
-# TODO: Rename "Identifier" to "Term" to avoid confusion with the IdentifierNeurobagel class?
-class Identifier(BaseModel):
+class Term(BaseModel):
     """An identifier of a controlled term with an IRI"""
 
     termURL: str = Field(
@@ -50,7 +49,7 @@ class Identifier(BaseModel):
 class Neurobagel(BaseModel):
     """The base model for a Neurobagel column annotation"""
 
-    isAbout: Identifier = Field(
+    isAbout: Term = Field(
         ...,
         description="The concept or controlled term that describes this column",
         alias="IsAbout",
@@ -73,7 +72,7 @@ class Neurobagel(BaseModel):
 class IdentifierNeurobagel(BaseModel):
     """A Neurobagel annotation for an identifier column"""
 
-    isAbout: Identifier = Field(
+    isAbout: Term = Field(
         ...,
         description="The concept or controlled term that describes this column",
         alias="IsAbout",
@@ -86,7 +85,7 @@ class IdentifierNeurobagel(BaseModel):
 class CategoricalNeurobagel(Neurobagel):
     """A Neurobagel annotation for a categorical column"""
 
-    levels: Dict[str, Identifier] = Field(
+    levels: Dict[str, Term] = Field(
         ...,
         description="For categorical variables: "
         "An object of values (keys) in the column and the semantic "
@@ -99,7 +98,7 @@ class CategoricalNeurobagel(Neurobagel):
 class ContinuousNeurobagel(Neurobagel):
     """A Neurobagel annotation for a continuous column"""
 
-    format: Identifier = Field(
+    format: Term = Field(
         ...,
         description="For continuous columns this field is used to describe "
         "the format of the raw numerical values in the column. This information is used to transform "
@@ -110,12 +109,15 @@ class ContinuousNeurobagel(Neurobagel):
     variableType: Literal["Continuous"] = Field(..., alias="VariableType")
 
 
-class ToolNeurobagel(Neurobagel):
-    """A Neurobagel annotation for an assessment tool column"""
+class CollectionNeurobagel(Neurobagel):
+    """
+    A Neurobagel annotation for a column that is part of a grouped collection of columns,
+    such as items from an instrument.
+    """
 
     # NOTE: Optional[Identifier] was removed as part of https://github.com/neurobagel/bagel-cli/pull/389
     # because we couldn't tell what the Optional was doing
-    isPartOf: Identifier = Field(
+    isPartOf: Term = Field(
         ...,
         description="If the column is a subscale or item of an assessment tool "
         "then the assessment tool should be specified here.",
@@ -139,7 +141,7 @@ class Column(BaseModel):
         CategoricalNeurobagel,
         ContinuousNeurobagel,
         IdentifierNeurobagel,
-        ToolNeurobagel,
+        CollectionNeurobagel,
     ] = Field(None, description="Semantic annotations", alias="Annotations")
 
 

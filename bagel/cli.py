@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import bids2table as b2t2
+import click
 import pandas as pd
 import typer
 from bids import BIDSLayout, exceptions
@@ -154,7 +155,7 @@ def pheno(
         ...,
         "--name",
         "-n",
-        callback=pheno_utils.validate_dataset_name,
+        callback=pheno_utils.check_param_not_whitespace,
         help="The full name of the dataset. "
         "This name will be displayed when users discover the dataset in a Neurobagel query. "
         "For a dataset with BIDS data, the name should ideally match the dataset_description.json 'name' field. "
@@ -176,6 +177,26 @@ def pheno(
         dir_okay=False,
         resolve_path=True,
     ),
+    config: str = typer.Option(
+        mappings.DEFAULT_CONFIG,
+        "--config",
+        "-c",
+        # Solution for providing preset choices taken from https://github.com/fastapi/typer/issues/182#issuecomment-1708245110
+        # NOTE: Alternatively, we could dynamically create a string listing the available config names
+        # to include in the option description in the help text. We would then use a callback to validate the config name manually,
+        # instead of using click.Choice which handles displaying the choices and validation automatically.
+        # This might be useful once/if we have many community configurations to choose from or want more flexibility in errors.
+        click_type=click.Choice(
+            pheno_utils.get_available_configs(
+                mappings.CONFIG_NAMESPACES_MAPPING
+            ),
+            case_sensitive=False,
+        ),
+        help="The name of the vocabulary configuration used to generate your data dictionary. "
+        "If you are processing data for a Neurobagel subcommunity, choose the subcommunity name here. "
+        "This should be the same as the configuration name you selected in the annotation tool."
+        f"{pheno_utils.additional_config_help_text()}",
+    ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
 ):
@@ -193,13 +214,15 @@ def pheno(
     data_dictionary = file_utils.load_json(dictionary)
     pheno_df = file_utils.load_tabular(pheno)
 
+    pheno_utils.check_if_remote_config_namespaces_used()
+
     logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
     # It is calculated as = length of the longer string + 2 extra spaces
     width = 26
     logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
     logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
-    pheno_utils.validate_inputs(data_dictionary, pheno_df)
+    pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
 
     # TODO: Remove once we no longer support annotation tool v1 data dictionaries
     data_dictionary = pheno_utils.convert_transformation_to_format(
@@ -302,7 +325,7 @@ def pheno(
     )
 
     file_utils.save_jsonld(
-        data=model_utils.add_context_to_graph_dataset(dataset),
+        data=model_utils.add_context_to_graph_dataset(dataset, config),
         filename=output,
     )
 
@@ -389,8 +412,8 @@ def bids(
             dataset_source_dir,
         )
 
-    jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
-        jsonld_path
+    jsonld_context, jsonld_dataset = (
+        model_utils.extract_and_validate_jsonld_dataset(jsonld_path)
     )
     bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
 
@@ -460,8 +483,16 @@ def bids(
                 )
                 existing_subject.hasSession.append(new_imaging_session)
 
+    # NOTE: We currently reuse the context from the input JSONLD instead of regenerating it to avoid
+    # asking the user to specify a config for each command.
+    # However, this means that we are not fully protected against the (hopefully rare) case where the context has changed between
+    # the generation of the input JSONLD and when this command is run (e.g., if the data model underwent an update in the interim).
+    # This may be resolved with https://github.com/neurobagel/bagel-cli/issues/492.
     file_utils.save_jsonld(
-        data=model_utils.add_context_to_graph_dataset(jsonld_dataset),
+        data={
+            **jsonld_context,
+            **jsonld_dataset.model_dump(exclude_none=True),
+        },
         filename=output,
     )
 
@@ -513,6 +544,7 @@ def derivatives(
     """
 
     file_utils.check_overwrite(output, overwrite)
+    derivative_utils.check_if_pipeline_catalog_available()
 
     width = 51
     logger.info("Processing subject-level derivative metadata...")
@@ -539,12 +571,18 @@ def derivatives(
             f"We found missing values in the following rows (first row is zero): {row_indices}.",
         )
 
-    derivative_utils.check_at_least_one_pipeline_version_is_recognized(
-        status_df=status_df
+    known_pipeline_uris, known_pipeline_versions = (
+        derivative_utils.parse_pipeline_catalog(mappings.PIPELINE_CATALOG)
     )
 
-    jsonld_dataset = model_utils.extract_and_validate_jsonld_dataset(
-        jsonld_path
+    derivative_utils.check_at_least_one_pipeline_version_is_recognized(
+        status_df=status_df,
+        known_pipeline_uris=known_pipeline_uris,
+        known_pipeline_versions=known_pipeline_versions,
+    )
+
+    jsonld_context, jsonld_dataset = (
+        model_utils.extract_and_validate_jsonld_dataset(jsonld_path)
     )
 
     existing_subs_dict = model_utils.get_subject_instances(jsonld_dataset)
@@ -570,7 +608,9 @@ def derivatives(
             PROC_STATUS_COLS["session"]
         ):
             completed_pipelines = derivative_utils.create_completed_pipelines(
-                sub_ses_proc_df
+                session_proc_df=sub_ses_proc_df,
+                known_pipeline_uris=known_pipeline_uris,
+                known_pipeline_versions=known_pipeline_versions,
             )
 
             if not completed_pipelines:
@@ -589,7 +629,15 @@ def derivatives(
                 )
                 existing_subject.hasSession.append(new_img_session)
 
+    # NOTE: We currently reuse the context from the input JSONLD instead of regenerating it to avoid
+    # asking the user to specify a config for each command.
+    # However, this means that we are not fully protected against the (hopefully rare) case where the context has changed between
+    # the generation of the input JSONLD and when this command is run (e.g., if the data model underwent an update in the interim).
+    # This may be resolved with https://github.com/neurobagel/bagel-cli/issues/492.
     file_utils.save_jsonld(
-        data=model_utils.add_context_to_graph_dataset(jsonld_dataset),
+        data={
+            **jsonld_context,
+            **jsonld_dataset.model_dump(exclude_none=True),
+        },
         filename=output,
     )

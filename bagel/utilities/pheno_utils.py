@@ -8,15 +8,11 @@ import isodate
 import jsonschema
 import pandas as pd
 import pydantic
-from typer import BadParameter
+from typer import BadParameter, CallbackParam
 
 from bagel import dictionary_models, mappings
 from bagel.logger import log_error, logger
-from bagel.mappings import (
-    DEPRECATED_NAMESPACE_PREFIXES,
-    NB,
-    SUPPORTED_NAMESPACE_PREFIXES,
-)
+from bagel.mappings import DEPRECATED_NAMESPACE_PREFIXES, NB
 
 # TODO: Once we remove support for v1 annotation tool data dictionaries, revert to using this version for data dictionary schema validation
 # DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()
@@ -31,11 +27,62 @@ AGE_FORMATS = {
 }
 
 
-def validate_dataset_name(name: str) -> str:
-    """Custom validation that dataset name is not an empty string or just whitespace."""
-    if name.isspace() or name == "":
-        raise BadParameter("Dataset name cannot be an empty string.")
-    return name
+def get_available_configs(config_namespaces_mapping: list) -> list:
+    """Return the list of names of available community configurations."""
+    return [config["config_name"] for config in config_namespaces_mapping]
+
+
+def additional_config_help_text() -> str:
+    """
+    Construct a warning to be added in the help text for the --config option when no configurations are available.
+    This is to inform the user explicitly in the rare case when no configurations are available, i.e. when fetching the remote file fails and there is no local backup found
+    (if submodules were not properly initialized). In this case, allowed choices for --config would be shown as an empty list [],
+    meaning even the default "Neurobagel" option would result in an invalid parameter error (and the `pheno` command cannot run).
+    """
+    if mappings.CONFIG_NAMESPACES_MAPPING == []:
+        return (
+            "[bold red]WARNING: Failed to locate any community configurations. "
+            "Please check that you have an internet connection, or open an issue in https://github.com/neurobagel/bagel-cli/issues if the problem persists.[/bold red]"
+        )
+    return ""
+
+
+def check_if_remote_config_namespaces_used():
+    """Warn if the community configuration namespaces could not be fetched from the remote source."""
+    if (
+        mappings.CONFIG_NAMESPACES_FETCHING_ERR
+        and mappings.CONFIG_NAMESPACES_MAPPING != []
+    ):
+        logger.warning(
+            f"Failed to fetch configuration from {mappings.CONFIG_NAMESPACES_URL}. Error: {mappings.CONFIG_NAMESPACES_FETCHING_ERR}. "
+            "Using a packaged backup configuration instead *which may be outdated*. "
+            "Check your internet connection?"
+        )
+
+
+def get_supported_namespaces_for_config(config_name: str) -> dict:
+    """Return a dictionary of supported namespace prefixes and their corresponding full URLs for a given community configuration."""
+    config_namespaces = next(
+        config["namespaces"]
+        for config in mappings.CONFIG_NAMESPACES_MAPPING
+        if config["config_name"] == config_name
+    )
+
+    config_namespaces_dict = {}
+    for namespace_group in config_namespaces.values():
+        for namespace in namespace_group:
+            config_namespaces_dict[namespace["namespace_prefix"]] = namespace[
+                "namespace_url"
+            ]
+
+    return config_namespaces_dict
+
+
+def check_param_not_whitespace(param: CallbackParam, value: str) -> str:
+    """Custom validation that the value for a string argument is not an empty string or just whitespace."""
+    if value.isspace() or value == "":
+        raise BadParameter(f"{param.name} cannot be an empty string.")
+    return value
 
 
 def validate_portal_uri(portal: Optional[str]) -> Optional[str]:
@@ -112,6 +159,7 @@ def recursive_find_values_for_key(data: dict, target: str) -> list:
 
 def find_unsupported_namespaces_and_term_urls(
     data_dict: dict,
+    config: str,
 ) -> tuple[list, dict]:
     """
     From a provided data dictionary, find all term URLs that contain an unsupported namespace prefix.
@@ -120,12 +168,14 @@ def find_unsupported_namespaces_and_term_urls(
     unsupported_prefixes = set()
     unrecognized_term_urls = {}
 
+    supported_namespaces = get_supported_namespaces_for_config(config)
+
     for col, content in get_annotated_columns(data_dict):
         for col_term_url in recursive_find_values_for_key(
             content["Annotations"], "TermURL"
         ):
             prefix = col_term_url.split(":")[0]
-            if prefix not in SUPPORTED_NAMESPACE_PREFIXES:
+            if prefix not in supported_namespaces:
                 unsupported_prefixes.add(prefix)
                 unrecognized_term_urls[col] = col_term_url
 
@@ -387,7 +437,7 @@ def construct_dictionary_schema_for_validation() -> dict:
     return patched_schema
 
 
-def validate_data_dict(data_dict: dict) -> None:
+def validate_data_dict(data_dict: dict, config: str) -> None:
     try:
         jsonschema.validate(
             data_dict, construct_dictionary_schema_for_validation()
@@ -417,23 +467,23 @@ def validate_data_dict(data_dict: dict) -> None:
         )
 
     unsupported_namespaces, unrecognized_term_urls = (
-        find_unsupported_namespaces_and_term_urls(data_dict)
+        find_unsupported_namespaces_and_term_urls(data_dict, config)
     )
     if unsupported_namespaces:
         namespace_deprecation_msg = ""
-        if deprecated_namespaces := find_deprecated_namespaces(
-            unsupported_namespaces
-        ):
-            namespace_deprecation_msg = (
-                f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
-                "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
-            )
+        if config == mappings.DEFAULT_CONFIG:
+            if deprecated_namespaces := find_deprecated_namespaces(
+                unsupported_namespaces
+            ):
+                namespace_deprecation_msg = (
+                    f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
+                    "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
+                )
         log_error(
             logger,
             f"The provided data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
             f"Unsupported vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
-            "Please ensure that the data dictionary only includes terms from Neurobagel recognized vocabularies. "
-            "(See https://neurobagel.org/data_models/dictionaries/.)"
+            f"Please ensure that the data dictionary only includes terms from vocabularies recognized by {config}. "
             f"{namespace_deprecation_msg}",
         )
 
@@ -527,9 +577,11 @@ def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
         )
 
 
-def validate_inputs(data_dict: dict, pheno_df: pd.DataFrame) -> None:
+def validate_inputs(
+    data_dict: dict, pheno_df: pd.DataFrame, config: str
+) -> None:
     """Determines whether input data are valid"""
-    validate_data_dict(data_dict)
+    validate_data_dict(data_dict, config)
 
     if missing_annotated_cols := find_missing_annotated_cols(
         data_dict, pheno_df

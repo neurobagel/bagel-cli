@@ -6,6 +6,54 @@ from bagel import mappings
 from bagel.utilities import pheno_utils
 
 
+@pytest.fixture(scope="session")
+def mock_config_namespaces_mapping():
+    return [
+        {
+            "config_name": "Neurobagel",
+            "namespaces": {
+                "variables": [
+                    {
+                        "namespace_prefix": "nb",
+                        "namespace_url": "http://neurobagel.org/vocab/",
+                    }
+                ],
+                "terms": [
+                    {
+                        "namespace_prefix": "ncit",
+                        "namespace_url": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#",
+                    },
+                    {
+                        "namespace_prefix": "snomed",
+                        "namespace_url": "http://purl.bioontology.org/ontology/SNOMEDCT/",
+                    },
+                ],
+            },
+        },
+        {
+            "config_name": "Ontario Brain Institute",
+            "namespaces": {
+                "variables": [
+                    {
+                        "namespace_prefix": "nb",
+                        "namespace_url": "http://purl.bioontology.org/ontology/MEDDRA/",
+                    }
+                ],
+                "terms": [
+                    {
+                        "namespace_prefix": "lnc",
+                        "namespace_url": "http://purl.bioontology.org/ontology/LNC/",
+                    },
+                    {
+                        "namespace_prefix": "medra",
+                        "namespace_url": "http://purl.bioontology.org/ontology/MEDDRA/",
+                    },
+                ],
+            },
+        },
+    ]
+
+
 @pytest.mark.parametrize(
     "partial_data_dict, invalid_column_name",
     [
@@ -92,14 +140,20 @@ from bagel.utilities import pheno_utils
     ],
 )
 def test_schema_invalid_column_raises_error(
-    partial_data_dict, invalid_column_name, caplog, propagate_errors
+    partial_data_dict,
+    invalid_column_name,
+    caplog,
+    propagate_errors,
+    neurobagel_test_config,
 ):
     """
     Test that when an input data dictionary contains a schema invalid column annotation,
     an informative error is raised which includes the name of the offending column.
     """
     with pytest.raises(typer.Exit):
-        pheno_utils.validate_data_dict(partial_data_dict)
+        pheno_utils.validate_data_dict(
+            partial_data_dict, neurobagel_test_config
+        )
 
     for substring in [
         "not a valid Neurobagel data dictionary",
@@ -142,7 +196,7 @@ def test_get_columns_with_annotations():
     assert result[1] == example["participant_id"]
 
 
-def test_find_unsupported_namespaces_and_term_urls():
+def test_find_unsupported_namespaces_and_term_urls(neurobagel_test_config):
     """Test that term URLs with unsupported namespaces are correctly identified in a data dictionary."""
     data_dict = {
         "participant_id": {
@@ -190,7 +244,7 @@ def test_find_unsupported_namespaces_and_term_urls():
     }
 
     assert pheno_utils.find_unsupported_namespaces_and_term_urls(
-        data_dict
+        data_dict, neurobagel_test_config
     ) == (
         ["deprecatedvocab", "unknownvocab"],
         {
@@ -504,13 +558,13 @@ def test_invalid_age_format(caplog, propagate_errors):
     ],
 )
 def test_format_and_transformation_schema_validation(
-    data_dict, caplog, propagate_errors
+    data_dict, caplog, propagate_errors, neurobagel_test_config
 ):
     """
     A data dictionary where continuous columns have either a valid 'Format' or 'Transformation' field
     should pass validation without errors.
     """
-    pheno_utils.validate_data_dict(data_dict)
+    pheno_utils.validate_data_dict(data_dict, neurobagel_test_config)
     assert len(caplog.records) == 0
 
 
@@ -706,3 +760,36 @@ def test_convert_transformation_to_format(
     # Only check the warning message if there are any warnings
     for warning in caplog.records:
         assert "contains a deprecated 'Transformation' key" in warning.message
+
+
+def test_additional_config_help_text(monkeypatch):
+    """Test that the additional help text for the config option is generated correctly when no configurations are available."""
+    monkeypatch.setattr(mappings, "CONFIG_NAMESPACES_MAPPING", [])
+    assert (
+        "Failed to locate any community configurations."
+        in pheno_utils.additional_config_help_text()
+    )
+
+
+def test_get_available_configs(mock_config_namespaces_mapping):
+    """Test the function returns a correct list of config names from a configuration namespaces mapping file."""
+    assert pheno_utils.get_available_configs(
+        mock_config_namespaces_mapping
+    ) == [
+        "Neurobagel",
+        "Ontario Brain Institute",
+    ]
+
+
+def test_get_supported_namespaces_for_config(
+    mock_config_namespaces_mapping, monkeypatch
+):
+    """Test the function correctly returns the supported namespaces for a given config name."""
+    monkeypatch.setattr(
+        mappings, "CONFIG_NAMESPACES_MAPPING", mock_config_namespaces_mapping
+    )
+    assert pheno_utils.get_supported_namespaces_for_config("Neurobagel") == {
+        "nb": "http://neurobagel.org/vocab/",
+        "ncit": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#",
+        "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
+    }

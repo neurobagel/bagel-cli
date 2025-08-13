@@ -403,7 +403,8 @@ def get_rows_with_empty_strings(df: pd.DataFrame, columns: list) -> list:
     # NOTE: Profile this section if things get slow, transforming "" -> nan and then
     # using .isna() will very likely be much faster
     empty_row = df[columns].eq("").any(axis=1)
-    return list(empty_row[empty_row].index)
+    # Switch to 1-based indexing beginning with the header for easier user troubleshooting
+    return [idx + 2 for idx in empty_row[empty_row].index]
 
 
 def construct_dictionary_schema_for_validation() -> dict:
@@ -552,11 +553,13 @@ def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
     ) + get_columns_about(data_dict, concept=mappings.NEUROBAGEL["session"])
     duplicates_mask = pheno_df.duplicated(subset=id_columns, keep=False)
     if duplicates_mask.any():
-        duplicate_indices = pheno_df.index[duplicates_mask].tolist()
+        duplicate_indices = [
+            idx + 2 for idx in pheno_df[duplicates_mask].index
+        ]
         log_error(
             logger,
             "The phenotypic table contains duplicate participant IDs or duplicate combinations of participant and session IDs. "
-            f"Duplicate IDs were found in these rows (first non-header row is 0): {duplicate_indices}. "
+            f"Duplicate IDs were found in these rows (header row is 1): {duplicate_indices}. "
             "Ensure that each row represents a unique participant or participant-session (if a session column is present).",
         )
 
@@ -586,7 +589,7 @@ def validate_inputs(
             logger,
             "The phenotypic table contains missing values in participant or session ID columns. "
             "Ensure that each row includes a non-empty participant ID (and session ID, if the table contains a session ID column). "
-            f"Missing IDs were found in these rows (first non-header row is 0): {row_indices}. "
+            f"Missing IDs were found in these rows (header row is 1): {row_indices}. "
             "[italic]TIP: Check that your table does not have any completely empty rows.[/italic]",
         )
 

@@ -26,6 +26,7 @@
 | 19 | Example with two columns about diagnosis | Valid | pass |
 | 20 | Valid, based on example 19 but contains multiple annotated columns about age and sex | Valid | pass |
 | 21 | Valid, based on example 2 but contains a dash in a column name | Valid | pass |
+| 22 | Invalid, based on example 2 but contains trailing empty rows | Valid, same as example 2 | fail |
 | iso88591 | invalid, ISO-8859-1 encoded and contains French characters in the age column | invalid, ISO-8859-1 encoded and contains French characters in the age column | fail |
 | invalid_json | - | not valid JSON, contains trailing comma after `group` key-value pair | fail |
 

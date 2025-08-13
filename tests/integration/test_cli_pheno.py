@@ -103,6 +103,13 @@ def test_pheno_valid_inputs_run_successfully(
             ],
         ),
         (
+            "example22",
+            [
+                "missing values in participant or session ID columns",
+                "these rows (first non-header row is 0): [4, 5, 6]",
+            ],
+        ),
+        (
             "example15",
             [
                 "must contain at least one column annotated as being about participant ID"

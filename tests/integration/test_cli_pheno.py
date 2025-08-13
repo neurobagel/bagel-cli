@@ -85,19 +85,22 @@ def test_pheno_valid_inputs_run_successfully(
         ),
         (
             "example7",
-            ["not compatible", "missing from the phenotypic file: ['group']"],
+            ["incompatible", "missing from the phenotypic table: ['group']"],
         ),
         ("example8", ["more than one column"]),
         (
             "example9",
             [
-                "values not annotated in the data dictionary",
+                "missing annotations in the data dictionary",
                 "'group': ['UNANNOTATED']",
             ],
         ),
         (
             "example11",
-            ["missing values in participant or session id"],
+            [
+                "missing values in participant or session ID columns",
+                "these rows (first non-header row is 0): [0, 2]",
+            ],
         ),
         (
             "example15",
@@ -107,11 +110,15 @@ def test_pheno_valid_inputs_run_successfully(
         ),
         (
             "example1",
-            ["do not have unique combinations of participant and session IDs"],
+            [
+                "duplicate participant IDs or duplicate combinations of participant and session IDs"
+            ],
         ),
         (
             "example18",
-            ["do not have unique combinations of participant and session IDs"],
+            [
+                "duplicate participant IDs or duplicate combinations of participant and session IDs"
+            ],
         ),
         (
             "example5",

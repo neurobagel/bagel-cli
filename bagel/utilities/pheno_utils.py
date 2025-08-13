@@ -556,7 +556,7 @@ def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
         log_error(
             logger,
             "The phenotypic table contains duplicate participant IDs or duplicate combinations of participant and session IDs. "
-            f"Duplicate IDs were found in these rows (first row is 0): {duplicate_indices}. "
+            f"Duplicate IDs were found in these rows (first non-header row is 0): {duplicate_indices}. "
             "Ensure that each row represents a unique participant or participant-session (if a session column is present).",
         )
 
@@ -578,13 +578,6 @@ def validate_inputs(
             "Each column described in the data dictionary must have a corresponding column with the same name in the phenotypic table.",
         )
 
-    # TODO: see if we can save ourselves the call to map_categories_to_columns here.
-    # We cannot do the call earlier in the CLI (because it might fail for data invalid dictionaries)
-    # and we need to know the column mappings in order to do the subject and session validation
-    # # column_map = map_categories_to_columns(data_dict)
-    # columns_about_ids = column_map.get("participant", []) + column_map.get(
-    #     "session", []
-    # )
     columns_about_ids = get_columns_about(
         data_dict, concept=mappings.NEUROBAGEL["participant"]
     ) + get_columns_about(data_dict, concept=mappings.NEUROBAGEL["session"])
@@ -593,7 +586,7 @@ def validate_inputs(
             logger,
             "The phenotypic table contains missing values in participant or session ID columns. "
             "Ensure that each row includes a non-empty participant ID (and session ID, if the table contains a session ID column). "
-            f"Missing IDs were found in these rows (first row is 0): {row_indices}. "
+            f"Missing IDs were found in these rows (first non-header row is 0): {row_indices}. "
             "[italic]TIP: Check that your table does not have any completely empty rows.[/italic]",
         )
 

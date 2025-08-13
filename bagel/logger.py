@@ -59,5 +59,5 @@ def log_error(
     message: str,
 ) -> NoReturn:
     """Log an exception with an informative error message, and exit the app."""
-    logger.error(message)
+    logger.error(message, extra={"markup": True})
     raise typer.Exit(code=1)

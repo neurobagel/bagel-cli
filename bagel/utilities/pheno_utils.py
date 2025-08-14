@@ -403,7 +403,7 @@ def get_rows_with_empty_strings(df: pd.DataFrame, columns: list) -> list:
     # NOTE: Profile this section if things get slow, transforming "" -> nan and then
     # using .isna() will very likely be much faster
     empty_row = df[columns].eq("").any(axis=1)
-    # Switch to 1-based indexing beginning with the header for easier user troubleshooting
+    # Return the row index as it would look in a spreadsheet program, 1-based and including the header
     return [idx + 2 for idx in empty_row[empty_row].index]
 
 

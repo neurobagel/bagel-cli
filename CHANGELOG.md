@@ -1,3 +1,21 @@
+# v0.7.0 (Thu Aug 14 2025)
+
+#### 💥 Breaking Changes
+
+- [ENH] Add `bids2tsv` command to convert a BIDS dir into a minimal TSV, and update `bids` command to read from TSV [#481](https://github.com/neurobagel/bagel-cli/pull/481) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🚀 Enhancements
+
+- [ENH] Support custom vocabs for `pheno` via `--config` option & defer errors from resource fetching [#498](https://github.com/neurobagel/bagel-cli/pull/498) ([@alyssadai](https://github.com/alyssadai))
+- [MODEL] Add a `pandera` schema for the BIDS metadata table [#503](https://github.com/neurobagel/bagel-cli/pull/503) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] More user-friendly error messages for `pheno` command input validation [#508](https://github.com/neurobagel/bagel-cli/pull/508) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.6.0 (Mon Jun 23 2025)
 
 #### 🚀 Enhancements

@@ -6,7 +6,7 @@
                 "TermURL": "nb:ParticipantID",
                 "Label": "Unique participant identifier"
             },
-            "Identifies": "participant"
+            "VariableType": "Identifier"
         }
     },
     "session_id": {
@@ -16,31 +16,49 @@
                 "TermURL": "nb:SessionID",
                 "Label": "Unique session identifier"
             },
-            "Identifies": "session"
+            "VariableType": "Identifier"
         }
     },
-    "group": {
-        "Description": "Group variable",
+    "dx": {
+        "Description": "Clinical diagnosis",
         "Levels": {
-            "PAT": "Patient",
-            "CTRL": "Control subject"
+            "PD": "Parkinson's Disease",
+            "OTHER": "Other diagnosis"
         },
         "Annotations": {
             "IsAbout": {
                 "TermURL": "nb:Diagnosis",
                 "Label": "Diagnosis"
             },
+            "VariableType": "Categorical",
             "Levels": {
-                "PAT": {
+                "PD": {
                     "TermURL": "snomed:49049000",
                     "Label": "Parkinson's disease"
-                },
-                "CTRL": {
-                    "TermURL": "ncit:C94342",
-                    "Label": "Healthy Control"
                 }
             },
-            "MissingValues": ["OTHER"]
+            "MissingValues": ["OTHER", ""]
+        }
+    },
+    "is_control": {
+        "Description": "Healthy control status",
+        "Levels": {
+            "true": "Healthy control",
+            "false": "Patient"
+        },
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:SubjectGroup",
+                "Label": "Study subject group"
+            },
+            "Levels": {
+                "true": {
+                    "TermURL": "ncit:C94342",
+                    "Label": "Healthy control"
+                }
+            },
+            "MissingValues": ["false"],
+            "VariableType": "Categorical"
         }
     },
     "tool_item1": {
@@ -50,6 +68,7 @@
                 "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
+            "VariableType": "Collection",
             "IsPartOf": {
                 "TermURL": "snomed:1234",
                 "Label": "Imaginary tool"
@@ -64,6 +83,7 @@
                 "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
+            "VariableType": "Collection",
             "IsPartOf": {
                 "TermURL": "snomed:1234",
                 "Label": "Imaginary tool"
@@ -78,6 +98,7 @@
                 "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
+            "VariableType": "Collection",
             "IsPartOf": {
                 "TermURL": "snomed:4321",
                 "Label": "A different imaginary tool"

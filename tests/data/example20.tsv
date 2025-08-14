@@ -1,4 +1,4 @@
-participant_id	session_id	group	diagnosis	sex	sex_full	participant_age	participant_age_float
-sub-01	ses-01	PD	SPD	M	Male	P60Y6M	60.5
-sub-02	ses-01	CTRL		F	Female	P56Y4M	56.3
-sub-03	ses-01	CTRL	AD	F	Female	P60Y6M	60.5
+participant_id	session_id	group	clinical_group	sex	sex_full	participant_age	participant_age_float
+sub-01	ses-01	PAT	PD	M	Male	P60Y6M	60.5
+sub-02	ses-01	CTRL	CTRL	F	Female	P56Y4M	56.3
+sub-03	ses-01	CTRL	CTRL	F	Female	P60Y6M	60.5

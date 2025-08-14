@@ -6,7 +6,7 @@
                 "TermURL": "nb:ParticipantID",
                 "Label": "Unique participant identifier"
             },
-            "Identifies": "participant"
+            "VariableType": "Identifier"
         }
     },
     "session_id": {
@@ -16,48 +16,50 @@
                 "TermURL": "nb:SessionID",
                 "Label": "Unique session identifier"
             },
-            "Identifies": "session"
+            "VariableType": "Identifier"
         }
     },
-      "pheno_age": {
-    "Description": "Age of the participant",
-    "Annotations": {
-      "IsAbout": {
-        "TermURL": "nb:Age",
-        "Label": "Chronological age"
-      },
-      "Format": {
-        "TermURL": "nb:FromEuro",
-        "Label": "writing the time with a comma - why not"
-      },
-      "MissingValues": ["NA"]
-    }
-  },
+    "pheno_age": {
+        "Description": "Age of the participant",
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:Age",
+                "Label": "Chronological age"
+            },
+            "VariableType": "Continuous",
+            "Format": {
+                "TermURL": "nb:FromEuro",
+                "Label": "writing the time with a comma - why not"
+            },
+        "MissingValues": ["NA"]
+        }
+    },
     "pheno_sex": {
-    "Description": "Sex variable",
-    "Levels": {
-      "M": "Male",
-      "F": "Female",
-      "missing": "Missing sex",
-      "O": "Other unimportant level"
-    },
-    "Annotations": {
-      "IsAbout": {
-        "TermURL": "nb:Sex",
-        "Label": "Sex"
-      },
-      "Levels": {
-        "M": {
-          "TermURL": "snomed:248153007",
-          "Label": "Male"
+        "Description": "Sex variable",
+        "Levels": {
+            "M": "Male",
+            "F": "Female",
+            "missing": "Missing sex",
+            "O": "Other unimportant level"
         },
-        "F": {
-          "TermURL": "snomed:248152002",
-          "Label": "Female"
+        "Annotations": {
+            "IsAbout": {
+                "TermURL": "nb:Sex",
+                "Label": "Sex"
+            },
+            "VariableType": "Categorical",
+            "Levels": {
+                "M": {
+                    "TermURL": "snomed:248153007",
+                    "Label": "Male"
+                },
+                "F": {
+                    "TermURL": "snomed:248152002",
+                    "Label": "Female"
+                }
+            },
+            "MissingValues": ["missing"]
         }
-      },
-      "MissingValues": ["missing"]
-    }
   },
 
     "pheno_group": {
@@ -72,17 +74,14 @@
                 "TermURL": "nb:Diagnosis",
                 "Label": "Diagnosis"
             },
+            "VariableType": "Categorical",
             "Levels": {
                 "PAT": {
                     "TermURL": "snomed:49049000",
                     "Label": "Parkinson's disease"
-                },
-                "CTRL": {
-                    "TermURL": "ncit:C94342",
-                    "Label": "Healthy Control"
                 }
             },
-            "MissingValues": ["NA"]
+            "MissingValues": ["CTRL", "NA"]
         }
     },
     "tool1_item1": {
@@ -92,6 +91,7 @@
                 "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
+            "VariableType": "Collection",
             "IsPartOf": {
                 "TermURL": "snomed:1234",
                 "Label": "Imaginary tool"
@@ -106,6 +106,7 @@
                 "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
+            "VariableType": "Collection",
             "IsPartOf": {
                 "TermURL": "snomed:1234",
                 "Label": "Imaginary tool"
@@ -120,6 +121,7 @@
                 "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
+            "VariableType": "Collection",
             "IsPartOf": {
                 "TermURL": "snomed:4321",
                 "Label": "A different imaginary tool"

@@ -18,17 +18,20 @@ def get_bids_supported_suffixes() -> list[str]:
     return list(suffixes)
 
 
+BIDS_SUPPORTED_SUFFIXES = get_bids_supported_suffixes()
+
+
 @extensions.register_check_method()
 def is_not_whitespace(pd_series: pd.Series) -> pd.Series:
     """
-    Check that column values are not empty strings or whitespace.
+    Custom Pandera validation method that checks that column values are not empty strings or whitespace.
 
     TODO: Should non-empty strings with leading/trailing whitespace also fail validation?
     """
     return pd_series.str.strip() != ""
 
 
-bids_table_model = pa.DataFrameSchema(
+model = pa.DataFrameSchema(
     # NOTE: Most of the columns will implicitly fail on an empty cell via other checks,
     # but we explicitly check for whitespace-only values to provide a more informative error message.
     {
@@ -55,7 +58,7 @@ bids_table_model = pa.DataFrameSchema(
             checks=[
                 pa.Check.is_not_whitespace(error=NO_WHITESPACE_ERR),
                 pa.Check.isin(
-                    get_bids_supported_suffixes()
+                    BIDS_SUPPORTED_SUFFIXES
                 ),  # NOTE: suffixes are case-sensitive
             ],
             nullable=False,

@@ -27,7 +27,7 @@ def check_absolute_path(dir_path: Path | None) -> Path | None:
 def validate_bids_table(bids_table: pd.DataFrame):
     """Error and exit if the provided BIDS table fails schema validation."""
     try:
-        bids_table_model.bids_table_model.validate(bids_table)
+        bids_table_model.model.validate(bids_table)
     except pa.errors.SchemaError as err:
         # Printing the row indices helps when debugging invalid empty values
         invalid_row_indices = err.failure_cases["index"].tolist()

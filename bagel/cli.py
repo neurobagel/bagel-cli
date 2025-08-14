@@ -414,10 +414,10 @@ def bids(
     )
     bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
 
+    bids_utils.validate_bids_table(bids_dataset)
+
     existing_subs_dict = model_utils.get_subject_instances(jsonld_dataset)
     bids_subject_ids = list(bids_dataset["sub"].unique())
-
-    # TODO: Validate input BIDS table (https://github.com/neurobagel/bagel-cli/issues/476)
 
     model_utils.confirm_subs_match_pheno_data(
         subjects=bids_subject_ids,

@@ -398,7 +398,7 @@ def test_get_assessment_tool_availability(
 
 @pytest.mark.parametrize(
     "columns, expected_indices",
-    [(["participant_id"], [0]), (["session_id"], [2])],
+    [(["participant_id"], [2]), (["session_id"], [4])],
 )
 def test_missing_ids_in_columns(test_data, columns, expected_indices):
     """

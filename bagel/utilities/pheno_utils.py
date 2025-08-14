@@ -403,7 +403,8 @@ def get_rows_with_empty_strings(df: pd.DataFrame, columns: list) -> list:
     # NOTE: Profile this section if things get slow, transforming "" -> nan and then
     # using .isna() will very likely be much faster
     empty_row = df[columns].eq("").any(axis=1)
-    return list(empty_row[empty_row].index)
+    # Return the row index as it would look in a spreadsheet program, 1-based and including the header
+    return [idx + 2 for idx in empty_row[empty_row].index]
 
 
 def construct_dictionary_schema_for_validation() -> dict:
@@ -550,11 +551,16 @@ def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
     id_columns = get_columns_about(
         data_dict, concept=mappings.NEUROBAGEL["participant"]
     ) + get_columns_about(data_dict, concept=mappings.NEUROBAGEL["session"])
-    if pheno_df.duplicated(subset=id_columns).any():
+    duplicates_mask = pheno_df.duplicated(subset=id_columns, keep=False)
+    if duplicates_mask.any():
+        duplicate_indices = [
+            idx + 2 for idx in pheno_df[duplicates_mask].index
+        ]
         log_error(
             logger,
-            "The rows of the provided phenotypic file do not have unique combinations of participant and session IDs. "
-            "Please ensure that each row uniquely identifies one participant or one participant-session (if a column describing session is present).",
+            "The phenotypic table contains duplicate participant IDs or duplicate combinations of participant and session IDs. "
+            f"Duplicate IDs were found in these rows (header row is 1): {duplicate_indices}. "
+            "Ensure that each row represents a unique participant or participant-session (if a session column is present).",
         )
 
 
@@ -569,10 +575,22 @@ def validate_inputs(
     ):
         log_error(
             logger,
-            "The provided phenotypic file and data dictionary are not compatible. "
-            f"The following columns are annotated in the data dictionary but are missing from the phenotypic file: {missing_annotated_cols} "
-            "Check that you have selected the correct data dictionary for your phenotypic file. "
-            "Each column described in the data dictionary must have a corresponding column with the same name in the phenotypic file.",
+            "The provided phenotypic table and data dictionary are incompatible. "
+            f"The following columns are annotated in the data dictionary but are missing from the phenotypic table: {missing_annotated_cols}. "
+            "Check that you've selected the correct data dictionary for your phenotypic table. "
+            "Each column described in the data dictionary must have a corresponding column with the same name in the phenotypic table.",
+        )
+
+    columns_about_ids = get_columns_about(
+        data_dict, concept=mappings.NEUROBAGEL["participant"]
+    ) + get_columns_about(data_dict, concept=mappings.NEUROBAGEL["session"])
+    if row_indices := get_rows_with_empty_strings(pheno_df, columns_about_ids):
+        log_error(
+            logger,
+            "The phenotypic table contains missing values in participant or session ID columns. "
+            "Ensure that each row includes a non-empty participant ID (and session ID, if the table contains a session ID column). "
+            f"Missing IDs were found in these rows (header row is 1): {row_indices}. "
+            "[italic]TIP: Check that your table does not have any completely empty rows.[/italic]",
         )
 
     check_for_duplicate_ids(data_dict, pheno_df)
@@ -583,33 +601,19 @@ def validate_inputs(
     if undefined_cat_col_values:
         log_error(
             logger,
-            "Categorical column(s) in the phenotypic file have values not annotated in the data dictionary "
-            f"(shown as <column_name>: [<undefined values>]): {undefined_cat_col_values}. "
-            "Please check that the correct data dictionary has been selected or make sure to annotate the missing values.",
+            "One or more unique values found in annotated categorical columns of the phenotypic table are missing annotations in the data dictionary "
+            f"(shown by column as 'column_name': [unannotated_values]): {undefined_cat_col_values}. "
+            "Check that you've selected the correct data dictionary or annotate the values that are missing. "
+            "[italic]TIP: Ensure that column values in the table exactly match the values annotated in the data dictionary.[/italic]",
         )
 
     unused_missing_values = find_unused_missing_values(data_dict, pheno_df)
     if unused_missing_values:
         logger.warning(
-            "The following values annotated as missing values in the data dictionary were not found "
-            "in the corresponding phenotypic file column(s) (<column_name>: [<unused missing values>]): "
+            "Some values annotated as missing values in the data dictionary were not found "
+            "in the corresponding phenotypic table column(s) (shown as 'column_name': [unused_missing_values]): "
             f"{unused_missing_values}. If this is not intentional, please check your data dictionary "
-            "and phenotypic file."
-        )
-
-    # TODO: see if we can save ourselves the call to map_categories_to_columns here.
-    # We cannot do the call earlier in the CLI (because it might fail for data invalid dictionaries)
-    # and we need to know the column mappings in order to do the subject and session validation
-    column_map = map_categories_to_columns(data_dict)
-    columns_about_ids = column_map.get("participant", []) + column_map.get(
-        "session", []
-    )
-    if row_indices := get_rows_with_empty_strings(pheno_df, columns_about_ids):
-        log_error(
-            logger,
-            "We have detected missing values in participant or session id columns. "
-            "Please make sure that every row has a non-empty participant id (and session id where applicable). "
-            f"We found missing values in the following rows (first row is zero): {row_indices}.",
+            "and phenotypic table."
         )
 
 

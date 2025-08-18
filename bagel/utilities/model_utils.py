@@ -62,11 +62,11 @@ def confirm_subs_match_pheno_data(
     if len(missing_subs) > 0:
         log_error(
             logger,
-            f"The specified {subject_source_for_err} contains subject IDs not found in "
-            "the provided json-ld file:\n"
+            f"The {subject_source_for_err} contains subject IDs not found in "
+            "the provided JSON-LD file:\n"
             f"{missing_subs}\n"
             "Subject IDs are case sensitive. "
-            f"Please check that the {subject_source_for_err} corresponds to the dataset in the provided .jsonld.",
+            f"Please check that the {subject_source_for_err} corresponds to the dataset in the .jsonld file.",
         )
 
 

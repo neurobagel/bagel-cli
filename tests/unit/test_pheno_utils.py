@@ -450,7 +450,7 @@ def test_incorrect_age_format(
         pheno_utils.transform_age(raw_age, incorrect_format)
 
     assert (
-        f"problem with applying the format {incorrect_format} to the age: {raw_age}"
+        f"Error applying the format {incorrect_format} to the age value: {raw_age}"
         in caplog.text
     )
 

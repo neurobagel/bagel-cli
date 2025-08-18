@@ -80,7 +80,7 @@ def load_json(input_p: Path) -> Any:
     except json.JSONDecodeError:
         log_error(
             logger,
-            f"The provided file is not valid JSON: {input_p}. Please provide a valid JSON file.",
+            f"File is not valid JSON: {input_p}. Please provide a valid JSON file.",
         )
 
 

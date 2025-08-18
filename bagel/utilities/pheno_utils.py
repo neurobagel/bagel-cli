@@ -452,7 +452,7 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
             "The provided data dictionary is not a valid Neurobagel data dictionary. "
             f"Entry that failed validation: {e.path[-1] if e.path else 'Entire document'}\n"
             f"Details: {e.message}\n"
-            "Tip: Make sure that each annotated column contains an 'Annotations' key.",
+            "[italic]TIP: Make sure that each annotated column contains an 'Annotations' key.[/italic]",
         )
 
     if get_annotated_columns(data_dict) == []:
@@ -515,6 +515,16 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
             logger,
             "The provided data dictionary has more than one column about participant ID or session ID. "
             "Please make sure that only one column is annotated for participant and session IDs.",
+        )
+
+    if (
+        set(map_categories_to_columns(data_dict).keys())
+        == {"participant", "session"}
+    ) or (set(map_categories_to_columns(data_dict).keys()) == {"participant"}):
+        logger.warning(
+            "The only annotated columns in the provided data dictionary are participant ID or session ID columns. "
+            "As a result, the generated graph-ready data will not contain any subject phenotypic characteristics. "
+            "Check that all relevant phenotypic columns in your data table have been annotated."
         )
 
     if (

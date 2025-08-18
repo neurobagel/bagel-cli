@@ -6,7 +6,7 @@
         "TermURL": "nb:ParticipantID",
         "Label": "Unique participant identifier"
       },
-      "Identifies": "participant"
+      "VariableType": "Identifier"
     }
   },
   "session_id": {
@@ -16,7 +16,7 @@
         "TermURL": "nb:SessionID",
         "Label": "Unique session identifier"
       },
-      "Identifies": "session"
+      "VariableType": "Identifier"
     }
   },
   "group": {
@@ -26,16 +26,16 @@
         "TermURL": "nb:Diagnosis",
         "Label": "Diagnosis"
       },
+      "VariableType": "Categorical",
       "Levels": {
         "PAT": {
           "TermURL": "snomed:49049000",
           "Label": "Parkinson's disease"
-        },
-        "CTRL": {
-          "TermURL": "ncit:C94342",
-          "Label": "Healthy Control"
         }
-      }
+      },
+      "MissingValues": [
+        "CTRL"
+      ]
     }
   },
   "sex": {
@@ -49,6 +49,7 @@
         "TermURL": "nb:Sex",
         "Label": "Sex"
       },
+      "VariableType": "Categorical",
       "Levels": {
         "M": {
           "TermURL": "snomed:248153007",
@@ -68,6 +69,7 @@
         "TermURL": "nb:Age",
         "Label": "Chronological age"
       },
+      "VariableType": "Continuous",
       "Format": {
         "TermURL": "nb:FromISO8601",
         "Label": "A period of time defined according to the ISO8601 standard"

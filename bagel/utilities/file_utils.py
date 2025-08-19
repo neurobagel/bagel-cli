@@ -13,8 +13,8 @@ def file_encoding_error_message(input_p: Path) -> str:
     """Return a message for when a file cannot be read due to encoding issues."""
     return (
         f"Failed to decode the input file {input_p}. "
-        "Please ensure that both your phenotypic .tsv file and .json data dictionary have UTF-8 encoding.\n"
-        "Tip: Need help converting your file? Try a tool like iconv (http://linux.die.net/man/1/iconv) or https://www.freeformatter.com/convert-file-encoding.html."
+        "Please ensure that all input files have UTF-8 encoding. "
+        "[italic]TIP: Need help converting your file? Try a tool like iconv (http://linux.die.net/man/1/iconv) or https://www.freeformatter.com/convert-file-encoding.html.[/italic]"
     )
 
 
@@ -80,7 +80,7 @@ def load_json(input_p: Path) -> Any:
     except json.JSONDecodeError:
         log_error(
             logger,
-            f"The provided file is not valid JSON: {input_p}. Please provide a valid JSON file.",
+            f"File is not valid JSON: {input_p}. Please provide a valid JSON file.",
         )
 
 

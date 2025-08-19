@@ -266,15 +266,15 @@ def transform_age(value: str, value_format: str) -> float:
             return sum(map(float, [a_min, a_max])) / 2
         log_error(
             logger,
-            f"The provided data dictionary contains an unrecognized age format: {value_format}. "
+            f"The data dictionary contains an unrecognized age format: {value_format}. "
             f"Ensure that the format TermURL is one of {list(AGE_FORMATS.values())}.",
         )
     except (ValueError, isodate.isoerror.ISO8601Error) as e:
         log_error(
             logger,
-            f"There was a problem with applying the format {value_format} to the age: {value}. Error: {str(e)}\n"
-            f"Check that the format specified in the data dictionary ({value_format}) is correct for the age values in your phenotypic file, "
-            "and that you correctly annotated any missing values in your age column. "
+            f"Error applying the format {value_format} to the age value: {value}. Error: {e}\n"
+            f"Check your data dictionary to ensure that the annotated age format matches the age values in your phenotypic table, "
+            "and that any missing values in your age column have been correctly annotated. "
             "For examples of acceptable values for specific age formats, see https://neurobagel.org/data_models/dictionaries/#age.",
         )
 
@@ -449,16 +449,16 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
         # e.path may be empty. We have a backup descriptor "Entire document" for the offending item in this case.
         log_error(
             logger,
-            "The provided data dictionary is not a valid Neurobagel data dictionary. "
+            "The data dictionary is not a valid Neurobagel data dictionary. "
             f"Entry that failed validation: {e.path[-1] if e.path else 'Entire document'}\n"
             f"Details: {e.message}\n"
-            "Tip: Make sure that each annotated column contains an 'Annotations' key.",
+            "[italic]TIP: Ensure each annotated column contains an 'Annotations' key.[/italic]",
         )
 
     if get_annotated_columns(data_dict) == []:
         log_error(
             logger,
-            "The provided data dictionary must contain at least one column with Neurobagel annotations.",
+            "The data dictionary must contain at least one column with Neurobagel annotations.",
         )
 
     unsupported_namespaces, unrecognized_term_urls = (
@@ -476,9 +476,9 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
                 )
         log_error(
             logger,
-            f"The provided data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
+            f"The data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
             f"Unsupported vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
-            f"Please ensure that the data dictionary only includes terms from vocabularies recognized by {config}. "
+            f"Please ensure the data dictionary only includes terms from vocabularies recognized by {config}. "
             f"{namespace_deprecation_msg}",
         )
 
@@ -492,7 +492,7 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
     ):
         log_error(
             logger,
-            "The provided data dictionary must contain at least one column annotated as being about participant ID.",
+            "The data dictionary must contain at least one column annotated as being about participant ID.",
         )
 
     # TODO: remove this validation when we start handling multiple participant and / or session ID columns
@@ -513,8 +513,18 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
     ):
         log_error(
             logger,
-            "The provided data dictionary has more than one column about participant ID or session ID. "
-            "Please make sure that only one column is annotated for participant and session IDs.",
+            "The data dictionary has more than one column about participant ID or session ID. "
+            "Please ensure only one column is annotated for participant and session IDs.",
+        )
+
+    if (
+        set(map_categories_to_columns(data_dict).keys())
+        == {"participant", "session"}
+    ) or (set(map_categories_to_columns(data_dict).keys()) == {"participant"}):
+        logger.warning(
+            "The only columns annotated in the data dictionary are participant ID or session ID columns. "
+            "As a result, the generated graph-ready data will not contain any subject phenotypic characteristics. "
+            "Check that all relevant phenotypic columns in your data table have been annotated."
         )
 
     if (
@@ -522,7 +532,7 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
         > 1
     ):
         logger.warning(
-            "The provided data dictionary indicates more than one column about sex. "
+            "The data dictionary indicates more than one column about sex. "
             "Neurobagel cannot resolve multiple sex values per subject-session, and so will only consider the first of these columns for sex data."
         )
 
@@ -531,7 +541,7 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
         > 1
     ):
         logger.warning(
-            "The provided data dictionary indicates more than one column about age. "
+            "The data dictionary indicates more than one column about age. "
             "Neurobagel cannot resolve multiple age values per subject-session, so will only consider the first of these columns for age data."
         )
 

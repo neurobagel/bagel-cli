@@ -359,7 +359,7 @@ def bids(
         "--dataset-source-dir",
         "-s",
         callback=bids_utils.check_absolute_path,
-        help="The absolute path to the root directory of the dataset at the source location/file server."
+        help="The absolute path to the root directory of the dataset at the source location/file server. "
         "If provided, this path will be combined with the subject and session IDs from the BIDS table "
         "to create absolute source paths to the imaging data for each subject and session.",
         file_okay=False,

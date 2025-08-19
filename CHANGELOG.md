@@ -1,3 +1,16 @@
+# v0.7.1 (Tue Aug 19 2025)
+
+#### 🚀 Enhancements
+
+- [FIX] Remove custom entrypoint that checks for within-container BIDS path [#515](https://github.com/neurobagel/bagel-cli/pull/515) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Warn when only ID columns are annotated, simplify log messages [#514](https://github.com/neurobagel/bagel-cli/pull/514) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.7.0 (Thu Aug 14 2025)
 
 #### 💥 Breaking Changes

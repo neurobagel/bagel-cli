@@ -772,3 +772,59 @@ def test_get_supported_namespaces_for_config(
         "ncit": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#",
         "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
     }
+
+
+@pytest.mark.parametrize(
+    "data_dict",
+    [
+        {
+            "participant_id": {
+                "Description": "Participant ID",
+                "Annotations": {
+                    "IsAbout": {
+                        "TermURL": "nb:ParticipantID",
+                        "Label": "Subject Unique Identifier",
+                    },
+                    "Identifies": "participant",
+                },
+            },
+            "session_id": {
+                "Description": "Session ID",
+                "Annotations": {
+                    "IsAbout": {
+                        "TermURL": "nb:SessionID",
+                        "Label": "Unique session identifier",
+                    },
+                    "Identifies": "session",
+                },
+            },
+            "age": {
+                "Description": "Participant age",
+            },
+        },
+        {
+            "participant_id": {
+                "Description": "A participant ID",
+                "Annotations": {
+                    "IsAbout": {
+                        "TermURL": "nb:ParticipantID",
+                        "Label": "Subject Unique Identifier",
+                    },
+                    "Identifies": "participant",
+                },
+            },
+            "age": {
+                "Description": "Participant age",
+            },
+        },
+    ],
+)
+def test_only_id_columns_annotated_raises_error(
+    data_dict, propagate_warnings, caplog, neurobagel_test_config
+):
+    pheno_utils.validate_data_dict(data_dict, neurobagel_test_config)
+    assert len(caplog.records) == 1
+    assert (
+        "only columns annotated in the data dictionary are participant ID or session ID"
+        in caplog.text
+    )

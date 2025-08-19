@@ -798,9 +798,6 @@ def test_get_supported_namespaces_for_config(
                     "Identifies": "session",
                 },
             },
-            "age": {
-                "Description": "Participant age",
-            },
         },
         {
             "participant_id": {

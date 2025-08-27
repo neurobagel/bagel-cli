@@ -272,15 +272,15 @@ def transform_age(value: str, value_format: str) -> float:
             return sum(map(float, [a_min, a_max])) / 2
         log_error(
             logger,
-            f"The provided data dictionary contains an unrecognized age format: {value_format}. "
+            f"The data dictionary contains an unrecognized age format: {value_format}. "
             f"Ensure that the format TermURL is one of {list(AGE_FORMATS.values())}.",
         )
     except (ValueError, isodate.isoerror.ISO8601Error) as e:
         log_error(
             logger,
-            f"There was a problem with applying the format {value_format} to the age: {value}. Error: {str(e)}\n"
-            f"Check that the format specified in the data dictionary ({value_format}) is correct for the age values in your phenotypic file, "
-            "and that you correctly annotated any missing values in your age column. "
+            f"Error applying the format {value_format} to the age value: {value}. Error: {e}\n"
+            f"Check your data dictionary to ensure that the annotated age format matches the age values in your phenotypic table, "
+            "and that any missing values in your age column have been correctly annotated. "
             "For examples of acceptable values for specific age formats, see https://neurobagel.org/data_models/dictionaries/#age.",
         )
 
@@ -409,7 +409,8 @@ def get_rows_with_empty_strings(df: pd.DataFrame, columns: list) -> list:
     # NOTE: Profile this section if things get slow, transforming "" -> nan and then
     # using .isna() will very likely be much faster
     empty_row = df[columns].eq("").any(axis=1)
-    return list(empty_row[empty_row].index)
+    # Return the row index as it would look in a spreadsheet program, 1-based and including the header
+    return [idx + 2 for idx in empty_row[empty_row].index]
 
 
 def construct_dictionary_schema_for_validation() -> dict:
@@ -454,16 +455,16 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
         # e.path may be empty. We have a backup descriptor "Entire document" for the offending item in this case.
         log_error(
             logger,
-            "The provided data dictionary is not a valid Neurobagel data dictionary. "
+            "The data dictionary is not a valid Neurobagel data dictionary. "
             f"Entry that failed validation: {e.path[-1] if e.path else 'Entire document'}\n"
             f"Details: {e.message}\n"
-            "Tip: Make sure that each annotated column contains an 'Annotations' key.",
+            "[italic]TIP: Ensure each annotated column contains an 'Annotations' key.[/italic]",
         )
 
     if get_annotated_columns(data_dict) == []:
         log_error(
             logger,
-            "The provided data dictionary must contain at least one column with Neurobagel annotations.",
+            "The data dictionary must contain at least one column with Neurobagel annotations.",
         )
 
     unsupported_namespaces, unrecognized_term_urls = (
@@ -481,9 +482,9 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
                 )
         log_error(
             logger,
-            f"The provided data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
+            f"The data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
             f"Unsupported vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
-            f"Please ensure that the data dictionary only includes terms from vocabularies recognized by {config}. "
+            f"Please ensure the data dictionary only includes terms from vocabularies recognized by {config}. "
             f"{namespace_deprecation_msg}",
         )
 
@@ -497,7 +498,7 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
     ):
         log_error(
             logger,
-            "The provided data dictionary must contain at least one column annotated as being about participant ID.",
+            "The data dictionary must contain at least one column annotated as being about participant ID.",
         )
 
     # TODO: remove this validation when we start handling multiple participant and / or session ID columns
@@ -518,8 +519,18 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
     ):
         log_error(
             logger,
-            "The provided data dictionary has more than one column about participant ID or session ID. "
-            "Please make sure that only one column is annotated for participant and session IDs.",
+            "The data dictionary has more than one column about participant ID or session ID. "
+            "Please ensure only one column is annotated for participant and session IDs.",
+        )
+
+    if (
+        set(map_categories_to_columns(data_dict).keys())
+        == {"participant", "session"}
+    ) or (set(map_categories_to_columns(data_dict).keys()) == {"participant"}):
+        logger.warning(
+            "The only columns annotated in the data dictionary are participant ID or session ID columns. "
+            "As a result, the generated graph-ready data will not contain any subject phenotypic characteristics. "
+            "Check that all relevant phenotypic columns in your data table have been annotated."
         )
 
     if (
@@ -527,8 +538,8 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
         > 1
     ):
         logger.warning(
-            "The provided data dictionary indicates more than one column about sex. "
-            "Neurobagel cannot resolve multiple sex values per subject-session, and so will use only the first identified column for sex data."
+            "The data dictionary indicates more than one column about sex. "
+            "Neurobagel cannot resolve multiple sex values per subject-session, and so will only consider the first of these columns for sex data."
         )
 
     if (
@@ -536,8 +547,8 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
         > 1
     ):
         logger.warning(
-            "The provided data dictionary indicates more than one column about age. "
-            "Neurobagel cannot resolve multiple age values per subject-session, and so will use only the first identified column for age data."
+            "The data dictionary indicates more than one column about age. "
+            "Neurobagel cannot resolve multiple age values per subject-session, so will only consider the first of these columns for age data."
         )
 
     if (
@@ -549,7 +560,7 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
         > 1
     ):
         logger.warning(
-            "The provided data dictionary indicates more than one column about subject group. "
+            "The data dictionary indicates more than one column about subject group. "
             "Neurobagel cannot resolve multiple subject group values per subject-session, and so will use only the first identified column for subject group data."
         )
 
@@ -569,11 +580,16 @@ def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
     id_columns = get_columns_about(
         data_dict, concept=mappings.NEUROBAGEL["participant"]
     ) + get_columns_about(data_dict, concept=mappings.NEUROBAGEL["session"])
-    if pheno_df.duplicated(subset=id_columns).any():
+    duplicates_mask = pheno_df.duplicated(subset=id_columns, keep=False)
+    if duplicates_mask.any():
+        duplicate_indices = [
+            idx + 2 for idx in pheno_df[duplicates_mask].index
+        ]
         log_error(
             logger,
-            "The rows of the provided phenotypic file do not have unique combinations of participant and session IDs. "
-            "Please ensure that each row uniquely identifies one participant or one participant-session (if a column describing session is present).",
+            "The phenotypic table contains duplicate participant IDs or duplicate combinations of participant and session IDs. "
+            f"Duplicate IDs were found in these rows (header row is 1): {duplicate_indices}. "
+            "Ensure that each row represents a unique participant or participant-session (if a session column is present).",
         )
 
 
@@ -588,10 +604,22 @@ def validate_inputs(
     ):
         log_error(
             logger,
-            "The provided phenotypic file and data dictionary are not compatible. "
-            f"The following columns are annotated in the data dictionary but are missing from the phenotypic file: {missing_annotated_cols} "
-            "Check that you have selected the correct data dictionary for your phenotypic file. "
-            "Each column described in the data dictionary must have a corresponding column with the same name in the phenotypic file.",
+            "The provided phenotypic table and data dictionary are incompatible. "
+            f"The following columns are annotated in the data dictionary but are missing from the phenotypic table: {missing_annotated_cols}. "
+            "Check that you've selected the correct data dictionary for your phenotypic table. "
+            "Each column described in the data dictionary must have a corresponding column with the same name in the phenotypic table.",
+        )
+
+    columns_about_ids = get_columns_about(
+        data_dict, concept=mappings.NEUROBAGEL["participant"]
+    ) + get_columns_about(data_dict, concept=mappings.NEUROBAGEL["session"])
+    if row_indices := get_rows_with_empty_strings(pheno_df, columns_about_ids):
+        log_error(
+            logger,
+            "The phenotypic table contains missing values in participant or session ID columns. "
+            "Ensure that each row includes a non-empty participant ID (and session ID, if the table contains a session ID column). "
+            f"Missing IDs were found in these rows (header row is 1): {row_indices}. "
+            "[italic]TIP: Check that your table does not have any completely empty rows.[/italic]",
         )
 
     check_for_duplicate_ids(data_dict, pheno_df)
@@ -602,33 +630,19 @@ def validate_inputs(
     if undefined_cat_col_values:
         log_error(
             logger,
-            "Categorical column(s) in the phenotypic file have values not annotated in the data dictionary "
-            f"(shown as <column_name>: [<undefined values>]): {undefined_cat_col_values}. "
-            "Please check that the correct data dictionary has been selected or make sure to annotate the missing values.",
+            "One or more unique values found in annotated categorical columns of the phenotypic table are missing annotations in the data dictionary "
+            f"(shown by column as 'column_name': [unannotated_values]): {undefined_cat_col_values}. "
+            "Check that you've selected the correct data dictionary or annotate the values that are missing. "
+            "[italic]TIP: Ensure that column values in the table exactly match the values annotated in the data dictionary.[/italic]",
         )
 
     unused_missing_values = find_unused_missing_values(data_dict, pheno_df)
     if unused_missing_values:
         logger.warning(
-            "The following values annotated as missing values in the data dictionary were not found "
-            "in the corresponding phenotypic file column(s) (<column_name>: [<unused missing values>]): "
+            "Some values annotated as missing values in the data dictionary were not found "
+            "in the corresponding phenotypic table column(s) (shown as 'column_name': [unused_missing_values]): "
             f"{unused_missing_values}. If this is not intentional, please check your data dictionary "
-            "and phenotypic file."
-        )
-
-    # TODO: see if we can save ourselves the call to map_categories_to_columns here.
-    # We cannot do the call earlier in the CLI (because it might fail for data invalid dictionaries)
-    # and we need to know the column mappings in order to do the subject and session validation
-    column_map = map_categories_to_columns(data_dict)
-    columns_about_ids = column_map.get("participant", []) + column_map.get(
-        "session", []
-    )
-    if row_indices := get_rows_with_empty_strings(pheno_df, columns_about_ids):
-        log_error(
-            logger,
-            "We have detected missing values in participant or session id columns. "
-            "Please make sure that every row has a non-empty participant id (and session id where applicable). "
-            f"We found missing values in the following rows (first row is zero): {row_indices}.",
+            "and phenotypic table."
         )
 
 

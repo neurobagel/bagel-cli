@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+import typer
 from bids import BIDSLayout
 
 from bagel.utilities import bids_utils
@@ -42,19 +43,19 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
                     "sub-01",
                     "ses-01",
                     "bold",
-                    "/data/bids-examples/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-nback_run-01_bold.nii",
+                    "/data/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-nback_run-01_bold.nii",
                 ],
                 [
                     "sub-01",
                     "ses-01",
                     "bold",
-                    "/data/bids-examples/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-nback_run-02_bold.nii",
+                    "/data/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-nback_run-02_bold.nii",
                 ],
                 [
                     "sub-01",
                     "ses-01",
                     "bold",
-                    "/data/bids-examples/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-rest_bold.nii",
+                    "/data/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-rest_bold.nii",
                 ],
             ],
             {"nidm:T1Weighted": 1, "nidm:FlowWeighted": 3},
@@ -65,31 +66,31 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
                     "sub-01",
                     "",
                     "inplaneT2",
-                    "/data/bids-examples/ds001/sub-01/anat/sub-01_inplaneT2.nii.gz",
+                    "/data/ds001/sub-01/anat/sub-01_inplaneT2.nii.gz",
                 ],
                 [
                     "sub-01",
                     "",
                     "T1w",
-                    "/data/bids-examples/ds001/sub-01/anat/sub-01_T1w.nii.gz",
+                    "/data/ds001/sub-01/anat/sub-01_T1w.nii.gz",
                 ],
                 [
                     "sub-01",
                     "",
                     "bold",
-                    "/data/bids-examples/ds001/sub-01/func/sub-01_task-balloonanalogrisktask_run-01_bold.nii.gz",
+                    "/data/ds001/sub-01/func/sub-01_task-balloonanalogrisktask_run-01_bold.nii.gz",
                 ],
                 [
                     "sub-01",
                     "",
                     "bold",
-                    "/data/bids-examples/ds001/sub-01/func/sub-01_task-balloonanalogrisktask_run-02_bold.nii.gz",
+                    "/data/ds001/sub-01/func/sub-01_task-balloonanalogrisktask_run-02_bold.nii.gz",
                 ],
                 [
                     "sub-01",
                     "",
                     "bold",
-                    "/data/bids-examples/ds001/sub-01/func/sub-01_task-balloonanalogrisktask_run-03_bold.nii.gz",
+                    "/data/ds001/sub-01/func/sub-01_task-balloonanalogrisktask_run-03_bold.nii.gz",
                 ],
             ],
             {
@@ -104,7 +105,7 @@ def test_get_bids_subjects_simple(bids_path, bids_dir):
                     "sub-01",
                     "",
                     "T1w",
-                    "/data/bids-examples/eeg_ds000117/sub-01/anat/sub-01_T1w.nii.gz",
+                    "/data/eeg_ds000117/sub-01/anat/sub-01_T1w.nii.gz",
                 ]
             ],
             {"nidm:T1Weighted": 1},
@@ -164,3 +165,212 @@ def test_get_session_path(dataset_root, ses, expected_session_path):
     )
 
     assert session_path == expected_session_path
+
+
+@pytest.mark.parametrize(
+    "row_data",
+    [
+        [
+            [
+                "sub-01",
+                "ses-01",
+                "T1w",
+                "/data/synthetic/sub-01/ses-01/anat/sub-01_ses-01_T1w.nii",
+            ],
+            [
+                "sub-01",
+                "ses-01",
+                "bold",
+                "/data/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-rest_bold.nii",
+            ],
+            [
+                "sub-02",
+                "ses-01",
+                "T1w",
+                "/data/synthetic/sub-02/ses-01/anat/sub-02_ses-01_T1w.nii",
+            ],
+            [
+                "sub-02",
+                "ses-01",
+                "bold",
+                "/data/synthetic/sub-02/ses-01/func/sub-02_ses-01_task-rest_bold.nii",
+            ],
+        ],
+        [
+            [
+                "sub-01",
+                "",
+                "T1w",
+                "/data/synthetic/sub-01/anat/sub-01_ses-01_T1w.nii.gz",
+            ],
+            [
+                "sub-01",
+                "",
+                "bold",
+                "/data/synthetic/sub-01/func/sub-01_ses-01_task-rest_bold.nii.gz",
+            ],
+            [
+                "sub-02",
+                "",
+                "T1w",
+                "/data/synthetic/sub-02/anat/sub-02_ses-01_T1w.nii.gz",
+            ],
+            [
+                "sub-02",
+                "",
+                "bold",
+                "/data/synthetic/sub-02/func/sub-02_ses-01_task-rest_bold.nii.gz",
+            ],
+        ],
+    ],
+)
+def test_valid_bids_tables_pass_validation(row_data):
+    """Test that a valid BIDS table does not produce a schema validation error"""
+    bids_table = pd.DataFrame(
+        row_data, columns=["sub", "ses", "suffix", "path"]
+    )
+    bids_utils.validate_bids_table(bids_table)
+
+
+@pytest.mark.parametrize(
+    "row_data,invalid_column",
+    [
+        (
+            [
+                [
+                    "sub-01",
+                    "01",
+                    "T1w",
+                    "/data/synthetic/sub-01/ses-01/anat/sub-01_ses-01_T1w.nii",
+                ],
+                [
+                    "sub-01",
+                    "01",
+                    "bold",
+                    "/data/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-rest_bold.nii",
+                ],
+                [
+                    "sub-02",
+                    "01",
+                    "T1w",
+                    "/data/synthetic/sub-02/ses-01/anat/sub-02_ses-01_T1w.nii",
+                ],
+                [
+                    "sub-02",
+                    "01",
+                    "bold",
+                    "/data/synthetic/sub-02/ses-01/func/sub-02_ses-01_task-rest_bold.nii",
+                ],
+            ],
+            "ses",
+        ),
+        (
+            [
+                [
+                    "01",
+                    "ses-01",
+                    "T1w",
+                    "/data/synthetic/sub-01/anat/sub-01_ses-01_T1w.nii",
+                ],
+                [
+                    "01",
+                    "ses-01",
+                    "bold",
+                    "/data/synthetic/sub-01/func/sub-01_ses-01_task-rest_bold.nii",
+                ],
+                [
+                    "02",
+                    "ses-01",
+                    "T1w",
+                    "/data/synthetic/sub-02/anat/sub-02_ses-01_T1w.nii",
+                ],
+                [
+                    "02",
+                    "ses-01",
+                    "bold",
+                    "/data/synthetic/sub-02/func/sub-02_ses-01_task-rest_bold.nii",
+                ],
+            ],
+            "sub",
+        ),
+        (
+            [
+                [
+                    "sub-01",
+                    "ses-01",
+                    "anat",
+                    "/data/synthetic/sub-01/anat/sub-01_ses-01_T1w.nii.gz",
+                ],
+                [
+                    "sub-01",
+                    "ses-01",
+                    "func",
+                    "/data/synthetic/sub-01/func/sub-01_ses-01_task-rest_bold.nii.gz",
+                ],
+                [
+                    "sub-02",
+                    "ses-01",
+                    "anat",
+                    "/data/synthetic/sub-02/anat/sub-02_ses-01_T1w.nii.gz",
+                ],
+                [
+                    "sub-02",
+                    "ses-01",
+                    "func",
+                    "/data/synthetic/sub-02/func/sub-02_ses-01_task-rest_bold.nii.gz",
+                ],
+            ],
+            "suffix",
+        ),
+        (
+            [
+                [
+                    "sub-01",
+                    "ses-01",
+                    "T1w",
+                    "/data/synthetic/sub-01/anat/sub-01_ses-01_T1w.mnc",
+                ],
+                [
+                    "sub-01",
+                    "ses-01",
+                    "bold",
+                    "/data/synthetic/sub-01/func/sub-01_ses-01_task-rest_bold.mnc",
+                ],
+                [
+                    "sub-02",
+                    "ses-01",
+                    "T1w",
+                    "/data/synthetic/sub-02/anat/sub-02_ses-01_T1w.mnc",
+                ],
+                [
+                    "sub-02",
+                    "ses-01",
+                    "bold",
+                    "/data/synthetic/sub-02/func/sub-02_ses-01_task-rest_bold.mnc",
+                ],
+            ],
+            "path",
+        ),
+        (
+            [
+                ["sub-01", "ses-01", "T1w", ""],
+                ["sub-01", "ses-01", "bold", ""],
+                ["sub-02", "ses-01", "T1w", ""],
+                ["sub-02", "ses-01", "bold", ""],
+            ],
+            "path",
+        ),
+    ],
+)
+def test_invalid_bids_tables_produce_error(
+    row_data, invalid_column, caplog, propagate_errors
+):
+    """Test that an invalid BIDS table produces an informative schema validation error"""
+    bids_table = pd.DataFrame(
+        row_data, columns=["sub", "ses", "suffix", "path"]
+    )
+    with pytest.raises(typer.Exit):
+        bids_utils.validate_bids_table(bids_table)
+
+    assert "Invalid BIDS table" in caplog.text
+    assert invalid_column in caplog.text

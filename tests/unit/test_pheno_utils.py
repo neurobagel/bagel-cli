@@ -806,7 +806,7 @@ def test_get_supported_namespaces_for_config(
                         "TermURL": "nb:ParticipantID",
                         "Label": "Subject Unique Identifier",
                     },
-                    "Identifies": "participant",
+                    "VariableType": "Identifier",
                 },
             },
             "session_id": {
@@ -816,7 +816,7 @@ def test_get_supported_namespaces_for_config(
                         "TermURL": "nb:SessionID",
                         "Label": "Unique session identifier",
                     },
-                    "Identifies": "session",
+                    "VariableType": "Identifier",
                 },
             },
         },
@@ -828,7 +828,7 @@ def test_get_supported_namespaces_for_config(
                         "TermURL": "nb:ParticipantID",
                         "Label": "Subject Unique Identifier",
                     },
-                    "Identifies": "participant",
+                    "VariableType": "Identifier",
                 },
             },
             "age": {

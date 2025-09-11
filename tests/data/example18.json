@@ -6,7 +6,7 @@
         "TermURL": "nb:ParticipantID",
         "Label": "Unique participant identifier"
       },
-      "Identifies": "participant"
+      "VariableType": "Identifier"
     }
   },
   "group": {
@@ -24,12 +24,10 @@
         "PAT": {
           "TermURL": "snomed:49049000",
           "Label": "Parkinson's disease"
-        },
-        "CTRL": {
-          "TermURL": "ncit:C94342",
-          "Label": "Healthy Control"
         }
-      }
+      },
+      "MissingValues": ["CTRL"],
+      "VariableType": "Categorical"
     }
   },
   "sex": {
@@ -52,7 +50,8 @@
           "TermURL": "snomed:248152002",
           "Label": "Female"
         }
-      }
+      },
+      "VariableType": "Categorical"
     }
   },
   "participant_age": {
@@ -65,7 +64,8 @@
       "Format": {
         "TermURL": "nb:FromISO8601",
         "Label": "A period of time defined according to the ISO8601 standard"
-      }
+      },
+      "VariableType": "Continuous"
     }
   }
 }

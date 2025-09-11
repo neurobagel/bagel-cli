@@ -193,7 +193,7 @@ def map_categories_to_columns(data_dict: dict) -> dict[str, list]:
     Maps all pre-defined Neurobagel categories (e.g. "Sex") to a list containing all column names (if any) that
     have been linked to this category.
 
-    Returns a dictionary where the keys are the Neurobagel categories and the values are lists of column names.
+    Returns a dictionary where the keys are the aliases for Neurobagel categories and the values are lists of column names.
     """
     return {
         cat_name: get_columns_about(data_dict, cat_iri)
@@ -227,9 +227,15 @@ def is_missing_value(
 
 def is_column_categorical(column: str, data_dict: dict) -> bool:
     """Determine whether a column in a Neurobagel data dictionary is categorical"""
-    if "Levels" in data_dict[column]["Annotations"]:
+    column_annotation = data_dict[column]["Annotations"]
+
+    try:
+        dictionary_models.CategoricalNeurobagel.model_validate(
+            column_annotation
+        )
         return True
-    return False
+    except pydantic.ValidationError:
+        return False
 
 
 def map_cat_val_to_term(
@@ -533,7 +539,7 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
     ):
         logger.warning(
             "The data dictionary indicates more than one column about sex. "
-            "Neurobagel cannot resolve multiple sex values per subject-session, and so will only consider the first of these columns for sex data."
+            "Neurobagel cannot resolve multiple sex values per subject-session, and so will only consider the first identified column for sex data."
         )
 
     if (
@@ -542,7 +548,20 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
     ):
         logger.warning(
             "The data dictionary indicates more than one column about age. "
-            "Neurobagel cannot resolve multiple age values per subject-session, so will only consider the first of these columns for age data."
+            "Neurobagel cannot resolve multiple age values per subject-session, and so will use only the first identified column for age data."
+        )
+
+    if (
+        len(
+            get_columns_about(
+                data_dict, concept=mappings.NEUROBAGEL["subject_group"]
+            )
+        )
+        > 1
+    ):
+        logger.warning(
+            "The data dictionary indicates more than one column about subject group. "
+            "Neurobagel cannot resolve multiple subject group values per subject-session, and so will use only the first identified column for subject group data."
         )
 
     if not categorical_cols_have_bids_levels(data_dict):

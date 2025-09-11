@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Literal, Union
 
 from pydantic import (
     AfterValidator,
@@ -30,7 +30,7 @@ def validate_unique_list(values: List[str]) -> List[str]:
     return values
 
 
-class Identifier(BaseModel):
+class Term(BaseModel):
     """An identifier of a controlled term with an IRI"""
 
     termURL: str = Field(
@@ -49,7 +49,7 @@ class Identifier(BaseModel):
 class Neurobagel(BaseModel):
     """The base model for a Neurobagel column annotation"""
 
-    isAbout: Identifier = Field(
+    isAbout: Term = Field(
         ...,
         description="The concept or controlled term that describes this column",
         alias="IsAbout",
@@ -69,22 +69,36 @@ class Neurobagel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class IdentifierNeurobagel(BaseModel):
+    """A Neurobagel annotation for an identifier column"""
+
+    isAbout: Term = Field(
+        ...,
+        description="The concept or controlled term that describes this column",
+        alias="IsAbout",
+    )
+    variableType: Literal["Identifier"] = Field(..., alias="VariableType")
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class CategoricalNeurobagel(Neurobagel):
     """A Neurobagel annotation for a categorical column"""
 
-    levels: Dict[str, Identifier] = Field(
+    levels: Dict[str, Term] = Field(
         ...,
         description="For categorical variables: "
         "An object of values (keys) in the column and the semantic "
         "term (URI and label) they are unambiguously mapped to.",
         alias="Levels",
     )
+    variableType: Literal["Categorical"] = Field(..., alias="VariableType")
 
 
 class ContinuousNeurobagel(Neurobagel):
     """A Neurobagel annotation for a continuous column"""
 
-    format: Identifier = Field(
+    format: Term = Field(
         ...,
         description="For continuous columns this field is used to describe "
         "the format of the raw numerical values in the column. This information is used to transform "
@@ -92,34 +106,32 @@ class ContinuousNeurobagel(Neurobagel):
         "data element referenced in the IsAbout attribute.",
         alias="Format",
     )
+    variableType: Literal["Continuous"] = Field(..., alias="VariableType")
 
 
-class IdentifierNeurobagel(Neurobagel):
-    """A Neurobagel annotation for an identifier column"""
-
-    identifies: str = Field(
-        ...,
-        description="For identifier columns, the type of observation uniquely identified by this column.",
-        alias="Identifies",
-    )
-
-
-class ToolNeurobagel(Neurobagel):
-    """A Neurobagel annotation for an assessment tool column"""
+class CollectionNeurobagel(Neurobagel):
+    """
+    A Neurobagel annotation for a column that is part of a grouped collection of columns,
+    such as items from an instrument.
+    """
 
     # NOTE: Optional[Identifier] was removed as part of https://github.com/neurobagel/bagel-cli/pull/389
     # because we couldn't tell what the Optional was doing
-    isPartOf: Identifier = Field(
+    isPartOf: Term = Field(
         ...,
         description="If the column is a subscale or item of an assessment tool "
         "then the assessment tool should be specified here.",
         alias="IsPartOf",
     )
+    variableType: Literal["Collection"] = Field(..., alias="VariableType")
 
 
 class Column(BaseModel):
     """The base model for a BIDS column description"""
 
+    # TODO: Revisit if we want to make description an optional field, since we don't currently use it in the graph data.
+    # At the moment, the key itself is always required and the value can be an empty string "",
+    # but a value of null ("Description": null) is invalid and will result in a schema validation error.
     description: str = Field(
         ...,
         description="Free-form natural language description",
@@ -129,7 +141,7 @@ class Column(BaseModel):
         CategoricalNeurobagel,
         ContinuousNeurobagel,
         IdentifierNeurobagel,
-        ToolNeurobagel,
+        CollectionNeurobagel,
     ] = Field(None, description="Semantic annotations", alias="Annotations")
 
 
@@ -149,7 +161,7 @@ class ContinuousColumn(Column):
     """A BIDS column annotation for a continuous column"""
 
     units: str = Field(
-        None,
+        ...,
         description="Measurement units for the values in this column. "
         "SI units in CMIXF formatting are RECOMMENDED (see Units)",
         alias="Units",
@@ -157,7 +169,7 @@ class ContinuousColumn(Column):
 
 
 class DataDictionary(
-    RootModel[Dict[str, Union[ContinuousColumn, CategoricalColumn]]]
+    RootModel[Dict[str, Union[Column, ContinuousColumn, CategoricalColumn]]]
 ):
     """A data dictionary with human and machine readable information for a tabular data file"""
 

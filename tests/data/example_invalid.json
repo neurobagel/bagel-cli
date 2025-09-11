@@ -5,7 +5,7 @@
             "IsAbout": {
                 "Label": "Unique participant identifier"
             },
-            "Identifies": "participant"
+            "VariableType": "Identifier"
         }
     },
     "session_id": {
@@ -14,7 +14,7 @@
             "IsAbout": {
                 "Label": "Unique session identifier"
             },
-            "Identifies": "session"
+            "VariableType": "Identifier"
         }
     },
     "group": {
@@ -34,7 +34,8 @@
                 "CTRL": {
                     "Label": "Healthy Control"
                 }
-            }
+            },
+            "VariableType": "Categorical"
         }
     }
 }

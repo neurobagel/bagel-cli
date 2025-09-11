@@ -6,7 +6,7 @@
                 "TermURL": "nb:ParticipantID",
                 "Label": "Unique participant identifier"
             },
-            "Identifies": "participant"
+            "VariableType": "Identifier"
         }
     },
     "session_id": {
@@ -16,7 +16,7 @@
                 "TermURL": "nb:SessionID",
                 "Label": "Unique session identifier"
             },
-            "Identifies": "session"
+            "VariableType": "Identifier"
         }
     },
     "group": {
@@ -30,17 +30,14 @@
                 "TermURL": "nb:Diagnosis",
                 "Label": "Diagnosis"
             },
+            "VariableType": "Categorical",
             "Levels": {
                 "PAT": {
                     "TermURL": "snomed:49049000",
                     "Label": "Parkinson's disease"
-                },
-                "CTRL": {
-                    "TermURL": "ncit:C94342",
-                    "Label": "Healthy Control"
                 }
             },
-            "MissingValues": ["OTHER"]
+            "MissingValues": ["CTRL", "OTHER"]
         }
     },
     "tool_item1": {
@@ -50,6 +47,7 @@
                 "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
+            "VariableType": "Collection",
             "IsPartOf": {
                 "TermURL": "snomed:1234",
                 "Label": "Imaginary tool"
@@ -64,6 +62,7 @@
                 "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
+            "VariableType": "Collection",
             "IsPartOf": {
                 "TermURL": "snomed:1234",
                 "Label": "Imaginary tool"
@@ -78,6 +77,7 @@
                 "TermURL": "nb:Assessment",
                 "Label": "Assessment tool"
             },
+            "VariableType": "Collection",
             "IsPartOf": {
                 "TermURL": "snomed:4321",
                 "Label": "A different imaginary tool"

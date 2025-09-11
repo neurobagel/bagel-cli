@@ -6,7 +6,7 @@
         "TermURL": "nb:ParticipantID",
         "Label": "Unique participant identifier"
       },
-      "Identifies": "participant"
+      "VariableType": "Identifier"
     }
   },
   "session_id": {
@@ -16,7 +16,7 @@
         "TermURL": "nb:SessionID",
         "Label": "Unique session identifier"
       },
-      "Identifies": "session"
+      "VariableType": "Identifier"
     }
   },
   "group": {
@@ -27,25 +27,23 @@
     },
     "Annotations": {
       "IsAbout": {
-        "TermURL": "nb:Diagnosis",
-        "Label": "Diagnosis"
+        "TermURL": "nb:SubjectGroup",
+        "Label": "Study subject group"
       },
       "Levels": {
-        "PD": {
-          "TermURL": "snomed:49049000",
-          "Label": "Parkinson's disease"
-        },
         "CTRL": {
           "TermURL": "ncit:C94342",
           "Label": "Healthy Control"
         }
-      }
+      },
+      "MissingValues": ["PD"],
+      "VariableType": "Categorical"
     }
   },
-  "diagnosis": {
-    "Description": "Diagnosis at baseline visit",
+  "primary_diag": {
+    "Description": "Primary diagnosis at baseline visit",
     "Levels": {
-      "PD": "Parkinson's disease",
+      "GAD": "Generalized anxiety disorder",
       "SPD": "Sporadic Parkinson disease"
     },
     "Annotations": {
@@ -54,20 +52,37 @@
         "Label": "Diagnosis"
       },
       "Levels": {
-        "PD": {
-          "TermURL": "snomed:49049000",
-          "Label": "Parkinson's disease"
-        },
         "SPD": {
           "TermURL": "snomed:724761004",
           "Label": "Sporadic Parkinson disease"
         },
-        "AD": {
-          "TermURL": "snomed:26929004",
-          "Label": "Alzheimer's disease"
+        "GAD": {
+          "TermURL": "snomed:21897009",
+          "Label": "Generalized anxiety disorder"
         }
       },
-      "MissingValues": [""]
+      "MissingValues": [""],
+      "VariableType": "Categorical"
+    }
+  },
+  "secondary_diag": {
+    "Description": "Secondary diagnosis at baseline visit",
+    "Levels": {
+      "MDD": "Major depressive disorder"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Diagnosis",
+        "Label": "Diagnosis"
+      },
+      "Levels": {
+        "MDD": {
+          "TermURL": "snomed:370143000",
+          "Label": "Major depressive disorder"
+        }
+      },
+      "MissingValues": [""],
+      "VariableType": "Categorical"
     }
   },
   "sex": {
@@ -90,7 +105,8 @@
           "TermURL": "snomed:248152002",
           "Label": "Female"
         }
-      }
+      },
+      "VariableType": "Categorical"
     }
   },
   "participant_age": {
@@ -103,7 +119,8 @@
       "Format": {
         "TermURL": "nb:FromISO8601",
         "Label": "A period of time defined according to the ISO8601 standard"
-      }
+      },
+      "VariableType": "Continuous"
     }
   }
 }

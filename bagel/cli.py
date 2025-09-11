@@ -272,19 +272,22 @@ def pheno(
                 _dx_vals = pheno_utils.get_transformed_values(
                     column_mapping["diagnosis"], _ses_pheno, data_dictionary
                 )
-                if not _dx_vals:
-                    pass
-                # NOTE: If the subject has both a diagnosis value and a value of healthy control, we assume the healthy control designation is more important
-                # and do not assign diagnoses to the subject
-                elif mappings.NEUROBAGEL["healthy_control"] in _dx_vals:
-                    session.isSubjectGroup = models.SubjectGroup(
-                        identifier=mappings.NEUROBAGEL["healthy_control"],
-                    )
-                else:
+                if _dx_vals:
                     session.hasDiagnosis = [
                         models.Diagnosis(identifier=_dx_val)
                         for _dx_val in _dx_vals
                     ]
+
+            if "subject_group" in column_mapping.keys():
+                _group_vals = pheno_utils.get_transformed_values(
+                    column_mapping["subject_group"],
+                    _ses_pheno,
+                    data_dictionary,
+                )
+                if _group_vals:
+                    session.isSubjectGroup = models.SubjectGroup(
+                        identifier=_group_vals[0]
+                    )
 
             if "age" in column_mapping.keys():
                 # NOTE: At the moment, our data model only supports a single age value per subject.
@@ -362,8 +365,10 @@ def bids(
         help="The absolute path to the root directory of the dataset at the source location/file server. "
         "If provided, this path will be combined with the subject and session IDs from the BIDS table "
         "to create absolute source paths to the imaging data for each subject and session.",
+        exists=False,
         file_okay=False,
         dir_okay=True,
+        resolve_path=False,
     ),
     # TODO: Should we rename the default output file to something more generic to account for the fact that
     # the file may also include derivatives data? e.g., dataset_bids.jsonld
@@ -487,7 +492,7 @@ def bids(
     # This may be resolved with https://github.com/neurobagel/bagel-cli/issues/492.
     file_utils.save_jsonld(
         data={
-            **jsonld_context,
+            "@context": jsonld_context,
             **jsonld_dataset.model_dump(exclude_none=True),
         },
         filename=output,
@@ -633,7 +638,7 @@ def derivatives(
     # This may be resolved with https://github.com/neurobagel/bagel-cli/issues/492.
     file_utils.save_jsonld(
         data={
-            **jsonld_context,
+            "@context": jsonld_context,
             **jsonld_dataset.model_dump(exclude_none=True),
         },
         filename=output,

@@ -6,7 +6,7 @@
         "TermURL": "nb:ParticipantID",
         "Label": "Unique participant identifier"
       },
-      "Identifies": "participant"
+      "VariableType": "Identifier"
     }
   },
   "session_id": {
@@ -16,58 +16,49 @@
         "TermURL": "nb:SessionID",
         "Label": "Unique session identifier"
       },
-      "Identifies": "session"
+      "VariableType": "Identifier"
     }
   },
   "group": {
-    "Description": "Group variable",
+    "Description": "Study group",
     "Levels": {
-      "PD": "Parkinson's disease",
+      "PAT": "Patient",
       "CTRL": "Control subject"
     },
     "Annotations": {
       "IsAbout": {
-        "TermURL": "nb:Diagnosis",
-        "Label": "Diagnosis"
+        "TermURL": "nb:SubjectGroup",
+        "Label": "Study subject group"
       },
       "Levels": {
-        "PD": {
-          "TermURL": "snomed:49049000",
-          "Label": "Parkinson's disease"
-        },
         "CTRL": {
           "TermURL": "ncit:C94342",
           "Label": "Healthy Control"
         }
-      }
+      },
+      "MissingValues": ["PAT"],
+      "VariableType": "Categorical"
     }
   },
-  "diagnosis": {
-    "Description": "Diagnosis at baseline visit",
+  "clinical_group": {
+    "Description": "Clinical diagnosis group",
     "Levels": {
       "PD": "Parkinson's disease",
-      "SPD": "Sporadic Parkinson disease"
+      "CTRL": "Healthy control"
     },
     "Annotations": {
       "IsAbout": {
-        "TermURL": "nb:Diagnosis",
-        "Label": "Diagnosis"
+        "TermURL": "nb:SubjectGroup",
+        "Label": "Study subject group"
       },
       "Levels": {
-        "PD": {
-          "TermURL": "snomed:49049000",
-          "Label": "Parkinson's disease"
-        },
-        "SPD": {
-          "TermURL": "snomed:724761004",
-          "Label": "Sporadic Parkinson disease"
-        },
-        "AD": {
-          "TermURL": "snomed:26929004",
-          "Label": "Alzheimer's disease"
+        "CTRL": {
+          "TermURL": "ncit:C94342",
+          "Label": "Healthy Control"
         }
       },
-      "MissingValues": [""]
+      "MissingValues": ["PD"],
+      "VariableType": "Categorical"
     }
   },
   "sex": {
@@ -90,7 +81,8 @@
           "TermURL": "snomed:248152002",
           "Label": "Female"
         }
-      }
+      },
+      "VariableType": "Categorical"
     }
   },
   "sex_full": {
@@ -113,7 +105,8 @@
           "TermURL": "snomed:248152002",
           "Label": "Female"
         }
-      }
+      },
+      "VariableType": "Categorical"
     }
   },
   "participant_age": {
@@ -126,7 +119,8 @@
       "Format": {
         "TermURL": "nb:FromISO8601",
         "Label": "A period of time defined according to the ISO8601 standard"
-      }
+      },
+      "VariableType": "Continuous"
     }
   },
   "participant_age_float": {
@@ -139,7 +133,8 @@
       "Format": {
         "TermURL": "nb:FromFloat",
         "Label": "Age as a floating point number"
-      }
+      },
+      "VariableType": "Continuous"
     }
   }
 }

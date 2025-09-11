@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# This script assumes that you have installed the bagel package in your Python environment.
+# This script assumes that you have set up a development Python environment and installed the bagel package following the instructions here:
+# https://github.com/neurobagel/bagel-cli?tab=readme-ov-file#development-environment.
 #
 # Steps to use:
 # 1. cd into the tests/neurobagel_examples submodule and create a new branch that will contain the updated example files
@@ -20,8 +21,10 @@ bagel pheno \
     --overwrite
 
 # BIDS metadata table
-# NOTE: We don't want to regenerate this table every time since the local path to the BIDS files
-# will be stored each time, and we want to avoid extraneous diffs in the path column
+# NOTE: Only regenerate if the table schema has changed (e.g., column names or format of columns changed, or new columns added).
+# If the table schema hasn't changed, we don't want to regenerate this table since the local path to the BIDS files
+# may be different each time (depending on the user running the script), and we want to avoid extraneous diffs in the path column.
+# 
 # bagel bids2tsv \
 #     --bids-dir tests/bids-examples/synthetic \
 #     --output "${data_dir}/example_synthetic_bids_metadata.tsv" \

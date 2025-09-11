@@ -1,3 +1,15 @@
+# v0.7.2 (Tue Sep 09 2025)
+
+#### 🔩 Dependency Updates
+
+- [FIX] Pin bids2table version to avoid v2.1.1 bug causing import errors [#529](https://github.com/neurobagel/bagel-cli/pull/529) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.7.1 (Tue Aug 19 2025)
 
 #### 🚀 Enhancements

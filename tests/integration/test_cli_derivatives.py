@@ -32,6 +32,9 @@ def test_derivatives_cmd_with_valid_TSV_and_pheno_jsonlds_is_successful(
     Test that when a valid processing status TSV and bagel pheno-created JSONLD are supplied as inputs,
     the bagel derivatives command successfully creates an output JSONLD where subjects have the expected number
     of imaging sessions created based on pipeline completion data.
+
+    Also performs a sanity check that an @context is present in the output JSONLD
+    (which should have been inherited from the input JSONLD).
     """
     result = runner.invoke(
         bagel,
@@ -55,6 +58,9 @@ def test_derivatives_cmd_with_valid_TSV_and_pheno_jsonlds_is_successful(
             if ses["schemaKey"] == "ImagingSession":
                 num_created_imaging_sessions[sub["hasLabel"]] += 1
 
+    assert (
+        output.get("@context") is not None
+    ), "The output JSONLD is missing an @context."
     assert num_created_imaging_sessions == num_expected_imaging_sessions
 
 

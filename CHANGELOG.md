@@ -1,3 +1,21 @@
+# v0.8.0 (Thu Sep 11 2025)
+
+#### 💥 Breaking Changes
+
+- [ENH] Releasing changes to data dictionary schema and healthy control handling [#506](https://github.com/neurobagel/bagel-cli/pull/506) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Remove `"Identifies"` key and add `"VariableType"` key to data dictionary schema [#488](https://github.com/neurobagel/bagel-cli/pull/488) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Refactor healthy control parsing [#489](https://github.com/neurobagel/bagel-cli/pull/489) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Add back missing `@context` to `bids` and `derivatives`-generated JSONLDs [#532](https://github.com/neurobagel/bagel-cli/pull/532) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.7.2 (Tue Sep 09 2025)
 
 #### 🔩 Dependency Updates

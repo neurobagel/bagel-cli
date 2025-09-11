@@ -15,6 +15,7 @@ bagel pheno \
     --pheno "${data_dir}/example_synthetic.tsv" \
     --dictionary "${data_dir}/example_synthetic.json" \
     --name "BIDS synthetic" \
+    --portal "https://github.com/bids-standard/bids-examples" \
     --output "${data_dir}/example_synthetic.jsonld" \
     --overwrite
 

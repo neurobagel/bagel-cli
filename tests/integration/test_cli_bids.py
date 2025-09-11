@@ -20,8 +20,14 @@ def test_bids_valid_inputs_run_successfully(
     test_data_upload_path,
     synthetic_dataset_tsv_path,
     default_pheno_bids_output_path,
+    load_test_json,
 ):
-    """Basic smoke test for the "add-bids" subcommand"""
+    """
+    Basic smoke test for the "bids" command.
+
+    Also performs a sanity check that an @context is present in the output JSONLD
+    (which should have been inherited from the input JSONLD).
+    """
     result = runner.invoke(
         bagel,
         [
@@ -38,6 +44,11 @@ def test_bids_valid_inputs_run_successfully(
     assert (
         default_pheno_bids_output_path
     ).exists(), "The pheno_bids.jsonld output was not created."
+
+    output = load_test_json(default_pheno_bids_output_path)
+    assert (
+        output.get("@context") is not None
+    ), "The output JSONLD is missing an @context."
 
 
 def test_imaging_sessions_have_expected_labels(

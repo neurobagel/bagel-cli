@@ -8,6 +8,18 @@ from bagel import bids_table_model, mappings, models
 from bagel.logger import log_error, logger
 
 
+def find_unsupported_bids_suffixes(data: pd.DataFrame) -> list:
+    """Return a list of suffixes unsupported in BIDS found in the provided BIDS table."""
+    return (
+        data.loc[
+            ~data["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES),
+            "suffix",
+        ]
+        .unique()
+        .tolist()
+    )
+
+
 def check_absolute_path(dir_path: Path | None) -> Path | None:
     """
     Raise an error if the input path does not look like an absolute path.

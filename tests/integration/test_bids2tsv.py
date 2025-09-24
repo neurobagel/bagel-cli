@@ -59,6 +59,8 @@ def test_BIDS_unsupported_suffixes_filtered_out(
     default_bids2tsv_output_path,
     test_data_upload_path,
     tmp_path,
+    propagate_warnings,
+    caplog,
 ):
     """
     Test that unsupported suffixes used in a BIDS dataset are filtered out by bids2tsv,
@@ -75,6 +77,10 @@ def test_BIDS_unsupported_suffixes_filtered_out(
         ],
     )
     assert result.exit_code == 0
+    assert len(caplog.records) == 1
+    for substring in ["suffixes unsupported in BIDS", "FAKE"]:
+        assert substring in caplog.text
+
     bids_tsv = pd.read_csv(default_bids2tsv_output_path, sep="\t")
     assert "FAKE" not in bids_tsv["suffix"].unique()
 

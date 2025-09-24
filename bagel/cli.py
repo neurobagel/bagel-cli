@@ -113,10 +113,26 @@ def bids2tsv(
     dataset_tab = b2t2.index_dataset(bids_dir)
     dataset_df = dataset_tab.to_pandas()
 
-    dataset_df = dataset_df[
-        dataset_df["ext"].isin([".nii", ".nii.gz"])
-        & dataset_df["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES)
+    nii_rows = dataset_df[dataset_df["ext"].isin([".nii", ".nii.gz"])]
+    unsupported_nii_suffixes = (
+        nii_rows.loc[
+            ~nii_rows["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES),
+            "suffix",
+        ]
+        .unique()
+        .tolist()
+    )
+
+    if unsupported_nii_suffixes:
+        logger.warning(
+            f"NIfTI file suffixes unsupported in BIDS were found in the BIDS directory: {unsupported_nii_suffixes}. "
+            "These will be ignored. For more information, see https://bids-specification.readthedocs.io/en/stable/."
+        )
+
+    dataset_df = nii_rows[
+        nii_rows["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES)
     ].copy()
+
     dataset_df["path"] = dataset_df.apply(
         lambda row: (Path(row["root"]) / row["path"]).as_posix(), axis=1
     )

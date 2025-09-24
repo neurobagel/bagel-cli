@@ -7,7 +7,7 @@ import typer
 from bids import BIDSLayout, exceptions
 from rich.progress import Progress, SpinnerColumn, TextColumn, track
 
-from bagel import mappings, models
+from bagel import bids_table_model, mappings, models
 
 from .logger import VerbosityLevel, configure_logger, log_error, logger
 from .utilities import (
@@ -113,7 +113,10 @@ def bids2tsv(
     dataset_tab = b2t2.index_dataset(bids_dir)
     dataset_df = dataset_tab.to_pandas()
 
-    dataset_df = dataset_df.query('ext in [".nii", ".nii.gz"]').copy()
+    dataset_df = dataset_df[
+        dataset_df["ext"].isin([".nii", ".nii.gz"])
+        & dataset_df["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES)
+    ].copy()
     dataset_df["path"] = dataset_df.apply(
         lambda row: (Path(row["root"]) / row["path"]).as_posix(), axis=1
     )

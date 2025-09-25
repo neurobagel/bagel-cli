@@ -4,28 +4,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 import typer
-from bids import BIDSLayout
 
 from bagel.utilities import bids_utils
-
-
-# TODO: Remove since we no longer need the corresponding utility function
-@pytest.mark.parametrize(
-    "bids_dir",
-    ["synthetic", "ds000248"],
-)
-def test_get_bids_subjects_simple(bids_path, bids_dir):
-    """Test that get_bids_subjects_simple() correctly extracts subject IDs from a BIDS directory."""
-    bids_subject_list = bids_utils.get_bids_subjects_simple(
-        bids_path / bids_dir
-    )
-    expected_subjects = [
-        f"sub-{sub_id}"
-        for sub_id in BIDSLayout(
-            bids_path / bids_dir, validate=True
-        ).get_subjects()
-    ]
-    assert sorted(bids_subject_list) == sorted(expected_subjects)
 
 
 @pytest.mark.parametrize(

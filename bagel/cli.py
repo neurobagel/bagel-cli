@@ -7,7 +7,7 @@ import typer
 from bids import BIDSLayout, exceptions
 from rich.progress import Progress, SpinnerColumn, TextColumn, track
 
-from bagel import mappings, models
+from bagel import bids_table_model, mappings, models
 
 from .logger import VerbosityLevel, configure_logger, log_error, logger
 from .utilities import (
@@ -113,7 +113,20 @@ def bids2tsv(
     dataset_tab = b2t2.index_dataset(bids_dir)
     dataset_df = dataset_tab.to_pandas()
 
-    dataset_df = dataset_df.query('ext in [".nii", ".nii.gz"]').copy()
+    nii_records = dataset_df[dataset_df["ext"].isin([".nii", ".nii.gz"])]
+    unsupported_nii_suffixes = bids_utils.find_unsupported_bids_suffixes(
+        nii_records
+    )
+    if unsupported_nii_suffixes:
+        logger.warning(
+            f"NIfTI file suffixes unsupported in BIDS were found in the BIDS directory: {unsupported_nii_suffixes}. "
+            "These will be ignored. For more information, see https://bids-specification.readthedocs.io/en/stable/."
+        )
+
+    dataset_df = nii_records[
+        nii_records["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES)
+    ].copy()
+
     dataset_df["path"] = dataset_df.apply(
         lambda row: (Path(row["root"]) / row["path"]).as_posix(), axis=1
     )

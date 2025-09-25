@@ -9,7 +9,7 @@ from bagel.logger import log_error, logger
 
 
 def find_unsupported_bids_suffixes(data: pd.DataFrame) -> list:
-    """Return a list of suffixes unsupported in BIDS found in the provided BIDS table."""
+    """Return any suffixes unsupported by BIDS that are found in the provided BIDS table."""
     return (
         data.loc[
             ~data["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES),
@@ -52,20 +52,6 @@ def validate_bids_table(bids_table: pd.DataFrame):
 def map_term_to_namespace(term: str, namespace: dict) -> str:
     """Returns the mapped namespace term if it exists, or False otherwise."""
     return namespace.get(term, False)
-
-
-# TODO: Remove this function
-def get_bids_subjects_simple(bids_dir: Path) -> list:
-    """Returns list of subject IDs (in format of sub-<SUBJECT>) for a BIDS directory inferred from the names of non-empty subdirectories."""
-    bids_subject_list = []
-    for path in bids_dir.iterdir():
-        if (
-            path.name.startswith("sub-")
-            and path.is_dir()
-            and any(path.iterdir())
-        ):
-            bids_subject_list.append(path.name)
-    return bids_subject_list
 
 
 def create_acquisitions(

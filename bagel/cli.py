@@ -127,6 +127,15 @@ def bids2tsv(
         nii_records["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES)
     ].copy()
 
+    if dataset_df.empty:
+        log_error(
+            logger,
+            f"No NIfTI files with supported BIDS suffixes were found in {bids_dir}. "
+            "A BIDS metadata table could not be generated. "
+            "Please ensure your dataset includes at least one NIfTI file (.nii/.nii.gz) with a supported BIDS suffix "
+            "(see https://bids-specification.readthedocs.io/en/stable/).",
+        )
+
     dataset_df["path"] = dataset_df.apply(
         lambda row: (Path(row["root"]) / row["path"]).as_posix(), axis=1
     )

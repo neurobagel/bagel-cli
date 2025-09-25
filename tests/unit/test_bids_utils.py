@@ -342,7 +342,7 @@ def test_valid_bids_tables_pass_validation(row_data):
         ),
     ],
 )
-def test_invalid_bids_tables_produce_error(
+def test_schema_invalid_bids_tables_produce_error(
     row_data, invalid_column, caplog, propagate_errors
 ):
     """Test that an invalid BIDS table produces an informative schema validation error"""
@@ -354,3 +354,12 @@ def test_invalid_bids_tables_produce_error(
 
     assert "Invalid BIDS table" in caplog.text
     assert invalid_column in caplog.text
+
+
+def test_empty_bids_table_produces_error(caplog, propagate_errors):
+    """Test that an empty BIDS table produces an informative error."""
+    bids_table = pd.DataFrame(columns=["sub", "ses", "suffix", "path"])
+    with pytest.raises(typer.Exit):
+        bids_utils.validate_bids_table(bids_table)
+
+    assert "BIDS table is empty" in caplog.text

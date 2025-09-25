@@ -37,7 +37,12 @@ def check_absolute_path(dir_path: Path | None) -> Path | None:
 
 
 def validate_bids_table(bids_table: pd.DataFrame):
-    """Error and exit if the provided BIDS table fails schema validation."""
+    """Error and exit if the provided BIDS table is empty or fails schema validation."""
+    if bids_table.empty:
+        log_error(
+            logger,
+            "BIDS table is empty (only a header row was found). No imaging metadata to add.",
+        )
     try:
         bids_table_model.model.validate(bids_table)
     except pa.errors.SchemaError as err:

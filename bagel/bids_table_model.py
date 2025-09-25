@@ -74,5 +74,6 @@ model = pa.DataFrameSchema(
             ],
             nullable=False,
         ),
-    }
+    },
+    strict="filter",
 )

@@ -99,9 +99,17 @@ def test_BIDS_unsupported_suffixes_filtered_out(
     assert result.exit_code == 0
 
 
+@pytest.mark.parametrize(
+    "no_nii_dataset",
+    [
+        "eeg_cbm",
+        "micr_SEM",
+    ],
+)
 def test_exits_gracefully_if_no_nii_files_in_bids_directory(
     runner,
     bids_path,
+    no_nii_dataset,
     default_bids2tsv_output_path,
     propagate_errors,
     caplog,
@@ -112,7 +120,7 @@ def test_exits_gracefully_if_no_nii_files_in_bids_directory(
         [
             "bids2tsv",
             "--bids-dir",
-            bids_path / "eeg_cbm",
+            bids_path / no_nii_dataset,
             "--output",
             default_bids2tsv_output_path,
         ],

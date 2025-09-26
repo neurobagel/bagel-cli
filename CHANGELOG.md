@@ -1,3 +1,16 @@
+# v0.8.1 (Fri Sep 26 2025)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Exit gracefully when `bids2tsv` finds no valid NIfTI files [#546](https://github.com/neurobagel/bagel-cli/pull/546) ([@alyssadai](https://github.com/alyssadai))
+- [FIX] Filter `bids2table`-generated table by BIDS supported suffixes [#544](https://github.com/neurobagel/bagel-cli/pull/544) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.8.0 (Thu Sep 11 2025)
 
 #### 💥 Breaking Changes

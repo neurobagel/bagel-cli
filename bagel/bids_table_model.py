@@ -4,7 +4,7 @@ import pandera.extensions as extensions
 import pandera.pandas as pa
 
 NO_WHITESPACE_ERR = (
-    "Value must not be an empty string or contain only whitespace."
+    "Must be a non-empty value that does not contain only whitespace."
 )
 
 

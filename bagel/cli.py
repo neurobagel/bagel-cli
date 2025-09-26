@@ -370,7 +370,7 @@ def bids(
         ...,
         "--bids-table",
         "-b",
-        help="The path to a .tsv file containing the BIDS metadata for image files including 'sub', 'ses', 'suffix', and 'path' columns. "
+        help="The path to a .tsv file containing the BIDS metadata for NIfTI image files including 'sub', 'ses', 'suffix', and 'path' columns. "
         "This file can be created using the bagel bids2tsv command.",
         exists=True,
         file_okay=True,
@@ -384,7 +384,7 @@ def bids(
         "--dataset-source-dir",
         "-s",
         callback=bids_utils.check_absolute_path,
-        help="The absolute path to the root directory of the dataset at the source location/file server. "
+        help="The absolute path to the root directory of the BIDS dataset at the source location/file server. "
         "If provided, this path will be combined with the subject and session IDs from the BIDS table "
         "to create absolute source paths to the imaging data for each subject and session.",
         exists=False,

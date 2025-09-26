@@ -362,7 +362,7 @@ def test_unused_missing_values_raises_warning(
         ),
     ],
 )
-def test_providing_csv_file_raises_error(
+def test_providing_non_tsv_file_raises_error(
     pheno_file,
     dictionary_file,
     expected_err,
@@ -373,8 +373,10 @@ def test_providing_csv_file_raises_error(
     caplog,
     propagate_errors,
 ):
-    """Providing a .csv file or a file with .tsv extension but incorrect encoding should be handled with an
-    informative error."""
+    """
+    Providing a non .tsv file or a file with .tsv extension but incorrect encoding
+    should be handled with an informative error.
+    """
     result = runner.invoke(
         bagel,
         [

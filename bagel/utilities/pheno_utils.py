@@ -638,6 +638,7 @@ def validate_inputs(
 
     unused_missing_values = find_unused_missing_values(data_dict, pheno_df)
     if unused_missing_values:
+        # TODO: '[ ]' apparently isn't shown in the STDOUT??
         logger.warning(
             "Some values annotated as missing values in the data dictionary were not found "
             "in the corresponding phenotypic table column(s) (shown as 'column_name': [unused_missing_values]): "

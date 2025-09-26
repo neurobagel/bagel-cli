@@ -127,6 +127,15 @@ def bids2tsv(
         nii_records["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES)
     ].copy()
 
+    if dataset_df.empty:
+        log_error(
+            logger,
+            f"No NIfTI files with supported BIDS suffixes were found in {bids_dir}. "
+            "A BIDS metadata table could not be generated. "
+            "Please ensure your dataset includes at least one NIfTI file (.nii/.nii.gz) with a supported BIDS suffix "
+            "(see https://bids-specification.readthedocs.io/en/stable/).",
+        )
+
     dataset_df["path"] = dataset_df.apply(
         lambda row: (Path(row["root"]) / row["path"]).as_posix(), axis=1
     )
@@ -361,7 +370,7 @@ def bids(
         ...,
         "--bids-table",
         "-b",
-        help="The path to a .tsv file containing the BIDS metadata for image files including 'sub', 'ses', 'suffix', and 'path' columns. "
+        help="The path to a .tsv file containing the BIDS metadata for NIfTI image files including 'sub', 'ses', 'suffix', and 'path' columns. "
         "This file can be created using the bagel bids2tsv command.",
         exists=True,
         file_okay=True,
@@ -375,7 +384,7 @@ def bids(
         "--dataset-source-dir",
         "-s",
         callback=bids_utils.check_absolute_path,
-        help="The absolute path to the root directory of the dataset at the source location/file server. "
+        help="The absolute path to the root directory of the BIDS dataset at the source location/file server. "
         "If provided, this path will be combined with the subject and session IDs from the BIDS table "
         "to create absolute source paths to the imaging data for each subject and session.",
         exists=False,

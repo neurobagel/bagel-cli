@@ -97,3 +97,38 @@ def test_BIDS_unsupported_suffixes_filtered_out(
         ],
     )
     assert result.exit_code == 0
+
+
+@pytest.mark.parametrize(
+    "no_nii_dataset",
+    [
+        "eeg_cbm",
+        "micr_SEM",
+    ],
+)
+def test_exits_gracefully_if_no_nii_files_in_bids_directory(
+    runner,
+    bids_path,
+    no_nii_dataset,
+    default_bids2tsv_output_path,
+    propagate_errors,
+    caplog,
+):
+    """Test that bids2tsv exits with an informative error if no NIfTI files are found in the BIDS directory."""
+    result = runner.invoke(
+        bagel,
+        [
+            "bids2tsv",
+            "--bids-dir",
+            bids_path / no_nii_dataset,
+            "--output",
+            default_bids2tsv_output_path,
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert not default_bids2tsv_output_path.exists()
+    assert len(caplog.records) == 1
+    assert (
+        "No NIfTI files with supported BIDS suffixes were found" in caplog.text
+    )

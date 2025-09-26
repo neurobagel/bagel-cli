@@ -217,7 +217,7 @@ def test_valid_bids_tables_pass_validation(row_data):
     [
         (
             [
-                # all missing 'ses-' prefix
+                # all rows missing 'ses-' prefix
                 [
                     "sub-01",
                     "01",
@@ -261,20 +261,34 @@ def test_valid_bids_tables_pass_validation(row_data):
                     "/data/synthetic/sub-01/func/sub-01_ses-01_task-rest_bold.nii",
                 ],
                 [
-                    "02",  # missing 'sub-' prefix
+                    "sub-02",
                     "ses-01",
                     "T1w",
                     "/data/synthetic/sub-02/anat/sub-02_ses-01_T1w.nii",
                 ],
+                # empty row
                 [
-                    "02",  # missing 'sub-' prefix
-                    "ses-01",
-                    "bold",
-                    "/data/synthetic/sub-02/func/sub-02_ses-01_task-rest_bold.nii",
+                    "",
+                    "",
+                    "",
+                    "",
                 ],
             ],
             "sub",
-            [2, 3],
+            [3],
+        ),
+        (
+            [
+                # empty row only
+                [
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+            ],
+            "sub",
+            [0],
         ),
         (
             [
@@ -308,7 +322,7 @@ def test_valid_bids_tables_pass_validation(row_data):
         ),
         (
             [
-                # all lacking required .nii/.nii.gz file ext
+                # all rows lacking required .nii/.nii.gz file ext
                 [
                     "sub-01",
                     "ses-01",
@@ -339,7 +353,7 @@ def test_valid_bids_tables_pass_validation(row_data):
         ),
         (
             [
-                ["sub-01", "ses-01", "T1w", ""],  # Missing required path
+                ["sub-01", "ses-01", "T1w", ""],  # missing required path
                 [
                     "sub-01",
                     "ses-01",
@@ -364,7 +378,7 @@ def test_valid_bids_tables_pass_validation(row_data):
         ),
     ],
 )
-def test_schema_invalid_bids_tables_produce_error(
+def test_bids_tables_with_invalid_values_produce_error(
     row_data, invalid_column, invalid_row_indices, caplog, propagate_errors
 ):
     """Test that an BIDS table containing invalid values for columns produces an informative schema validation error."""
@@ -413,8 +427,8 @@ def test_missing_required_column_produces_error(caplog, propagate_errors):
     assert "suffix" in caplog.text
 
 
-def test_empty_bids_table_produces_error(caplog, propagate_errors):
-    """Test that an empty BIDS table produces an informative error."""
+def test_header_only_bids_table_produces_error(caplog, propagate_errors):
+    """Test that a BIDS table with no rows except the header produces an informative error."""
     bids_table = pd.DataFrame(columns=["sub", "ses", "suffix", "path"])
     with pytest.raises(typer.Exit):
         bids_utils.validate_bids_table(bids_table)

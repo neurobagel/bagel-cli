@@ -48,22 +48,21 @@ def load_tabular(
         # then there is a good chance the user accidentally renamed a .csv into .tsv
         # and we should give them some extra info with our error message to fix this.
         note_misnamed_csv = (
-            f"Note that your {input_type} input file also looks like a .csv file "
-            "as it contains several ',' commas. It is possible that "
-            "you have accidentally renamed a .csv file as a .tsv."
+            f"[italic]NOTE: Your {input_type} table resembles a .csv file "
+            "as it contains several ',' commas. Check that you have not "
+            "accidentally renamed a .csv file to a .tsv.[/italic]"
         )
         log_error(
             logger,
-            f"Your {input_type} input file {input_p} has only one column "
-            f"and is therefore not valid as a Neurobagel {input_type} file. "
-            f"Please provide a valid .tsv {input_type} file!"
+            f"{input_p} is not a valid Neurobagel {input_type} table (.tsv). "
+            "This file is expected to have multiple columns but only one column was found. "
             f"\n{note_misnamed_csv if len(tabular_df.columns[0].split(',')) > 1 else ''}",
         )
 
     log_error(
         logger,
-        f"Your ({input_p}) is not a .tsv file. "
-        f"Please provide a valid .tsv {input_type} file!",
+        f"({input_p}) is not a .tsv file. "
+        f"Please provide a valid .tsv {input_type} table!",
     )
 
 

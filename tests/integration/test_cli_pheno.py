@@ -348,16 +348,24 @@ def test_unused_missing_values_raises_warning(
 
 
 @pytest.mark.parametrize(
-    "pheno_file,dictionary_file",
+    "pheno_file,dictionary_file,expected_err",
     [
-        ("example2.csv", "example2.json"),
-        ("example16.tsv", "example16.json"),
-        ("example2.txt", "example2.json"),
+        ("example2.csv", "example2.json", ["not a .tsv file"]),
+        ("example2.txt", "example2.json", ["not a .tsv file"]),
+        (
+            "example16.tsv",
+            "example16.json",
+            [
+                "not a valid Neurobagel phenotypic table",
+                "resembles a .csv file",
+            ],
+        ),
     ],
 )
 def test_providing_csv_file_raises_error(
     pheno_file,
     dictionary_file,
+    expected_err,
     runner,
     test_data,
     tmp_path,
@@ -385,7 +393,8 @@ def test_providing_csv_file_raises_error(
 
     assert result.exit_code != 0
     assert len(caplog.records) == 1
-    assert "Please provide a valid .tsv phenotypic file" in caplog.text
+    for substring in expected_err:
+        assert substring in caplog.text
 
 
 def test_output_file_contains_dataset_level_attributes(

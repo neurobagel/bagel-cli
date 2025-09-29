@@ -1,3 +1,15 @@
+# v0.8.2 (Mon Sep 29 2025)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Log informative error when BIDS table is empty or missing required columns [#549](https://github.com/neurobagel/bagel-cli/pull/549) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.8.1 (Fri Sep 26 2025)
 
 #### 🐛 Bug Fixes

@@ -24,17 +24,14 @@ DEPRECATED_NAMESPACES = [COGATLAS]
 DEPRECATED_NAMESPACE_PREFIXES = [ns.pf for ns in DEPRECATED_NAMESPACES]
 
 BIDS = {
-    "anat": NIDM.pf + ":Anatomical",
-    "func": NIDM.pf + ":Functional",
     "dwi": NIDM.pf + ":DiffusionWeighted",
-    "bval": NIDM.pf + ":b-value",
-    "bvec": NIDM.pf + ":b-vector",
     "T1w": NIDM.pf + ":T1Weighted",
     "T2w": NIDM.pf + ":T2Weighted",
-    "inplaneT2": NIDM.pf + ":T2Weighted",
     "bold": NIDM.pf + ":FlowWeighted",
-    "dti": NIDM.pf + ":DiffusionTensor",
     "asl": NIDM.pf + ":ArterialSpinLabeling",
+    "eeg": NIDM.pf + ":Electroencephalography",
+    "meg": NIDM.pf + ":Magnetoencephalography",
+    "pet": NIDM.pf + ":PositronEmissionTomography",
 }
 NEUROBAGEL = {
     "participant": NB.pf + ":ParticipantID",

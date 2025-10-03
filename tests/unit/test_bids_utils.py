@@ -45,8 +45,8 @@ from bagel.utilities import bids_utils
                 [
                     "sub-01",
                     "",
-                    "inplaneT2",
-                    "/data/ds001/sub-01/anat/sub-01_inplaneT2.nii.gz",
+                    "T2w",
+                    "/data/ds001/sub-01/anat/sub-01_T2w.nii.gz",
                 ],
                 [
                     "sub-01",

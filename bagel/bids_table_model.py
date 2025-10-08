@@ -65,13 +65,7 @@ model = pa.DataFrameSchema(
         ),
         "path": pa.Column(
             str,
-            checks=[
-                pa.Check.is_not_whitespace(error=NO_WHITESPACE_ERR),
-                pa.Check(
-                    lambda path: path.str.endswith((".nii", ".nii.gz")),
-                    error="Path must end with a valid BIDS NIfTI file extension (.nii, .nii.gz).",
-                ),
-            ],
+            pa.Check.is_not_whitespace(error=NO_WHITESPACE_ERR),
             nullable=False,
         ),
     },

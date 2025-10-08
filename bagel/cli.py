@@ -83,7 +83,7 @@ def bids2tsv(
 ):
     """
     Convert a BIDS dataset into a minimal tabular format (.tsv file) containing information about
-    subject, session, suffix (image contrast), and file path for NIfTI data only.
+    subject, session, suffix (image contrast), and file path for imaging files.
     """
     file_utils.check_overwrite(output, overwrite)
 
@@ -113,26 +113,25 @@ def bids2tsv(
     dataset_tab = b2t2.index_dataset(bids_dir)
     dataset_df = dataset_tab.to_pandas()
 
-    nii_records = dataset_df[dataset_df["ext"].isin([".nii", ".nii.gz"])]
-    unsupported_nii_suffixes = bids_utils.find_unsupported_bids_suffixes(
-        nii_records
+    unsupported_suffixes = bids_utils.find_unsupported_bids_suffixes(
+        dataset_df
     )
-    if unsupported_nii_suffixes:
+    if unsupported_suffixes:
         logger.warning(
-            f"NIfTI file suffixes unsupported in BIDS were found in the BIDS directory: {unsupported_nii_suffixes}. "
+            f"Image file suffixes unsupported in BIDS were found in the BIDS directory: {unsupported_suffixes}. "
             "These will be ignored. For more information, see https://bids-specification.readthedocs.io/en/stable/."
         )
 
-    dataset_df = nii_records[
-        nii_records["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES)
+    dataset_df = dataset_df[
+        dataset_df["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES)
     ].copy()
 
     if dataset_df.empty:
         log_error(
             logger,
-            f"No NIfTI files with supported BIDS suffixes were found in {bids_dir}. "
+            f"No image files with supported BIDS suffixes were found in {bids_dir}. "
             "A BIDS metadata table could not be generated. "
-            "Please ensure your dataset includes at least one NIfTI file (.nii/.nii.gz) with a supported BIDS suffix "
+            "Please ensure your dataset includes at least one image file with a supported BIDS suffix "
             "(see https://bids-specification.readthedocs.io/en/stable/).",
         )
 
@@ -370,7 +369,7 @@ def bids(
         ...,
         "--bids-table",
         "-b",
-        help="The path to a .tsv file containing the BIDS metadata for NIfTI image files including 'sub', 'ses', 'suffix', and 'path' columns. "
+        help="The path to a .tsv file containing the BIDS metadata for image files including 'sub', 'ses', 'suffix', and 'path' columns. "
         "This file can be created using the bagel bids2tsv command.",
         exists=True,
         file_okay=True,

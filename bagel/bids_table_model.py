@@ -2,6 +2,7 @@ import bidsschematools as bst
 import pandas as pd
 import pandera.extensions as extensions
 import pandera.pandas as pa
+from mappings import BIDS
 
 NO_WHITESPACE_ERR = (
     "Must be a non-empty value that does not contain only whitespace."
@@ -58,7 +59,7 @@ model = pa.DataFrameSchema(
             checks=[
                 pa.Check.is_not_whitespace(error=NO_WHITESPACE_ERR),
                 pa.Check.isin(
-                    BIDS_SUPPORTED_SUFFIXES
+                    BIDS.keys(),
                 ),  # NOTE: suffixes are case-sensitive
             ],
             nullable=False,

@@ -8,11 +8,11 @@ from bagel import bids_table_model, mappings, models
 from bagel.logger import log_error, logger
 
 
-def find_unsupported_bids_suffixes(data: pd.DataFrame) -> list:
-    """Return any suffixes unsupported by BIDS that are found in the provided BIDS table."""
+def find_unsupported_image_suffixes(data: pd.DataFrame) -> list:
+    """Return any image file suffixes unsupported by Neurobagel that are found in the provided BIDS table."""
     return (
         data.loc[
-            ~data["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES),
+            ~data["suffix"].isin(mappings.BIDS.keys()),
             "suffix",
         ]
         .unique()

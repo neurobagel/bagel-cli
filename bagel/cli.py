@@ -7,7 +7,7 @@ import typer
 from bids import BIDSLayout, exceptions
 from rich.progress import Progress, SpinnerColumn, TextColumn, track
 
-from bagel import bids_table_model, mappings, models
+from bagel import mappings, models
 
 from .logger import VerbosityLevel, configure_logger, log_error, logger
 from .utilities import (
@@ -113,17 +113,17 @@ def bids2tsv(
     dataset_tab = b2t2.index_dataset(bids_dir)
     dataset_df = dataset_tab.to_pandas()
 
-    unsupported_suffixes = bids_utils.find_unsupported_bids_suffixes(
+    unsupported_suffixes = bids_utils.find_unsupported_image_suffixes(
         dataset_df
     )
     if unsupported_suffixes:
         logger.warning(
-            f"Image file suffixes unsupported in BIDS were found in the BIDS directory: {unsupported_suffixes}. "
-            "These will be ignored. For more information, see https://bids-specification.readthedocs.io/en/stable/."
+            f"Image file suffixes unsupported by Neurobagel were found in the BIDS directory: {unsupported_suffixes}. "
+            f"These will be ignored. Neurobagel-supported BIDS suffixes: {list(mappings.BIDS.keys())}."
         )
 
     dataset_df = dataset_df[
-        dataset_df["suffix"].isin(bids_table_model.BIDS_SUPPORTED_SUFFIXES)
+        dataset_df["suffix"].isin(mappings.BIDS.keys())
     ].copy()
 
     if dataset_df.empty:
@@ -131,8 +131,8 @@ def bids2tsv(
             logger,
             f"No image files with supported BIDS suffixes were found in {bids_dir}. "
             "A BIDS metadata table could not be generated. "
-            "Please ensure your dataset includes at least one image file with a supported BIDS suffix "
-            "(see https://bids-specification.readthedocs.io/en/stable/).",
+            "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
+            f"(Supported suffixes: {list(mappings.BIDS.keys())}).",
         )
 
     dataset_df["path"] = dataset_df.apply(

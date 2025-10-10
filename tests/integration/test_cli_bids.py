@@ -1,3 +1,4 @@
+import pandas as pd
 import pytest
 
 from bagel.cli import bagel
@@ -205,3 +206,138 @@ def test_relative_source_dir_path_raises_error(
     )
     assert result.exit_code != 0
     assert "must be an absolute path" in result.output
+
+
+def some_unsupported_suffixes_in_bids_table_raises_warning(
+    runner,
+    tmp_path,
+    test_data_upload_path,
+    default_pheno_bids_output_path,
+    load_test_json,
+    get_values_by_key,
+    disable_rich_markup,
+    propagate_warnings,
+    caplog,
+):
+    """
+    Check that a BIDS table containing some unsupported suffixes raises a warning
+    and the unsupported suffixes are dropped in the graph data output.
+    """
+    row_data = [
+        [
+            "sub-01",
+            "ses-01",
+            "unsupported1",  # unsupported_suffix
+            "/data/synthetic/sub-01/anat/sub-01_ses-01_unsupported1.nii.gz",
+        ],
+        [
+            "sub-01",
+            "ses-01",
+            "bold",
+            "/data/synthetic/sub-01/func/sub-01_ses-01_task-rest_bold.nii.gz",
+        ],
+        [
+            "sub-02",
+            "ses-01",
+            "unsupported1",  # unsupported_suffix
+            "/data/synthetic/sub-02/anat/sub-02_ses-01_unsupported1.nii.gz",
+        ],
+        [
+            "sub-02",
+            "ses-01",
+            "bold",
+            "/data/synthetic/sub-02/func/sub-02_ses-01_task-rest_bold.nii.gz",
+        ],
+    ]
+    bids_table = pd.DataFrame(
+        row_data, columns=["sub", "ses", "suffix", "path"]
+    )
+    bids_table.to_csv(tmp_path / "bids.tsv", sep="\t", index=False)
+
+    runner.invoke(
+        bagel,
+        [
+            "bids",
+            "--jsonld-path",
+            test_data_upload_path / "example_synthetic.jsonld",
+            "--bids-table",
+            tmp_path / "bids.tsv",
+            "--output",
+            default_pheno_bids_output_path,
+        ],
+        catch_exceptions=False,
+    )
+
+    output = load_test_json(default_pheno_bids_output_path)
+    contrasts = get_values_by_key(output, "hasContrastType")
+
+    assert len(caplog.records) == 1
+    assert "suffixes unsupported by Neurobagel" in caplog.text
+    assert "unsupported1" in caplog.text
+    assert all(
+        contrast["identifier"] == "nidm:FlowWeighted" for contrast in contrasts
+    )
+
+
+def all_unsupported_suffixes_in_bids_table_raises_error(
+    runner,
+    tmp_path,
+    test_data_upload_path,
+    default_pheno_bids_output_path,
+    disable_rich_markup,
+    propagate_warnings,
+    caplog,
+):
+    """
+    Check that a BIDS table containing only unsupported suffixes raises an error
+    and no output JSONLD file is created.
+    """
+    row_data = [
+        [
+            "sub-01",
+            "ses-01",
+            "unsupported1",
+            "/data/synthetic/sub-01/anat/sub-01_ses-01_unsupported1.nii.gz",
+        ],
+        [
+            "sub-01",
+            "ses-01",
+            "unsupported2",
+            "/data/synthetic/sub-01/func/sub-01_ses-01_unsupported2.nii.gz",
+        ],
+        [
+            "sub-02",
+            "ses-01",
+            "unsupported1",
+            "/data/synthetic/sub-02/anat/sub-02_ses-01_unsupported1.nii.gz",
+        ],
+        [
+            "sub-02",
+            "ses-01",
+            "unsupported2",
+            "/data/synthetic/sub-02/func/sub-02_ses-01_unsupported2.nii.gz",
+        ],
+    ]
+    bids_table = pd.DataFrame(
+        row_data, columns=["sub", "ses", "suffix", "path"]
+    )
+    bids_table.to_csv(tmp_path / "bids.tsv", sep="\t", index=False)
+
+    result = runner.invoke(
+        bagel,
+        [
+            "bids",
+            "--jsonld-path",
+            test_data_upload_path / "example_synthetic.jsonld",
+            "--bids-table",
+            tmp_path / "bids.tsv",
+            "--output",
+            default_pheno_bids_output_path,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code != 0
+    assert not default_pheno_bids_output_path.exists()
+    assert len(caplog.records) == 1
+    assert "No Neurobagel-supported BIDS suffixes found" in caplog.text

@@ -13,26 +13,6 @@ def get_test_context(neurobagel_test_config):
     return model_utils.generate_context(config=neurobagel_test_config)
 
 
-@pytest.fixture
-def get_values_by_key():
-    """
-    Get values of all instances of a specified key in a dictionary. Will also look inside lists of dictionaries and nested dictionaries.
-    """
-
-    def _find_by_key(data, target):
-        if isinstance(data, dict):
-            for key, value in data.items():
-                if isinstance(value, (dict, list)):
-                    yield from _find_by_key(value, target)
-                elif key == target:
-                    yield value
-        elif isinstance(data, list):
-            for item in data:
-                yield from _find_by_key(item, target)
-
-    return _find_by_key
-
-
 @pytest.mark.parametrize(
     "missing_values,expectation",
     [

@@ -322,37 +322,6 @@ def test_valid_bids_tables_pass_validation(row_data):
         ),
         (
             [
-                # all rows lacking required .nii/.nii.gz file ext
-                [
-                    "sub-01",
-                    "ses-01",
-                    "T1w",
-                    "/data/synthetic/sub-01/anat/sub-01_ses-01_T1w.mnc",
-                ],
-                [
-                    "sub-01",
-                    "ses-01",
-                    "bold",
-                    "/data/synthetic/sub-01/func/sub-01_ses-01_task-rest_bold.mnc",
-                ],
-                [
-                    "sub-02",
-                    "ses-01",
-                    "T1w",
-                    "/data/synthetic/sub-02/anat/sub-02_ses-01_T1w.mnc",
-                ],
-                [
-                    "sub-02",
-                    "ses-01",
-                    "bold",
-                    "/data/synthetic/sub-02/func/sub-02_ses-01_task-rest_bold.mnc",
-                ],
-            ],
-            "path",
-            [0, 1, 2, 3],
-        ),
-        (
-            [
                 ["sub-01", "ses-01", "T1w", ""],  # missing required path
                 [
                     "sub-01",

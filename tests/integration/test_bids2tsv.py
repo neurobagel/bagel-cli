@@ -24,9 +24,19 @@ def bids_synthetic_with_fake_suffix_file(bids_synthetic):
     fake_suffix_file.unlink()
 
 
+@pytest.mark.parametrize(
+    "bids_dataset,has_sessions,expected_suffixes",
+    [
+        ("synthetic", True, {"bold", "T1w"}),
+        ("eeg_cbm", False, {"eeg"}),
+    ],
+)
 def test_valid_bids_dataset_converted_successfully(
     runner,
-    bids_synthetic,
+    bids_path,
+    bids_dataset,
+    has_sessions,
+    expected_suffixes,
     default_bids2tsv_output_path,
 ):
     """
@@ -38,7 +48,7 @@ def test_valid_bids_dataset_converted_successfully(
         [
             "bids2tsv",
             "--bids-dir",
-            bids_synthetic,
+            bids_path / bids_dataset,
             "--output",
             default_bids2tsv_output_path,
         ],
@@ -49,8 +59,11 @@ def test_valid_bids_dataset_converted_successfully(
     assert list(bids_tsv.columns) == ["sub", "ses", "suffix", "path"]
     assert bids_tsv[["sub", "suffix", "path"]].notna().all(axis=None)
     assert bids_tsv["sub"].str.startswith("sub-").all()
-    assert bids_tsv["ses"].str.startswith("ses-").all()
-    assert set(bids_tsv["suffix"].unique()) == set(["bold", "T1w"])
+    if has_sessions:
+        assert bids_tsv["ses"].str.startswith("ses-").all()
+    else:
+        assert bids_tsv["ses"].isna().all()
+    assert set(bids_tsv["suffix"].unique()) == expected_suffixes
 
 
 def test_BIDS_unsupported_suffixes_filtered_out(
@@ -78,7 +91,7 @@ def test_BIDS_unsupported_suffixes_filtered_out(
     )
     assert result.exit_code == 0
     assert len(caplog.records) == 1
-    for substring in ["suffixes unsupported in BIDS", "FAKE"]:
+    for substring in ["suffixes unsupported by Neurobagel", "FAKE"]:
         assert substring in caplog.text
 
     bids_tsv = pd.read_csv(default_bids2tsv_output_path, sep="\t")
@@ -99,17 +112,9 @@ def test_BIDS_unsupported_suffixes_filtered_out(
     assert result.exit_code == 0
 
 
-@pytest.mark.parametrize(
-    "no_nii_dataset",
-    [
-        "eeg_cbm",
-        "micr_SEM",
-    ],
-)
 def test_exits_gracefully_if_no_nii_files_in_bids_directory(
     runner,
     bids_path,
-    no_nii_dataset,
     default_bids2tsv_output_path,
     propagate_errors,
     caplog,
@@ -120,7 +125,7 @@ def test_exits_gracefully_if_no_nii_files_in_bids_directory(
         [
             "bids2tsv",
             "--bids-dir",
-            bids_path / no_nii_dataset,
+            bids_path / "micr_SEM",
             "--output",
             default_bids2tsv_output_path,
         ],
@@ -130,5 +135,5 @@ def test_exits_gracefully_if_no_nii_files_in_bids_directory(
     assert not default_bids2tsv_output_path.exists()
     assert len(caplog.records) == 1
     assert (
-        "No NIfTI files with supported BIDS suffixes were found" in caplog.text
+        "No image files with supported BIDS suffixes were found" in caplog.text
     )

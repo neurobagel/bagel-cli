@@ -208,7 +208,7 @@ def test_relative_source_dir_path_raises_error(
     assert "must be an absolute path" in result.output
 
 
-def some_unsupported_suffixes_in_bids_table_raises_warning(
+def test_some_unsupported_suffixes_in_bids_table_raises_warning(
     runner,
     tmp_path,
     test_data_upload_path,
@@ -279,7 +279,7 @@ def some_unsupported_suffixes_in_bids_table_raises_warning(
     )
 
 
-def all_unsupported_suffixes_in_bids_table_raises_error(
+def test_all_unsupported_suffixes_in_bids_table_raises_error(
     runner,
     tmp_path,
     test_data_upload_path,

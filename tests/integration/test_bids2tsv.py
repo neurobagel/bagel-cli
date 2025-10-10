@@ -119,7 +119,7 @@ def test_exits_gracefully_if_no_supported_suffixes_in_bids_dir(
     propagate_warnings,
     caplog,
 ):
-    """Test that bids2tsv exits with an informative error if no NIfTI files are found in the BIDS directory."""
+    """Test that bids2tsv exits with an informative error if no supported suffixes are found in the BIDS directory."""
     result = runner.invoke(
         bagel,
         [

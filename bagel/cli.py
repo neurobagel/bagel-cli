@@ -119,7 +119,7 @@ def bids2tsv(
     if unsupported_suffixes:
         logger.warning(
             f"Image file suffixes unsupported by Neurobagel were found in the BIDS directory: {unsupported_suffixes}. "
-            f"These will be ignored. Neurobagel-supported BIDS suffixes: {list(mappings.BIDS.keys())}."
+            f"These will be ignored. Supported BIDS suffixes: {list(mappings.BIDS.keys())}."
         )
 
     dataset_df = dataset_df[

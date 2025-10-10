@@ -113,6 +113,15 @@ def bids2tsv(
     dataset_tab = b2t2.index_dataset(bids_dir)
     dataset_df = dataset_tab.to_pandas()
 
+    if not dataset_df["suffix"].isin(mappings.BIDS.keys()).any():
+        log_error(
+            logger,
+            f"No image files with supported BIDS suffixes were found in {bids_dir}. "
+            "A BIDS metadata table could not be generated. "
+            "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
+            f"(Supported suffixes: {list(mappings.BIDS.keys())}).",
+        )
+
     unsupported_suffixes = bids_utils.find_unsupported_image_suffixes(
         dataset_df
     )
@@ -125,15 +134,6 @@ def bids2tsv(
     dataset_df = dataset_df[
         dataset_df["suffix"].isin(mappings.BIDS.keys())
     ].copy()
-
-    if dataset_df.empty:
-        log_error(
-            logger,
-            f"No image files with supported BIDS suffixes were found in {bids_dir}. "
-            "A BIDS metadata table could not be generated. "
-            "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
-            f"(Supported suffixes: {list(mappings.BIDS.keys())}).",
-        )
 
     dataset_df["path"] = dataset_df.apply(
         lambda row: (Path(row["root"]) / row["path"]).as_posix(), axis=1
@@ -439,6 +439,28 @@ def bids(
         model_utils.extract_and_validate_jsonld_dataset(jsonld_path)
     )
     bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
+
+    if not bids_dataset["suffix"].isin(mappings.BIDS.keys()).any():
+        log_error(
+            logger,
+            f"No Neurobagel-supported BIDS suffixes found in BIDS table 'suffix' column: {bids_table}. "
+            "No imaging metadata could be added to the subject graph data. "
+            "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
+            f"(supported suffixes: {list(mappings.BIDS.keys())}).",
+        )
+
+    unsupported_suffixes = bids_utils.find_unsupported_image_suffixes(
+        bids_dataset
+    )
+    if unsupported_suffixes:
+        logger.warning(
+            f"BIDS table 'suffix' column contains image file suffixes unsupported by Neurobagel: {unsupported_suffixes}. "
+            f"These records will be ignored. Supported BIDS suffixes: {list(mappings.BIDS.keys())}."
+        )
+
+    bids_dataset = bids_dataset[
+        bids_dataset["suffix"].isin(mappings.BIDS.keys())
+    ].copy()
 
     bids_utils.validate_bids_table(bids_dataset)
 

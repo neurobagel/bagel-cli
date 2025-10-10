@@ -57,7 +57,7 @@ def validate_bids_table(bids_table: pd.DataFrame):
         )
 
 
-def map_term_to_namespace(term: str, namespace: dict) -> str:
+def map_term_to_namespace(term: str, namespace: dict) -> str | bool:
     """Returns the mapped namespace term if it exists, or False otherwise."""
     return namespace.get(term, False)
 

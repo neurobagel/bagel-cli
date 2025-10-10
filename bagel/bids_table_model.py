@@ -1,4 +1,3 @@
-import bidsschematools as bst
 import pandas as pd
 import pandera.extensions as extensions
 import pandera.pandas as pa
@@ -8,19 +7,6 @@ from .mappings import BIDS
 NO_WHITESPACE_ERR = (
     "Must be a non-empty value that does not contain only whitespace."
 )
-
-
-def get_bids_supported_suffixes() -> list[str]:
-    """
-    Retrieve the list of supported BIDS suffixes from the BIDS schema.
-    Note that the suffixes are not restricted to NIfTI data.
-    """
-    bids_schema = bst.schema.load_schema()
-    suffixes = bids_schema["objects.suffixes"].to_dict().keys()
-    return list(suffixes)
-
-
-BIDS_SUPPORTED_SUFFIXES = get_bids_supported_suffixes()
 
 
 @extensions.register_check_method()

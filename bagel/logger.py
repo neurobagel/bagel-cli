@@ -38,7 +38,10 @@ def configure_logger(verbosity: VerbosityLevel = VerbosityLevel.INFO) -> None:
     # Prevent duplicate handlers when updating the logger
     if not logger.handlers:
         handler = RichHandler(
-            omit_repeated_times=False, show_path=False, rich_tracebacks=True
+            omit_repeated_times=False,
+            show_path=False,
+            rich_tracebacks=True,
+            markup=True,
         )
         formatter = logging.Formatter(fmt=LOG_FMT, datefmt=DATETIME_FMT)
         handler.setFormatter(formatter)
@@ -59,5 +62,5 @@ def log_error(
     message: str,
 ) -> NoReturn:
     """Log an exception with an informative error message, and exit the app."""
-    logger.error(message, extra={"markup": True})
+    logger.error(message)
     raise typer.Exit(code=1)

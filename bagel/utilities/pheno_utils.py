@@ -631,7 +631,7 @@ def validate_inputs(
         log_error(
             logger,
             "One or more unique values found in annotated categorical columns of the phenotypic table are missing annotations in the data dictionary "
-            f"(shown by column as 'column_name': [unannotated_values]): {undefined_cat_col_values}. "
+            rf"(shown by column as 'column_name': \[unannotated_values]): {undefined_cat_col_values}. "
             "Check that you've selected the correct data dictionary or annotate the values that are missing. "
             "[italic]TIP: Ensure that column values in the table exactly match the values annotated in the data dictionary.[/italic]",
         )
@@ -640,9 +640,9 @@ def validate_inputs(
     if unused_missing_values:
         logger.warning(
             "Some values annotated as missing values in the data dictionary were not found "
-            "in the corresponding phenotypic table column(s) (shown as 'column_name': [unused_missing_values]): "
-            f"{unused_missing_values}. If this is not intentional, please check your data dictionary "
-            "and phenotypic table."
+            r"in the corresponding phenotypic table column(s) (shown as 'column_name': \[unused_missing_values]): "
+            f"{unused_missing_values}. [italic]If this is not intentional, please check your data dictionary "
+            "and phenotypic table.[/italic]"
         )
 
 

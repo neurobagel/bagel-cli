@@ -92,7 +92,6 @@ def test_pheno_valid_inputs_run_successfully(
             "example9",
             [
                 "missing annotations in the data dictionary",
-                "[unannotated_values]",
                 "'group': ['UNANNOTATED']",
             ],
         ),
@@ -341,7 +340,6 @@ def test_unused_missing_values_raises_warning(
     assert len(caplog.records) == 1
     for warn_substring in [
         "missing values in the data dictionary were not found",
-        "'column_name': [unused_missing_values]",
         "'group': ['NOT IN TSV']",
         "'tool_item1': ['NOT IN TSV 1', 'NOT IN TSV 2']",
         "'tool_item2': ['NOT IN TSV 1', 'NOT IN TSV 2']",

@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from bagel.cli import bagel
+from tests import utils
 
 
 @pytest.fixture(scope="function")
@@ -214,7 +215,6 @@ def test_some_unsupported_suffixes_in_bids_table_raises_warning(
     test_data_upload_path,
     default_pheno_bids_output_path,
     load_test_json,
-    get_values_by_key,
     disable_rich_markup,
     propagate_warnings,
     caplog,
@@ -269,7 +269,7 @@ def test_some_unsupported_suffixes_in_bids_table_raises_warning(
     )
 
     output = load_test_json(default_pheno_bids_output_path)
-    contrasts = get_values_by_key(output, "hasContrastType")
+    contrasts = utils.get_values_by_key(output, "hasContrastType")
 
     assert len(caplog.records) == 1
     assert "suffixes unsupported by Neurobagel" in caplog.text

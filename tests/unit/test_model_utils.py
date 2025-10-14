@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 from bagel import dictionary_models, mappings, models
 from bagel.utilities import model_utils, pheno_utils
+from tests import utils
 
 
 @pytest.fixture
@@ -38,7 +39,7 @@ def test_unique_missing_values_validation(missing_values, expectation):
 
 
 def test_all_used_namespaces_have_urls(
-    get_test_context, get_values_by_key, load_test_json, test_data_upload_path
+    get_test_context, load_test_json, test_data_upload_path
 ):
     """Test that all namespace prefixes used in a comprehensive data dictionary have a corresponding URL in the @context."""
     data_dict = load_test_json(
@@ -48,7 +49,7 @@ def test_all_used_namespaces_have_urls(
     prefixes = list(
         map(
             lambda term: term.split(":")[0],
-            get_values_by_key(data_dict, "TermURL"),
+            utils.get_values_by_key(data_dict, "TermURL"),
         )
     )
 

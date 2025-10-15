@@ -5,32 +5,13 @@ from pydantic import ValidationError
 
 from bagel import dictionary_models, mappings, models
 from bagel.utilities import model_utils, pheno_utils
+from tests import utils
 
 
 @pytest.fixture
 def get_test_context(neurobagel_test_config):
     """Generate an @context dictionary to test against."""
     return model_utils.generate_context(config=neurobagel_test_config)
-
-
-@pytest.fixture
-def get_values_by_key():
-    """
-    Get values of all instances of a specified key in a dictionary. Will also look inside lists of dictionaries and nested dictionaries.
-    """
-
-    def _find_by_key(data, target):
-        if isinstance(data, dict):
-            for key, value in data.items():
-                if isinstance(value, (dict, list)):
-                    yield from _find_by_key(value, target)
-                elif key == target:
-                    yield value
-        elif isinstance(data, list):
-            for item in data:
-                yield from _find_by_key(item, target)
-
-    return _find_by_key
 
 
 @pytest.mark.parametrize(
@@ -58,7 +39,7 @@ def test_unique_missing_values_validation(missing_values, expectation):
 
 
 def test_all_used_namespaces_have_urls(
-    get_test_context, get_values_by_key, load_test_json, test_data_upload_path
+    get_test_context, load_test_json, test_data_upload_path
 ):
     """Test that all namespace prefixes used in a comprehensive data dictionary have a corresponding URL in the @context."""
     data_dict = load_test_json(
@@ -68,7 +49,7 @@ def test_all_used_namespaces_have_urls(
     prefixes = list(
         map(
             lambda term: term.split(":")[0],
-            get_values_by_key(data_dict, "TermURL"),
+            utils.get_values_by_key(data_dict, "TermURL"),
         )
     )
 

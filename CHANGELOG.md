@@ -1,3 +1,22 @@
+# v0.9.0 (Wed Oct 15 2025)
+
+#### 🚀 Enhancements
+
+- [ENH] Allow non-NIfTI records in `bids2tsv` but only Neurobagel-supported suffixes [#561](https://github.com/neurobagel/bagel-cli/pull/561) ([@alyssadai](https://github.com/alyssadai))
+- [REF] Updating supported BIDS tags (add PET, EEG, MEG) [#556](https://github.com/neurobagel/bagel-cli/pull/556) ([@surchs](https://github.com/surchs))
+- [REF] Warn about unsupported suffixes in `bagel bids` and error if all suffixes unsupported [#562](https://github.com/neurobagel/bagel-cli/pull/562) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Ensure square brackets in logs aren't interpreted as markup [#564](https://github.com/neurobagel/bagel-cli/pull/564) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
 # v0.8.2 (Mon Sep 29 2025)
 
 #### 🐛 Bug Fixes

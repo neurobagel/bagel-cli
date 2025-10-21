@@ -22,15 +22,17 @@ from .utilities.derivative_utils import PROC_STATUS_COLS
 CUSTOM_SESSION_LABEL = "ses-unnamed"
 
 bagel = typer.Typer(
-    help="""
-    A command-line tool for creating valid, subject-level instances of the Neurobagel graph data model.\n
-    The 'pheno' command must always be run first to generate the input .jsonld file required for the 'bids' command.
-
-    To view the arguments for a specific command, run: bagel [COMMAND] --help
-    """,
+    help=(
+        "A command-line tool for creating valid, subject-level instances of the Neurobagel graph data model.\n\n"
+        "[red]NOTE: The 'pheno' command must always be run first on a new dataset to generate the input .jsonld file required for the 'bids' command.[/red]"
+    ),
     # From https://github.com/tiangolo/typer/issues/201#issuecomment-744151303
     context_settings={"help_option_names": ["--help", "-h"]},
     rich_markup_mode="rich",
+    epilog=(
+        "Run 'bagel COMMAND --help' for more information on a command.\n\n"
+        "Or visit the documentation at https://neurobagel.org/user_guide/cli/"
+    ),
 )
 
 
@@ -82,8 +84,7 @@ def bids2tsv(
     verbosity: VerbosityLevel = verbosity_option(),
 ):
     """
-    Convert a BIDS dataset into a minimal tabular format (.tsv file) containing information about
-    subject, session, suffix (image contrast), and file path for imaging files.
+    Convert a BIDS dataset into a minimal tabular format (.tsv) containing information about subject, session, suffix (image contrast), and file path for imaging files.
     """
     file_utils.check_overwrite(output, overwrite)
 
@@ -222,13 +223,9 @@ def pheno(
     verbosity: VerbosityLevel = verbosity_option(),
 ):
     """
-    Process a tabular phenotypic file (.tsv) that has been successfully annotated
-    with the Neurobagel annotation tool. The annotations are expected to be stored
-    in a data dictionary (.json).
+    Process a tabular phenotypic file (.tsv) that has been successfully annotated with the Neurobagel annotation tool, with annotations stored in a data dictionary (.json).
 
-    This command will create a valid, subject-level instance of the Neurobagel
-    graph data model for the provided phenotypic file in the .jsonld format.
-    You can upload this .jsonld file to the Neurobagel graph.
+    This command will create a valid, subject-level instance of the Neurobagel graph data model for the provided phenotypic file in the JSON-LD format. You can upload this .jsonld file to the Neurobagel graph.
     """
     file_utils.check_overwrite(output, overwrite)
 
@@ -406,14 +403,10 @@ def bids(
     verbosity: VerbosityLevel = verbosity_option(),
 ):
     """
-    Extract imaging metadata from a valid BIDS dataset and integrate it with
-    subjects' harmonized phenotypic data (from the bagel pheno command) and, optionally,
-    processing pipeline metadata (from the bagel derivatives command) in a single .jsonld file.
-    NOTE: Must be run AFTER the pheno command.
+    Extract and integrate imaging metadata from a BIDS dataset with harmonized subject phenotypic data (from 'bagel pheno') and, optionally, processing pipeline metadata (from 'bagel derivatives') in a single .jsonld file.
+    [red]NOTE: Must be run AFTER 'bagel pheno'.[/red]
 
-    This command will create a valid, subject-level instance of the Neurobagel
-    graph data model for the combined metadata in the .jsonld format.
-    You can upload this .jsonld file to the Neurobagel graph.
+    This command will create a valid, subject-level instance of the Neurobagel graph data model for the combined metadata in the JSON-LD format. You can upload this .jsonld file to the Neurobagel graph.
     """
 
     file_utils.check_overwrite(output, overwrite)
@@ -578,14 +571,10 @@ def derivatives(
     verbosity: VerbosityLevel = verbosity_option(),
 ):
     """
-    Extract subject processing pipeline and derivative metadata from a tabular processing status file and
-    integrate them in a single .jsonld with subjects' harmonized phenotypic data (from the bagel pheno command) and optionally,
-    BIDS metadata (from the bagel bids command).
-    NOTE: Must be run AFTER the pheno command.
+    Extract subject processing pipeline and derivative metadata from a tabular processing status file and integrate them in a single .jsonld with harmonized subject phenotypic data (from 'bagel pheno') and optionally, BIDS metadata (from 'bagel bids').
+    [red]NOTE: Must be run AFTER 'bagel pheno'.[/red]
 
-    This command will create a valid, subject-level instance of the Neurobagel
-    graph data model for the combined metadata in the .jsonld format.
-    You can upload this .jsonld file to the Neurobagel graph.
+    This command will create a valid, subject-level instance of the Neurobagel graph data model for the combined metadata in the JSON-LD format. You can upload this .jsonld file to the Neurobagel graph.
     """
 
     file_utils.check_overwrite(output, overwrite)

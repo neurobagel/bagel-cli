@@ -22,7 +22,7 @@ from .utilities.derivative_utils import PROC_STATUS_COLS
 CUSTOM_SESSION_LABEL = "ses-unnamed"
 
 OPTION_GROUP_NAMES = {
-    "general": "Troubleshooting",
+    "troubleshooting": "Troubleshooting",
     "config": "Configuration",
 }
 

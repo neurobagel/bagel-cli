@@ -331,7 +331,7 @@ def test_failed_pipeline_catalog_fetching_does_not_raise_error_for_help(
     assert result.exit_code == 0
     assert len(caplog.records) == 0
     assert (
-        "To view the arguments for a specific command, run: bagel [COMMAND] --help"
+        "Run 'bagel COMMAND --help' for more information on a command"
         in result.output
     )
     assert "Failed to locate a pipeline catalog" not in result.output

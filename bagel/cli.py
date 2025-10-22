@@ -21,6 +21,11 @@ from .utilities.derivative_utils import PROC_STATUS_COLS
 
 CUSTOM_SESSION_LABEL = "ses-unnamed"
 
+OPTION_GROUP_NAMES = {
+    "general": "Troubleshooting",
+    "config": "Configuration",
+}
+
 bagel = typer.Typer(
     help=(
         "A command-line tool for creating valid, subject-level instances of the Neurobagel graph data model.\n\n"
@@ -46,6 +51,7 @@ def verbosity_option():
         "-v",
         callback=configure_logger,
         help="Set the verbosity level of the output. 0 = show errors only; 1 = show errors, warnings, and informational messages; 3 = show all logs, including debug messages.",
+        rich_help_panel=OPTION_GROUP_NAMES["general"],
     )
 
 
@@ -56,6 +62,28 @@ def overwrite_option():
         "--overwrite",
         "-f",
         help="Overwrite output file if it already exists.",
+    )
+
+
+def show_help(ctx: typer.Context, value: bool):
+    """Callback to display the command help and exit."""
+    if value:
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
+
+
+def help_option():
+    """
+    Create a reusable help option for commands.
+    Used to override the default location of the --help option in the help text.
+    """
+    return typer.Option(
+        False,
+        "--help",
+        "-h",
+        callback=show_help,
+        help="Show this message and exit.",
+        rich_help_panel=OPTION_GROUP_NAMES["general"],
     )
 
 
@@ -82,6 +110,7 @@ def bids2tsv(
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
 ):
     """
     Convert a BIDS dataset into a minimal tabular format (.tsv) containing information about subject, session, suffix (image contrast), and file path for imaging files.
@@ -218,9 +247,11 @@ def pheno(
         "If you are processing data for a Neurobagel subcommunity, choose the subcommunity name here. "
         "This should be the same as the configuration name you selected in the annotation tool."
         f"{pheno_utils.additional_config_help_text()}",
+        rich_help_panel=OPTION_GROUP_NAMES["config"],
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
 ):
     """
     Process a tabular phenotypic file (.tsv) that has been successfully annotated with the Neurobagel annotation tool, with annotations stored in a data dictionary (.json).
@@ -401,6 +432,7 @@ def bids(
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
 ):
     """
     Extract and integrate imaging metadata from a BIDS dataset with harmonized subject phenotypic data (from 'bagel pheno') and, optionally, processing pipeline metadata (from 'bagel derivatives') in a single .jsonld file.
@@ -569,6 +601,7 @@ def derivatives(
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
 ):
     """
     Extract subject processing pipeline and derivative metadata from a tabular processing status file and integrate them in a single .jsonld with harmonized subject phenotypic data (from 'bagel pheno') and optionally, BIDS metadata (from 'bagel bids').

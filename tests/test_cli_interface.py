@@ -28,6 +28,5 @@ def test_help_option_override_printed_in_command_help(
 def test_help_printed_if_no_args(runner, command, caplog, disable_rich_markup):
     """Test that the command help is printed if no arguments are provided."""
     result = runner.invoke(bagel, [command])
-    assert result.exit_code == 0
     assert len(caplog.records) == 0
     assert f"{command} [OPTIONS]" in result.output

@@ -33,6 +33,9 @@ bagel = typer.Typer(
     ),
     # From https://github.com/tiangolo/typer/issues/201#issuecomment-744151303
     context_settings={"help_option_names": ["--help", "-h"]},
+    # NOTE: invoking bagel with no options still results in a non-zero exit code
+    # even though the help text is printed and there are no errors,
+    # because required options are still detected as missing
     no_args_is_help=True,
     rich_markup_mode="rich",
     epilog=(
@@ -91,7 +94,7 @@ def help_option():
     )
 
 
-@bagel.command(no_args_is_help=True)
+@bagel.command()
 def bids2tsv(
     bids_dir: Path = typer.Option(
         ...,
@@ -184,7 +187,7 @@ def bids2tsv(
 
 
 # TODO: Look into whitespace for command docstring - seems to be preserved in the help text.
-@bagel.command(no_args_is_help=True)
+@bagel.command()
 def pheno(
     pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
         ...,
@@ -383,7 +386,7 @@ def pheno(
     )
 
 
-@bagel.command(no_args_is_help=True)
+@bagel.command()
 def bids(
     # TODO: Rename to --jsonld? Since other file options do not have the _path suffix.
     jsonld_path: Path = typer.Option(
@@ -571,7 +574,7 @@ def bids(
     )
 
 
-@bagel.command(no_args_is_help=True)
+@bagel.command()
 def derivatives(
     tabular: Path = typer.Option(
         ...,

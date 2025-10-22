@@ -21,16 +21,27 @@ from .utilities.derivative_utils import PROC_STATUS_COLS
 
 CUSTOM_SESSION_LABEL = "ses-unnamed"
 
-bagel = typer.Typer(
-    help="""
-    A command-line tool for creating valid, subject-level instances of the Neurobagel graph data model.\n
-    The 'pheno' command must always be run first to generate the input .jsonld file required for the 'bids' command.
+OPTION_GROUP_NAMES = {
+    "troubleshooting": "Troubleshooting",
+    "config": "Configuration",
+}
 
-    To view the arguments for a specific command, run: bagel [COMMAND] --help
-    """,
+bagel = typer.Typer(
+    help=(
+        "A command-line tool for creating valid, subject-level instances of the Neurobagel graph data model.\n\n"
+        "[red]NOTE: The 'pheno' command must always be run first on a new dataset to generate the input .jsonld file required for the 'bids' command.[/red]"
+    ),
     # From https://github.com/tiangolo/typer/issues/201#issuecomment-744151303
     context_settings={"help_option_names": ["--help", "-h"]},
+    # NOTE: invoking bagel with no options still results in a non-zero exit code
+    # even though the help text is printed and there are no errors,
+    # because required options are still detected as missing
+    no_args_is_help=True,
     rich_markup_mode="rich",
+    epilog=(
+        "Run 'bagel COMMAND --help' for more information on a command.\n\n"
+        "Or visit the documentation at https://neurobagel.org/user_guide/cli/"
+    ),
 )
 
 
@@ -44,6 +55,7 @@ def verbosity_option():
         "-v",
         callback=configure_logger,
         help="Set the verbosity level of the output. 0 = show errors only; 1 = show errors, warnings, and informational messages; 3 = show all logs, including debug messages.",
+        rich_help_panel=OPTION_GROUP_NAMES["troubleshooting"],
     )
 
 
@@ -57,13 +69,39 @@ def overwrite_option():
     )
 
 
+def show_help(ctx: typer.Context, value: bool):
+    """
+    Callback to display the command help and exit.
+    Adapted from https://github.com/fastapi/typer/discussions/833#discussioncomment-9551792.
+    """
+    if value:
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
+
+
+def help_option():
+    """
+    Create a reusable help option for commands.
+    Used to override the default location of the --help option in the help text
+    so that it appears in a different named option group.
+    """
+    return typer.Option(
+        False,
+        "--help",
+        "-h",
+        callback=show_help,
+        help="Show this message and exit.",
+        rich_help_panel=OPTION_GROUP_NAMES["troubleshooting"],
+    )
+
+
 @bagel.command()
 def bids2tsv(
     bids_dir: Path = typer.Option(
         ...,
         "--bids-dir",
         "-b",
-        help="The path to the BIDS dataset directory.",
+        help="Path to the BIDS dataset directory.",
         exists=True,
         file_okay=False,
         dir_okay=True,
@@ -73,17 +111,17 @@ def bids2tsv(
         "bids.tsv",
         "--output",
         "-o",
-        help="The path to save the output .tsv file.",
+        help="Path to save the output .tsv file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
 ):
     """
-    Convert a BIDS dataset into a minimal tabular format (.tsv file) containing information about
-    subject, session, suffix (image contrast), and file path for imaging files.
+    Convert a BIDS dataset into a minimal tabular format (.tsv) containing information about subject, session, suffix (image contrast), and file path for imaging files.
     """
     file_utils.check_overwrite(output, overwrite)
 
@@ -156,7 +194,7 @@ def pheno(
         ...,
         "--pheno",
         "-t",  # for tabular
-        help="The path to a phenotypic .tsv file",
+        help="Path to a phenotypic .tsv file",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -166,7 +204,7 @@ def pheno(
         ...,
         "--dictionary",
         "-d",
-        help="The path to the .json data dictionary corresponding to the phenotypic .tsv file.",
+        help="Path to the .json data dictionary corresponding to the phenotypic .tsv file.",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -177,23 +215,24 @@ def pheno(
         "--name",
         "-n",
         callback=pheno_utils.check_param_not_whitespace,
-        help="The full name of the dataset. "
+        help='Full name of the dataset, enclosed in quotes ("") if it includes spaces. '
         "This name will be displayed when users discover the dataset in a Neurobagel query. "
-        "For a dataset with BIDS data, the name should ideally match the dataset_description.json 'name' field. "
-        'Enclose in quotes, e.g.: --name "my dataset name"',
+        "For datasets with BIDS data, this name should ideally match the dataset_description.json 'name' field. "
+        '[italic]Example: --name "My Awesome Dataset"[/italic]',
     ),
     portal: str = typer.Option(
         None,
         "--portal",
         "-u",  # for URL
         callback=pheno_utils.validate_portal_uri,
-        help="URL (HTTP/HTTPS) to a website or page that describes the dataset and access instructions (if available).",
+        help="URL (HTTP/HTTPS) to a website or page with access instructions "
+        "and/or additional information about the dataset.",
     ),
     output: Path = typer.Option(
         "pheno.jsonld",
         "--output",
         "-o",
-        help="The path to the output .jsonld file.",
+        help="Path to the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
@@ -213,22 +252,19 @@ def pheno(
             ),
             case_sensitive=False,
         ),
-        help="The name of the vocabulary configuration used to generate your data dictionary. "
+        help="Name of the vocabulary configuration used to generate your data dictionary in the annotation tool. "
         "If you are processing data for a Neurobagel subcommunity, choose the subcommunity name here. "
-        "This should be the same as the configuration name you selected in the annotation tool."
         f"{pheno_utils.additional_config_help_text()}",
+        rich_help_panel=OPTION_GROUP_NAMES["config"],
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
 ):
     """
-    Process a tabular phenotypic file (.tsv) that has been successfully annotated
-    with the Neurobagel annotation tool. The annotations are expected to be stored
-    in a data dictionary (.json).
+    Process a tabular phenotypic file (.tsv) that has been successfully annotated with the Neurobagel annotation tool, with annotations stored in a data dictionary (.json).
 
-    This command will create a valid, subject-level instance of the Neurobagel
-    graph data model for the provided phenotypic file in the .jsonld format.
-    You can upload this .jsonld file to the Neurobagel graph.
+    This command will create a valid, subject-level instance of the Neurobagel graph data model for the provided phenotypic file in the JSON-LD format. You can upload this .jsonld file to the Neurobagel graph.
     """
     file_utils.check_overwrite(output, overwrite)
 
@@ -358,8 +394,8 @@ def bids(
         ...,
         "--jsonld-path",
         "-p",  # for pheno
-        help="The path to the .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command. "
-        "This file may optionally also include the processing pipeline metadata for the dataset (created by the bagel derivatives command).",
+        help="Path to the .jsonld file containing the phenotypic data for your dataset, created using the 'bagel pheno' command. "
+        "This file may optionally also include the processing pipeline metadata for the dataset (created using the 'bagel derivatives' command).",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -369,8 +405,8 @@ def bids(
         ...,
         "--bids-table",
         "-b",
-        help="The path to a .tsv file containing the BIDS metadata for image files including 'sub', 'ses', 'suffix', and 'path' columns. "
-        "This file can be created using the bagel bids2tsv command.",
+        help="Path to a .tsv file containing the BIDS metadata for image files including 'sub', 'ses', 'suffix', and 'path' columns. "
+        "This file can be created using the 'bagel bids2tsv' command.",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -383,7 +419,7 @@ def bids(
         "--dataset-source-dir",
         "-s",
         callback=bids_utils.check_absolute_path,
-        help="The absolute path to the root directory of the BIDS dataset at the source location/file server. "
+        help="Absolute path to the root directory of the BIDS dataset at the source location/file server. "
         "If provided, this path will be combined with the subject and session IDs from the BIDS table "
         "to create absolute source paths to the imaging data for each subject and session.",
         exists=False,
@@ -397,23 +433,20 @@ def bids(
         "pheno_bids.jsonld",
         "--output",
         "-o",
-        help="The path to the output .jsonld file.",
+        help="Path to the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
 ):
     """
-    Extract imaging metadata from a valid BIDS dataset and integrate it with
-    subjects' harmonized phenotypic data (from the bagel pheno command) and, optionally,
-    processing pipeline metadata (from the bagel derivatives command) in a single .jsonld file.
-    NOTE: Must be run AFTER the pheno command.
+    Extract and integrate imaging metadata from a BIDS dataset with harmonized subject phenotypic data (from 'bagel pheno') and, optionally, processing pipeline metadata (from 'bagel derivatives') in a single .jsonld file.
+    [red]NOTE: Must be run AFTER 'bagel pheno'.[/red]
 
-    This command will create a valid, subject-level instance of the Neurobagel
-    graph data model for the combined metadata in the .jsonld format.
-    You can upload this .jsonld file to the Neurobagel graph.
+    This command will create a valid, subject-level instance of the Neurobagel graph data model for the combined metadata in the JSON-LD format. You can upload this .jsonld file to the Neurobagel graph.
     """
 
     file_utils.check_overwrite(output, overwrite)
@@ -548,7 +581,7 @@ def derivatives(
         ...,
         "--tabular",
         "-t",
-        help="The path to a .tsv containing subject-level processing pipeline status info. Expected to comply with the Nipoppy processing status file schema.",
+        help="Path to a .tsv containing subject-level processing pipeline status info. Expected to comply with the Nipoppy processing status file schema.",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -559,7 +592,7 @@ def derivatives(
         ...,
         "--jsonld-path",
         "-p",  # for pheno
-        help="The path to a .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command. This JSONLD may optionally also include the BIDS metadata for the dataset (created by the bagel bids command).",
+        help="Path to a .jsonld file containing the phenotypic data for your dataset, created using the 'bagel pheno' command. This file may optionally also include the BIDS metadata for the dataset (created using the 'bagel bids' command).",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -569,23 +602,20 @@ def derivatives(
         "pheno_derivatives.jsonld",
         "--output",
         "-o",
-        help="The path to the output .jsonld file.",
+        help="Path to the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
 ):
     """
-    Extract subject processing pipeline and derivative metadata from a tabular processing status file and
-    integrate them in a single .jsonld with subjects' harmonized phenotypic data (from the bagel pheno command) and optionally,
-    BIDS metadata (from the bagel bids command).
-    NOTE: Must be run AFTER the pheno command.
+    Extract subject processing pipeline and derivative metadata from a tabular processing status file and integrate them in a single .jsonld with harmonized subject phenotypic data (from 'bagel pheno') and optionally, BIDS metadata (from 'bagel bids').
+    [red]NOTE: Must be run AFTER 'bagel pheno'.[/red]
 
-    This command will create a valid, subject-level instance of the Neurobagel
-    graph data model for the combined metadata in the .jsonld format.
-    You can upload this .jsonld file to the Neurobagel graph.
+    This command will create a valid, subject-level instance of the Neurobagel graph data model for the combined metadata in the JSON-LD format. You can upload this .jsonld file to the Neurobagel graph.
     """
 
     file_utils.check_overwrite(output, overwrite)

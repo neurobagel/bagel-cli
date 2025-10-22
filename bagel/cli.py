@@ -66,7 +66,10 @@ def overwrite_option():
 
 
 def show_help(ctx: typer.Context, value: bool):
-    """Callback to display the command help and exit."""
+    """
+    Callback to display the command help and exit.
+    Adapted from https://github.com/fastapi/typer/discussions/833#discussioncomment-9551792.
+    """
     if value:
         typer.echo(ctx.get_help())
         raise typer.Exit()

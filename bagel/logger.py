@@ -31,7 +31,9 @@ verbosity_log_levels = {
 }
 
 
-def configure_logger(verbosity: VerbosityLevel = VerbosityLevel.INFO) -> None:
+def configure_logger(
+    verbosity: VerbosityLevel = VerbosityLevel.INFO,
+) -> str:
     """Configure a logger with the specified logging level."""
     level = verbosity_log_levels[verbosity]
 
@@ -55,6 +57,10 @@ def configure_logger(verbosity: VerbosityLevel = VerbosityLevel.INFO) -> None:
     # except when testing because otherwise Pytest does not capture the logs
     if not IS_TESTING:
         logger.propagate = False
+
+    # NOTE: We must return the value instead of the level itself to avoid the callback returning None,
+    # see bug tracked in https://github.com/fastapi/typer/issues/223
+    return verbosity.value
 
 
 def log_error(

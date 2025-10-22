@@ -509,8 +509,12 @@ def bids(
     logger.info("Initial checks of inputs passed.")
 
     logger.info("Merging BIDS metadata with existing subject annotations...")
+
+    disable_progress_bar = bool(verbosity == VerbosityLevel.ERROR)
     for bids_sub_id in track(
-        bids_subject_ids, description="Processing BIDS subjects..."
+        bids_subject_ids,
+        description="Processing BIDS subjects...",
+        disable=disable_progress_bar,
     ):
         _bids_sub = bids_dataset[bids_dataset["sub"] == bids_sub_id]
         existing_subject = existing_subs_dict[bids_sub_id]

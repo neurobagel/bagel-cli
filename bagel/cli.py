@@ -33,6 +33,7 @@ bagel = typer.Typer(
     ),
     # From https://github.com/tiangolo/typer/issues/201#issuecomment-744151303
     context_settings={"help_option_names": ["--help", "-h"]},
+    no_args_is_help=True,
     rich_markup_mode="rich",
     epilog=(
         "Run 'bagel COMMAND --help' for more information on a command.\n\n"
@@ -90,13 +91,13 @@ def help_option():
     )
 
 
-@bagel.command()
+@bagel.command(no_args_is_help=True)
 def bids2tsv(
     bids_dir: Path = typer.Option(
         ...,
         "--bids-dir",
         "-b",
-        help="The path to the BIDS dataset directory.",
+        help="Path to the BIDS dataset directory.",
         exists=True,
         file_okay=False,
         dir_okay=True,
@@ -106,7 +107,7 @@ def bids2tsv(
         "bids.tsv",
         "--output",
         "-o",
-        help="The path to save the output .tsv file.",
+        help="Path to save the output .tsv file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
@@ -183,13 +184,13 @@ def bids2tsv(
 
 
 # TODO: Look into whitespace for command docstring - seems to be preserved in the help text.
-@bagel.command()
+@bagel.command(no_args_is_help=True)
 def pheno(
     pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
         ...,
         "--pheno",
         "-t",  # for tabular
-        help="The path to a phenotypic .tsv file",
+        help="Path to a phenotypic .tsv file",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -199,7 +200,7 @@ def pheno(
         ...,
         "--dictionary",
         "-d",
-        help="The path to the .json data dictionary corresponding to the phenotypic .tsv file.",
+        help="Path to the .json data dictionary corresponding to the phenotypic .tsv file.",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -210,23 +211,24 @@ def pheno(
         "--name",
         "-n",
         callback=pheno_utils.check_param_not_whitespace,
-        help="The full name of the dataset. "
+        help='Full name of the dataset, enclosed in quotes ("") if it includes spaces. '
         "This name will be displayed when users discover the dataset in a Neurobagel query. "
-        "For a dataset with BIDS data, the name should ideally match the dataset_description.json 'name' field. "
-        'Enclose in quotes, e.g.: --name "my dataset name"',
+        "For datasets with BIDS data, this name should ideally match the dataset_description.json 'name' field. "
+        '[italic]Example: --name "My Awesome Dataset"[/italic]',
     ),
     portal: str = typer.Option(
         None,
         "--portal",
         "-u",  # for URL
         callback=pheno_utils.validate_portal_uri,
-        help="URL (HTTP/HTTPS) to a website or page that describes the dataset and access instructions (if available).",
+        help="URL (HTTP/HTTPS) to a website or page with access instructions "
+        "and/or additional information about the dataset.",
     ),
     output: Path = typer.Option(
         "pheno.jsonld",
         "--output",
         "-o",
-        help="The path to the output .jsonld file.",
+        help="Path to the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
@@ -246,9 +248,8 @@ def pheno(
             ),
             case_sensitive=False,
         ),
-        help="The name of the vocabulary configuration used to generate your data dictionary. "
+        help="Name of the vocabulary configuration used to generate your data dictionary in the annotation tool. "
         "If you are processing data for a Neurobagel subcommunity, choose the subcommunity name here. "
-        "This should be the same as the configuration name you selected in the annotation tool."
         f"{pheno_utils.additional_config_help_text()}",
         rich_help_panel=OPTION_GROUP_NAMES["config"],
     ),
@@ -382,15 +383,15 @@ def pheno(
     )
 
 
-@bagel.command()
+@bagel.command(no_args_is_help=True)
 def bids(
     # TODO: Rename to --jsonld? Since other file options do not have the _path suffix.
     jsonld_path: Path = typer.Option(
         ...,
         "--jsonld-path",
         "-p",  # for pheno
-        help="The path to the .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command. "
-        "This file may optionally also include the processing pipeline metadata for the dataset (created by the bagel derivatives command).",
+        help="Path to the .jsonld file containing the phenotypic data for your dataset, created using the 'bagel pheno' command. "
+        "This file may optionally also include the processing pipeline metadata for the dataset (created using the 'bagel derivatives' command).",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -400,8 +401,8 @@ def bids(
         ...,
         "--bids-table",
         "-b",
-        help="The path to a .tsv file containing the BIDS metadata for image files including 'sub', 'ses', 'suffix', and 'path' columns. "
-        "This file can be created using the bagel bids2tsv command.",
+        help="Path to a .tsv file containing the BIDS metadata for image files including 'sub', 'ses', 'suffix', and 'path' columns. "
+        "This file can be created using the 'bagel bids2tsv' command.",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -414,7 +415,7 @@ def bids(
         "--dataset-source-dir",
         "-s",
         callback=bids_utils.check_absolute_path,
-        help="The absolute path to the root directory of the BIDS dataset at the source location/file server. "
+        help="Absolute path to the root directory of the BIDS dataset at the source location/file server. "
         "If provided, this path will be combined with the subject and session IDs from the BIDS table "
         "to create absolute source paths to the imaging data for each subject and session.",
         exists=False,
@@ -428,7 +429,7 @@ def bids(
         "pheno_bids.jsonld",
         "--output",
         "-o",
-        help="The path to the output .jsonld file.",
+        help="Path to the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
@@ -570,13 +571,13 @@ def bids(
     )
 
 
-@bagel.command()
+@bagel.command(no_args_is_help=True)
 def derivatives(
     tabular: Path = typer.Option(
         ...,
         "--tabular",
         "-t",
-        help="The path to a .tsv containing subject-level processing pipeline status info. Expected to comply with the Nipoppy processing status file schema.",
+        help="Path to a .tsv containing subject-level processing pipeline status info. Expected to comply with the Nipoppy processing status file schema.",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -587,7 +588,7 @@ def derivatives(
         ...,
         "--jsonld-path",
         "-p",  # for pheno
-        help="The path to a .jsonld file containing the phenotypic data for your dataset, created by the bagel pheno command. This JSONLD may optionally also include the BIDS metadata for the dataset (created by the bagel bids command).",
+        help="Path to a .jsonld file containing the phenotypic data for your dataset, created using the 'bagel pheno' command. This file may optionally also include the BIDS metadata for the dataset (created using the 'bagel bids' command).",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -597,7 +598,7 @@ def derivatives(
         "pheno_derivatives.jsonld",
         "--output",
         "-o",
-        help="The path to the output .jsonld file.",
+        help="Path to the output .jsonld file.",
         file_okay=True,
         dir_okay=False,
         resolve_path=True,

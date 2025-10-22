@@ -135,7 +135,8 @@ def bids2tsv(
             TextColumn("[progress.description]{task.description}"),
             transient=True,
         ) as progress:
-            # Add a spinner during BIDS parsing
+            # Add a spinner during BIDS parsing - this spinner disappears once the process is done
+            # and won't be present in logs
             progress.add_task(
                 "Validating BIDS dataset. This may take a while...", total=None
             )

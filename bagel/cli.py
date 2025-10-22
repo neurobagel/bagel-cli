@@ -55,7 +55,7 @@ def verbosity_option():
         "-v",
         callback=configure_logger,
         help="Set the verbosity level of the output. 0 = show errors only; 1 = show errors, warnings, and informational messages; 3 = show all logs, including debug messages.",
-        rich_help_panel=OPTION_GROUP_NAMES["general"],
+        rich_help_panel=OPTION_GROUP_NAMES["troubleshooting"],
     )
 
 
@@ -82,7 +82,8 @@ def show_help(ctx: typer.Context, value: bool):
 def help_option():
     """
     Create a reusable help option for commands.
-    Used to override the default location of the --help option in the help text.
+    Used to override the default location of the --help option in the help text
+    so that it appears in a different named option group.
     """
     return typer.Option(
         False,
@@ -90,7 +91,7 @@ def help_option():
         "-h",
         callback=show_help,
         help="Show this message and exit.",
-        rich_help_panel=OPTION_GROUP_NAMES["general"],
+        rich_help_panel=OPTION_GROUP_NAMES["troubleshooting"],
     )
 
 

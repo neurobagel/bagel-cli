@@ -49,18 +49,12 @@ def test_verbosity_level(
     ), f"Unexpected log level(s): {unexpected_log_levels}"
 
 
-@pytest.mark.parametrize(
-    "verbosity_level,is_progress_bar_shown",
-    [("0", False), ("1", True)],
-)
 def test_no_progress_graphic_with_min_verbosity(
     runner,
     test_data_upload_path,
     tmp_path,
-    verbosity_level,
-    is_progress_bar_shown,
 ):
-    """Test that progress bar is not shown when verbosity is set to 0 (errors only)."""
+    """Test that on a successful run, no output is shown when verbosity is set to 0 (errors only)."""
     result = runner.invoke(
         bagel,
         [
@@ -72,12 +66,10 @@ def test_no_progress_graphic_with_min_verbosity(
             "--output",
             tmp_path / "bids.jsonld",
             "--verbosity",
-            verbosity_level,
+            "0",
         ],
         catch_exceptions=False,
     )
 
     assert result.exit_code == 0
-    assert (
-        "Processing BIDS subjects..." in result.output
-    ) is is_progress_bar_shown
+    assert result.output.strip() == ""

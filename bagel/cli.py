@@ -511,7 +511,7 @@ def bids(
 
     logger.info("Merging BIDS metadata with existing subject annotations...")
 
-    disable_progress_bar = bool(verbosity == VerbosityLevel.ERROR)
+    disable_progress_bar = verbosity == VerbosityLevel.ERROR
     for bids_sub_id in track(
         bids_subject_ids,
         description="Processing BIDS subjects...",

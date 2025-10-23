@@ -17,6 +17,7 @@ def test_verbosity_level(
     expected_log_levels,
     caplog,
 ):
+    """Test that for invalid inputs, the correct level of logs are produced based on the set verbosity."""
     result = runner.invoke(
         bagel,
         [
@@ -46,3 +47,29 @@ def test_verbosity_level(
     assert (
         not unexpected_log_levels
     ), f"Unexpected log level(s): {unexpected_log_levels}"
+
+
+def test_no_progress_graphic_with_min_verbosity(
+    runner,
+    test_data_upload_path,
+    tmp_path,
+):
+    """Test that on a successful run, no output is shown when verbosity is set to 0 (errors only)."""
+    result = runner.invoke(
+        bagel,
+        [
+            "bids",
+            "--bids-table",
+            test_data_upload_path / "example_synthetic_bids_metadata.tsv",
+            "--jsonld-path",
+            test_data_upload_path / "example_synthetic.jsonld",
+            "--output",
+            tmp_path / "bids.jsonld",
+            "--verbosity",
+            "0",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0
+    assert result.output.strip() == ""

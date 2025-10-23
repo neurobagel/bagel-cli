@@ -135,7 +135,8 @@ def bids2tsv(
             TextColumn("[progress.description]{task.description}"),
             transient=True,
         ) as progress:
-            # Add a spinner during BIDS parsing
+            # Add a spinner during BIDS parsing - this spinner disappears once the process is done
+            # and won't be present in logs
             progress.add_task(
                 "Validating BIDS dataset. This may take a while...", total=None
             )
@@ -509,8 +510,12 @@ def bids(
     logger.info("Initial checks of inputs passed.")
 
     logger.info("Merging BIDS metadata with existing subject annotations...")
+
+    disable_progress_bar = verbosity == VerbosityLevel.ERROR
     for bids_sub_id in track(
-        bids_subject_ids, description="Processing BIDS subjects..."
+        bids_subject_ids,
+        description="Processing BIDS subjects...",
+        disable=disable_progress_bar,
     ):
         _bids_sub = bids_dataset[bids_dataset["sub"] == bids_sub_id]
         existing_subject = existing_subs_dict[bids_sub_id]

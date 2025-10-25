@@ -96,10 +96,10 @@ def help_option():
     )
 
 
-def version_callback(value: bool):
+def show_version(value: bool):
     """Callback to show package version number and exit."""
     if value:
-        print(__version__)
+        print(f"bagel {__version__}")
         raise typer.Exit()
 
 
@@ -109,7 +109,7 @@ def main(
         None,
         "--version",
         help="Show the version and exit.",
-        callback=version_callback,
+        callback=show_version,
         is_eager=True,
     )
 ):

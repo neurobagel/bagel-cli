@@ -8,6 +8,7 @@ from bids import BIDSLayout, exceptions
 from rich.progress import Progress, SpinnerColumn, TextColumn, track
 
 from bagel import mappings, models
+from bagel._version import __version__
 
 from .logger import VerbosityLevel, configure_logger, log_error, logger
 from .utilities import (
@@ -19,12 +20,12 @@ from .utilities import (
 )
 from .utilities.derivative_utils import PROC_STATUS_COLS
 
-CUSTOM_SESSION_LABEL = "ses-unnamed"
-
 OPTION_GROUP_NAMES = {
     "troubleshooting": "Troubleshooting",
     "config": "Configuration",
 }
+
+CUSTOM_SESSION_LABEL = "ses-unnamed"
 
 bagel = typer.Typer(
     help=(
@@ -93,6 +94,26 @@ def help_option():
         help="Show this message and exit.",
         rich_help_panel=OPTION_GROUP_NAMES["troubleshooting"],
     )
+
+
+def version_callback(value: bool):
+    """Callback to show package version number and exit."""
+    if value:
+        print(__version__)
+        raise typer.Exit()
+
+
+@bagel.callback()
+def main(
+    version: bool = typer.Option(
+        None,
+        "--version",
+        help="Show the version and exit.",
+        callback=version_callback,
+        is_eager=True,
+    )
+):
+    return
 
 
 @bagel.command()

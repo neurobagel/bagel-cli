@@ -1,4 +1,5 @@
 import pytest
+from packaging.version import Version
 
 from bagel.cli import bagel
 
@@ -30,3 +31,15 @@ def test_help_printed_if_no_args(runner, command, caplog, disable_rich_markup):
     result = runner.invoke(bagel, [command])
     assert len(caplog.records) == 0
     assert f"{command} [OPTIONS]" in result.output
+
+
+def test_version_option(runner, caplog):
+    """Test that bagel --version prints a valid package version number."""
+    result = runner.invoke(bagel, ["--version"])
+    # This will error out if the version is empty or not a valid version string
+    version = Version(result.output.strip().split(" ", 1)[1])
+
+    assert result.exit_code == 0
+    assert len(caplog.records) == 0
+    assert result.output.startswith("bagel")
+    assert version != Version("0.0.0")

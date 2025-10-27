@@ -1,3 +1,28 @@
+# v0.9.1 (Mon Oct 27 2025)
+
+#### 🚀 Enhancements
+
+- [ENH] Add `--version` option to main app [#574](https://github.com/neurobagel/bagel-cli/pull/574) ([@alyssadai](https://github.com/alyssadai))
+- [MNT] Hide progress bar when `--verbosity` set to 0 [#572](https://github.com/neurobagel/bagel-cli/pull/572) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Upgrade minimum Python to 3.11 support `bids2table` dependency [#576](https://github.com/neurobagel/bagel-cli/pull/576) ([@alyssadai](https://github.com/alyssadai))
+
+#### 📝 Documentation
+
+- [ENH] Group CLI options and clean up descriptions in `--help` [#569](https://github.com/neurobagel/bagel-cli/pull/569) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🔩 Dependency Updates
+
+- [MNT] Unpin `bids2table` dependency version [#578](https://github.com/neurobagel/bagel-cli/pull/578) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.9.0 (Wed Oct 15 2025)
 
 #### 🚀 Enhancements

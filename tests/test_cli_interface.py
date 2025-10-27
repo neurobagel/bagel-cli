@@ -36,10 +36,12 @@ def test_help_printed_if_no_args(runner, command, caplog, disable_rich_markup):
 def test_version_option(runner, caplog):
     """Test that bagel --version prints a valid package version number."""
     result = runner.invoke(bagel, ["--version"])
-    # This will error out if the version is empty or not a valid version string
-    version = Version(result.output.strip().split(" ", 1)[1])
+    output = result.output.strip()
+    # output has the format 'bagel X.Y.Z'
+    # this will error out if the version is empty or not a valid version string
+    version = Version(output.split(" ", 1)[1])
 
     assert result.exit_code == 0
     assert len(caplog.records) == 0
-    assert result.output.startswith("bagel")
+    assert output.startswith("bagel")
     assert version != Version("0.0.0")

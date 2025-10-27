@@ -113,6 +113,7 @@ def main(
         is_eager=True,
     )
 ):
+    """Handle options for the main CLI command 'bagel'."""
     return
 
 

@@ -25,7 +25,7 @@ dependencies = [
   "jsonschema",
   "isodate",
   "httpx",
-  "bids2table<2.1.1",
+  "bids2table",
   "pandera[pandas]"
 ]
 

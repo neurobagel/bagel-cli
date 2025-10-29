@@ -341,3 +341,61 @@ def test_all_unsupported_suffixes_in_bids_table_raises_error(
     assert not default_pheno_bids_output_path.exists()
     assert len(caplog.records) == 1
     assert "No Neurobagel-supported BIDS suffixes found" in caplog.text
+
+
+def test_bids_table_missing_required_columns_exits_gracefully(
+    runner,
+    tmp_path,
+    test_data_upload_path,
+    default_pheno_bids_output_path,
+    disable_rich_markup,
+    propagate_errors,
+    caplog,
+):
+    """Test that the bids command exits gracefully when provided a BIDS table missing a required column."""
+    bids_table = pd.DataFrame(
+        [
+            [
+                "sub-01",
+                "ses-01",
+                "/data/synthetic/sub-01/anat/sub-01_ses-01_T1w.nii",
+            ],
+            [
+                "sub-01",
+                "ses-01",
+                "/data/synthetic/sub-01/func/sub-01_ses-01_task-rest_bold.nii",
+            ],
+            [
+                "sub-02",
+                "ses-01",
+                "/data/synthetic/sub-02/ses-01/anat/sub-02_ses-01_T1w.nii",
+            ],
+            [
+                "sub-02",
+                "ses-01",
+                "/data/synthetic/sub-02/ses-01/func/sub-02_ses-01_task-rest_bold.nii",
+            ],
+        ],
+        columns=["sub", "ses", "path"],  # missing 'suffix' column
+    )
+    bids_table.to_csv(tmp_path / "bids.tsv", sep="\t", index=False)
+
+    result = runner.invoke(
+        bagel,
+        [
+            "bids",
+            "--jsonld-path",
+            test_data_upload_path / "example_synthetic.jsonld",
+            "--bids-table",
+            tmp_path / "bids.tsv",
+            "--output",
+            default_pheno_bids_output_path,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code != 0
+    assert not default_pheno_bids_output_path.exists()
+    assert len(caplog.records) == 1
+    assert "Invalid BIDS table" in caplog.text
+    assert "suffix" in caplog.text

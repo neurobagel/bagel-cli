@@ -496,27 +496,31 @@ def bids(
     )
     bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
 
-    if not bids_dataset["suffix"].isin(mappings.BIDS.keys()).any():
-        log_error(
-            logger,
-            f"No Neurobagel-supported BIDS suffixes found in BIDS table 'suffix' column: {bids_table}. "
-            "No imaging metadata could be added to the subject graph data. "
-            "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
-            f"(supported suffixes: {list(mappings.BIDS.keys())}).",
-        )
+    # NOTE: Even though the BIDS table model validation will check for required columns,
+    # since we want to ignore unsupported suffixes with a warning instead of just a validation error,
+    # we first check the suffix column separately to customize the error/warning behaviour.
+    if "suffix" in bids_dataset.columns:
+        if not bids_dataset["suffix"].isin(mappings.BIDS.keys()).any():
+            log_error(
+                logger,
+                f"No Neurobagel-supported BIDS suffixes found in BIDS table 'suffix' column: {bids_table}. "
+                "No imaging metadata could be added to the subject graph data. "
+                "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
+                f"(supported suffixes: {list(mappings.BIDS.keys())}).",
+            )
 
-    unsupported_suffixes = bids_utils.find_unsupported_image_suffixes(
-        bids_dataset
-    )
-    if unsupported_suffixes:
-        logger.warning(
-            f"BIDS table 'suffix' column contains image file suffixes unsupported by Neurobagel: {unsupported_suffixes}. "
-            f"These records will be ignored. Supported BIDS suffixes: {list(mappings.BIDS.keys())}."
+        unsupported_suffixes = bids_utils.find_unsupported_image_suffixes(
+            bids_dataset
         )
+        if unsupported_suffixes:
+            logger.warning(
+                f"BIDS table 'suffix' column contains image file suffixes unsupported by Neurobagel: {unsupported_suffixes}. "
+                f"These records will be ignored. Supported BIDS suffixes: {list(mappings.BIDS.keys())}."
+            )
 
-    bids_dataset = bids_dataset[
-        bids_dataset["suffix"].isin(mappings.BIDS.keys())
-    ].copy()
+        bids_dataset = bids_dataset[
+            bids_dataset["suffix"].isin(mappings.BIDS.keys())
+        ].copy()
 
     bids_utils.validate_bids_table(bids_dataset)
 

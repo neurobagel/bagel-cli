@@ -1,3 +1,15 @@
+# v0.9.2 (Tue Nov 04 2025)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Ensure `bagel bids` exits gracefully for BIDS table missing required column [#579](https://github.com/neurobagel/bagel-cli/pull/579) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.9.1 (Mon Oct 27 2025)
 
 #### 🚀 Enhancements

@@ -497,7 +497,7 @@ def bids(
     bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
 
     # NOTE: The BIDS table model validation will check for required columns and allowed values in the "suffix" column
-    # and error out for any problem. Because we want to ignore unsupported suffixes with a warning instead of just a validation error, 
+    # and error out for any problem. Because we want to ignore unsupported suffixes with a warning instead of just a validation error,
     # we first check the suffix column separately and then remove any offending values.
     # For our custom suffix-check to work, we need to ensure that the "suffix" column exists here.
     if "suffix" in bids_dataset.columns:

@@ -6,12 +6,6 @@ from bagel import mappings
 from bagel.cli import bagel
 
 
-@pytest.fixture(scope="function")
-def default_pheno_output_path(tmp_path):
-    "Return temporary pheno command output filepath that uses the default filename."
-    return tmp_path / "pheno.jsonld"
-
-
 @pytest.mark.parametrize(
     "example",
     [
@@ -32,7 +26,7 @@ def test_pheno_valid_inputs_run_successfully(
     runner,
     test_data,
     test_data_upload_path,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     example,
 ):
     """Basic smoke test for the "pheno" subcommand"""
@@ -46,7 +40,7 @@ def test_pheno_valid_inputs_run_successfully(
                 "--dictionary",
                 test_data_upload_path / f"{example}.json",
                 "--output",
-                default_pheno_output_path,
+                temp_output_jsonld_path,
                 "--name",
                 "synthetic",
             ],
@@ -61,14 +55,14 @@ def test_pheno_valid_inputs_run_successfully(
                 "--dictionary",
                 test_data / f"{example}.json",
                 "--output",
-                default_pheno_output_path,
+                temp_output_jsonld_path,
                 "--name",
                 "do not care name",
             ],
         )
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
     assert (
-        default_pheno_output_path
+        temp_output_jsonld_path
     ).exists(), "The pheno.jsonld output was not created."
 
 
@@ -141,7 +135,7 @@ def test_pheno_valid_inputs_run_successfully(
 def test_invalid_inputs_are_handled_gracefully(
     runner,
     test_data,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     example,
     expected_message,
     caplog,
@@ -157,7 +151,7 @@ def test_invalid_inputs_are_handled_gracefully(
             "--dictionary",
             test_data / f"{example}.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "do not care name",
         ],
@@ -182,7 +176,7 @@ def test_invalid_inputs_are_handled_gracefully(
 def test_invalid_portal_uris_produces_error(
     runner,
     test_data,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     portal,
 ):
     """Tests that invalid or non-HTTP/HTTPS URLs result in a user-friendly error."""
@@ -195,7 +189,7 @@ def test_invalid_portal_uris_produces_error(
             "--dictionary",
             test_data / "example2.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "test dataset 2",
             "--portal",
@@ -215,7 +209,7 @@ def test_invalid_portal_uris_produces_error(
 def test_multiple_columns_about_single_column_variable_raises_warning(
     runner,
     test_data,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     caplog,
     propagate_warnings,
 ):
@@ -232,7 +226,7 @@ def test_multiple_columns_about_single_column_variable_raises_warning(
             "--dictionary",
             test_data / "example20.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "Multiple age/sex/subject group columns dataset",
         ],
@@ -251,7 +245,7 @@ def test_multiple_columns_about_single_column_variable_raises_warning(
 def test_missing_bids_levels_raises_warning(
     runner,
     test_data,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     caplog,
     propagate_warnings,
 ):
@@ -264,7 +258,7 @@ def test_missing_bids_levels_raises_warning(
             "--dictionary",
             test_data / "example12.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "testing dataset",
         ],
@@ -280,7 +274,7 @@ def test_missing_bids_levels_raises_warning(
 def test_bids_neurobagel_levels_mismatch_raises_warning(
     runner,
     test_data,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     caplog,
     propagate_warnings,
 ):
@@ -293,7 +287,7 @@ def test_bids_neurobagel_levels_mismatch_raises_warning(
             "--dictionary",
             test_data / "example13.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "testing dataset",
         ],
@@ -313,7 +307,7 @@ def test_bids_neurobagel_levels_mismatch_raises_warning(
 def test_unused_missing_values_raises_warning(
     runner,
     test_data,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     caplog,
     propagate_warnings,
 ):
@@ -330,7 +324,7 @@ def test_unused_missing_values_raises_warning(
             "--dictionary",
             test_data / "example10.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "testing dataset",
         ],
@@ -369,7 +363,7 @@ def test_providing_non_tsv_file_raises_error(
     runner,
     test_data,
     tmp_path,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     caplog,
     propagate_errors,
 ):
@@ -386,7 +380,7 @@ def test_providing_non_tsv_file_raises_error(
             "--dictionary",
             test_data / dictionary_file,
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "testing dataset",
         ],
@@ -400,7 +394,7 @@ def test_providing_non_tsv_file_raises_error(
 
 
 def test_output_file_contains_dataset_level_attributes(
-    runner, test_data, default_pheno_output_path, load_test_json
+    runner, test_data, temp_output_jsonld_path, load_test_json
 ):
     runner.invoke(
         bagel,
@@ -411,7 +405,7 @@ def test_output_file_contains_dataset_level_attributes(
             "--dictionary",
             test_data / "example2.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "my_dataset_name",
             "--portal",
@@ -419,14 +413,14 @@ def test_output_file_contains_dataset_level_attributes(
         ],
     )
 
-    pheno = load_test_json(default_pheno_output_path)
+    pheno = load_test_json(temp_output_jsonld_path)
 
     assert pheno.get("hasLabel") == "my_dataset_name"
     assert pheno.get("hasPortalURI") == "http://my_dataset_site.com"
 
 
 def test_diagnosis_and_control_status_handled(
-    runner, test_data, default_pheno_output_path, load_test_json
+    runner, test_data, temp_output_jsonld_path, load_test_json
 ):
     runner.invoke(
         bagel,
@@ -437,13 +431,13 @@ def test_diagnosis_and_control_status_handled(
             "--dictionary",
             test_data / "example6.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "my_dataset_name",
         ],
     )
 
-    pheno = load_test_json(default_pheno_output_path)
+    pheno = load_test_json(temp_output_jsonld_path)
 
     assert (
         pheno["hasSamples"][0]["hasSession"][0]["hasDiagnosis"][0][
@@ -466,7 +460,7 @@ def test_controlled_terms_have_identifiers(
     attribute,
     runner,
     test_data_upload_path,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     load_test_json,
 ):
     runner.invoke(
@@ -478,13 +472,13 @@ def test_controlled_terms_have_identifiers(
             "--dictionary",
             test_data_upload_path / "example_synthetic.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "do not care name",
         ],
     )
 
-    pheno = load_test_json(default_pheno_output_path)
+    pheno = load_test_json(temp_output_jsonld_path)
 
     for sub in pheno["hasSamples"]:
         for ses in sub["hasSession"]:
@@ -498,7 +492,7 @@ def test_controlled_terms_have_identifiers(
 
 
 def test_controlled_term_classes_have_uri_type(
-    runner, test_data_upload_path, default_pheno_output_path, load_test_json
+    runner, test_data_upload_path, temp_output_jsonld_path, load_test_json
 ):
     """Tests that classes specified as schemaKeys (@type) for subject-level attributes in a .jsonld are also defined in the context."""
     runner.invoke(
@@ -510,7 +504,7 @@ def test_controlled_term_classes_have_uri_type(
             "--dictionary",
             test_data_upload_path / "example_synthetic.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "do not care name",
         ],
@@ -550,7 +544,7 @@ def test_controlled_term_classes_have_uri_type(
 def test_assessment_data_are_parsed_correctly(
     runner,
     test_data,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     load_test_json,
     assessment,
     subject_idx,
@@ -564,13 +558,13 @@ def test_assessment_data_are_parsed_correctly(
             "--dictionary",
             test_data / "example6.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "my_dataset_name",
         ],
     )
 
-    pheno = load_test_json(default_pheno_output_path)
+    pheno = load_test_json(temp_output_jsonld_path)
 
     assert assessment == pheno["hasSamples"][subject_idx]["hasSession"][0].get(
         "hasAssessment"
@@ -584,7 +578,7 @@ def test_assessment_data_are_parsed_correctly(
 def test_cli_age_is_processed(
     runner,
     test_data,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     load_test_json,
     expected_age,
     subject,
@@ -598,13 +592,13 @@ def test_cli_age_is_processed(
             "--dictionary",
             test_data / "example2.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "my_dataset_name",
         ],
     )
 
-    pheno = load_test_json(default_pheno_output_path)
+    pheno = load_test_json(temp_output_jsonld_path)
 
     assert (
         expected_age == pheno["hasSamples"][subject]["hasSession"][0]["hasAge"]
@@ -612,7 +606,7 @@ def test_cli_age_is_processed(
 
 
 def test_output_includes_context(
-    runner, test_data, default_pheno_output_path, load_test_json
+    runner, test_data, temp_output_jsonld_path, load_test_json
 ):
     runner.invoke(
         bagel,
@@ -623,13 +617,13 @@ def test_output_includes_context(
             "--dictionary",
             test_data / "example2.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "my_dataset_name",
         ],
     )
 
-    pheno = load_test_json(default_pheno_output_path)
+    pheno = load_test_json(temp_output_jsonld_path)
 
     assert pheno.get("@context") is not None
     assert all(
@@ -648,7 +642,7 @@ def test_output_includes_context(
 def test_output_excludes_properties_for_missing_vals(
     runner,
     test_data_upload_path,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     load_test_json,
     sub_id,
     missing_val_property,
@@ -667,13 +661,13 @@ def test_output_excludes_properties_for_missing_vals(
             "--dictionary",
             test_data_upload_path / "example_synthetic.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             "BIDS synthetic test",
         ],
     )
 
-    pheno = load_test_json(default_pheno_output_path)
+    pheno = load_test_json(temp_output_jsonld_path)
     for sub in pheno["hasSamples"]:
         if sub["hasLabel"] == sub_id:
             for entry in missing_val_property:
@@ -806,7 +800,7 @@ def test_pheno_sessions_have_correct_labels(
 def test_pheno_session_created_for_missing_session_column(
     runner,
     test_data,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     load_test_json,
 ):
     """
@@ -824,11 +818,11 @@ def test_pheno_session_created_for_missing_session_column(
             "--name",
             "Missing session column dataset",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
         ],
     )
 
-    pheno = load_test_json(default_pheno_output_path)
+    pheno = load_test_json(temp_output_jsonld_path)
     for sub in pheno["hasSamples"]:
         assert 1 == len(sub["hasSession"])
         assert sub["hasSession"][0]["schemaKey"] == "PhenotypicSession"
@@ -838,7 +832,7 @@ def test_pheno_session_created_for_missing_session_column(
 def test_multicolumn_diagnosis_annot_is_handled(
     runner,
     test_data,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     load_test_json,
 ):
     """Test that when a subject has a non-healthy control diagnosis across multiple columns, they are all correctly parsed and stored as part of the subject's data."""
@@ -853,11 +847,11 @@ def test_multicolumn_diagnosis_annot_is_handled(
             "--name",
             "Multi-column annotation dataset",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
         ],
     )
 
-    pheno = load_test_json(default_pheno_output_path)
+    pheno = load_test_json(temp_output_jsonld_path)
     # Check the subject with only disease diagnoses
     sub_01_diagnoses = [
         diagnosis["identifier"]
@@ -869,7 +863,7 @@ def test_multicolumn_diagnosis_annot_is_handled(
 
 
 def test_healthy_control_subject_with_diagnosis_is_handled(
-    runner, test_data, default_pheno_output_path, load_test_json
+    runner, test_data, temp_output_jsonld_path, load_test_json
 ):
     """
     Test that when a subject has both a diagnosis and a healthy control status,
@@ -886,11 +880,11 @@ def test_healthy_control_subject_with_diagnosis_is_handled(
             "--name",
             "Multi-column annotation dataset",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
         ],
     )
 
-    pheno = load_test_json(default_pheno_output_path)
+    pheno = load_test_json(temp_output_jsonld_path)
 
     healthy_control_sub_with_diagnosis = next(
         sub for sub in pheno["hasSamples"] if sub["hasLabel"] == "sub-03"
@@ -913,7 +907,7 @@ def test_healthy_control_subject_with_diagnosis_is_handled(
 def test_pheno_command_succeeds_with_short_option_names(
     runner,
     test_data,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
 ):
     """Test that the pheno command does not error when invoked with short option names."""
     example = "example2"
@@ -926,14 +920,14 @@ def test_pheno_command_succeeds_with_short_option_names(
             "-d",
             test_data / f"{example}.json",
             "-o",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "-n",
             "Test dataset",
         ],
     )
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
     assert (
-        default_pheno_output_path
+        temp_output_jsonld_path
     ).exists(), "The pheno.jsonld output was not created."
 
 
@@ -948,7 +942,7 @@ def test_pheno_command_succeeds_with_short_option_names(
 def test_empty_string_dataset_name_raises_error(
     runner,
     test_data_upload_path,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     invalid_dataset_name,
     disable_rich_markup,
 ):
@@ -962,7 +956,7 @@ def test_empty_string_dataset_name_raises_error(
             "--dictionary",
             test_data_upload_path / "example_synthetic.json",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
             "--name",
             invalid_dataset_name,
         ],
@@ -976,7 +970,7 @@ def test_empty_string_dataset_name_raises_error(
 def test_backup_used_with_warning_when_request_for_config_namespaces_fails(
     runner,
     test_data_upload_path,
-    default_pheno_output_path,
+    temp_output_jsonld_path,
     caplog,
     propagate_warnings,
     monkeypatch,
@@ -1003,12 +997,12 @@ def test_backup_used_with_warning_when_request_for_config_namespaces_fails(
             "--name",
             "Config test",
             "--output",
-            default_pheno_output_path,
+            temp_output_jsonld_path,
         ],
         catch_exceptions=False,
     )
 
     assert result.exit_code == 0
-    assert default_pheno_output_path.exists()
+    assert temp_output_jsonld_path.exists()
     assert len(caplog.records) == 1
     assert "Using a packaged backup configuration" in caplog.text

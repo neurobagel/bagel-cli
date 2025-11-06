@@ -88,3 +88,9 @@ def bids_invalid_synthetic(bids_path, bids_synthetic, tmp_path_factory):
     shutil.copytree(bids_synthetic, invalid_path)
     (invalid_path / "dataset_description.json").unlink()
     return invalid_path
+
+
+@pytest.fixture()
+def temp_output_jsonld_path(tmp_path):
+    """Return temporary output JSONLD file path for tests of CLI commands."""
+    return tmp_path / "output.jsonld"

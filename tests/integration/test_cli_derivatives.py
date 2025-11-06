@@ -6,12 +6,6 @@ from bagel import mappings
 from bagel.cli import bagel
 
 
-@pytest.fixture(scope="function")
-def default_derivatives_output_path(tmp_path):
-    "Return temporary derivatives command output filepath that uses the default filename."
-    return tmp_path / "pheno_derivatives.jsonld"
-
-
 @pytest.mark.parametrize(
     "valid_proc_status_file,num_expected_imaging_sessions",
     [
@@ -23,7 +17,7 @@ def test_derivatives_cmd_with_valid_TSV_and_pheno_jsonlds_is_successful(
     runner,
     test_data,
     test_data_upload_path,
-    default_derivatives_output_path,
+    temp_output_jsonld_path,
     load_test_json,
     valid_proc_status_file,
     num_expected_imaging_sessions,
@@ -45,13 +39,13 @@ def test_derivatives_cmd_with_valid_TSV_and_pheno_jsonlds_is_successful(
             "-p",
             test_data_upload_path / "example_synthetic.jsonld",
             "-o",
-            default_derivatives_output_path,
+            temp_output_jsonld_path,
         ],
     )
 
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
 
-    output = load_test_json(default_derivatives_output_path)
+    output = load_test_json(temp_output_jsonld_path)
     num_created_imaging_sessions = defaultdict(int)
     for sub in output["hasSamples"]:
         for ses in sub["hasSession"]:
@@ -68,7 +62,7 @@ def test_pipeline_info_added_to_existing_imaging_sessions(
     runner,
     test_data,
     test_data_upload_path,
-    default_derivatives_output_path,
+    temp_output_jsonld_path,
     load_test_json,
 ):
     """
@@ -87,12 +81,12 @@ def test_pipeline_info_added_to_existing_imaging_sessions(
             / "pheno-bids-output"
             / "example_synthetic_pheno-bids.jsonld",
             "-o",
-            default_derivatives_output_path,
+            temp_output_jsonld_path,
         ],
     )
 
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
-    output = load_test_json(default_derivatives_output_path)
+    output = load_test_json(temp_output_jsonld_path)
 
     # Only consider sub-01 for simplicity
     ses_with_raw_imaging = []
@@ -129,7 +123,7 @@ def test_derivatives_invalid_inputs_fail(
     runner,
     test_data,
     test_data_upload_path,
-    default_derivatives_output_path,
+    temp_output_jsonld_path,
     example,
     expected_message,
     caplog,
@@ -145,7 +139,7 @@ def test_derivatives_invalid_inputs_fail(
             "-p",
             test_data_upload_path / "example_synthetic.jsonld",
             "-o",
-            default_derivatives_output_path,
+            temp_output_jsonld_path,
         ],
         catch_exceptions=False,
     )
@@ -156,7 +150,7 @@ def test_derivatives_invalid_inputs_fail(
         assert substring in caplog.text
 
     assert (
-        not default_derivatives_output_path.exists()
+        not temp_output_jsonld_path.exists()
     ), "The JSONLD output was created despite inputs being invalid."
 
 
@@ -176,7 +170,7 @@ def test_custom_imaging_sessions_created_for_missing_session_labels(
     runner,
     test_data,
     test_data_upload_path,
-    default_derivatives_output_path,
+    temp_output_jsonld_path,
     load_test_json,
     proc_status_file,
     completed_pipes_for_missing_ses_sub,
@@ -191,12 +185,12 @@ def test_custom_imaging_sessions_created_for_missing_session_labels(
             "-p",
             test_data_upload_path / "example_synthetic.jsonld",
             "-o",
-            default_derivatives_output_path,
+            temp_output_jsonld_path,
         ],
     )
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
 
-    output = load_test_json(default_derivatives_output_path)
+    output = load_test_json(temp_output_jsonld_path)
 
     custom_ses_completed_pipes = {}
     for sub in output["hasSamples"]:
@@ -217,7 +211,7 @@ def test_unrecognized_pipelines_and_versions_excluded_from_output(
     runner,
     test_data,
     test_data_upload_path,
-    default_derivatives_output_path,
+    temp_output_jsonld_path,
     load_test_json,
     caplog,
     propagate_warnings,
@@ -235,7 +229,7 @@ def test_unrecognized_pipelines_and_versions_excluded_from_output(
             "-p",
             test_data_upload_path / "example_synthetic.jsonld",
             "-o",
-            default_derivatives_output_path,
+            temp_output_jsonld_path,
         ],
         catch_exceptions=False,
     )
@@ -252,7 +246,7 @@ def test_unrecognized_pipelines_and_versions_excluded_from_output(
             and "{'fmriprep': ['unknown.version']}" in warning.message
         )
 
-    output = load_test_json(default_derivatives_output_path)
+    output = load_test_json(temp_output_jsonld_path)
 
     sessions_with_completed_pipes = {}
     for sub in output["hasSamples"]:
@@ -280,7 +274,7 @@ def test_error_when_no_pipeline_version_combos_recognized(
     runner,
     test_data,
     test_data_upload_path,
-    default_derivatives_output_path,
+    temp_output_jsonld_path,
     caplog,
     propagate_errors,
 ):
@@ -297,7 +291,7 @@ def test_error_when_no_pipeline_version_combos_recognized(
             "-p",
             test_data_upload_path / "example_synthetic.jsonld",
             "-o",
-            default_derivatives_output_path,
+            temp_output_jsonld_path,
         ],
         catch_exceptions=False,
     )
@@ -306,7 +300,7 @@ def test_error_when_no_pipeline_version_combos_recognized(
     assert len(caplog.records) == 1
     assert "no recognized versions" in caplog.text
     assert (
-        not default_derivatives_output_path.exists()
+        not temp_output_jsonld_path.exists()
     ), "A JSONLD was created despite inputs being invalid."
 
 
@@ -359,7 +353,7 @@ def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_command(
     runner,
     test_data,
     test_data_upload_path,
-    default_derivatives_output_path,
+    temp_output_jsonld_path,
     caplog,
     propagate_warnings,
     monkeypatch,
@@ -388,7 +382,7 @@ def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_command(
             "-p",
             test_data_upload_path / "example_synthetic.jsonld",
             "-o",
-            default_derivatives_output_path,
+            temp_output_jsonld_path,
         ],
         catch_exceptions=False,
     )
@@ -396,6 +390,4 @@ def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_command(
     assert result.exit_code == expected_exit_code
     assert len(caplog.records) == 1
     assert expected_err in caplog.text
-    assert (
-        default_derivatives_output_path.exists() is output_created_expectation
-    )
+    assert temp_output_jsonld_path.exists() is output_created_expectation

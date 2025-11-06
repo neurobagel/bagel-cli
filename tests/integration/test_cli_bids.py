@@ -6,12 +6,6 @@ from tests import utils
 
 
 @pytest.fixture(scope="function")
-def default_pheno_bids_output_path(tmp_path):
-    "Return temporary bids command output filepath that uses the default filename."
-    return tmp_path / "pheno_bids.jsonld"
-
-
-@pytest.fixture(scope="function")
 def synthetic_dataset_tsv_path(test_data):
     """Return the path to the BIDS TSV file for the bids-examples synthetic dataset."""
     return test_data / "bids_metadata_synthetic.tsv"
@@ -21,7 +15,7 @@ def test_bids_valid_inputs_run_successfully(
     runner,
     test_data_upload_path,
     synthetic_dataset_tsv_path,
-    default_pheno_bids_output_path,
+    temp_output_jsonld_path,
     load_test_json,
 ):
     """
@@ -39,15 +33,15 @@ def test_bids_valid_inputs_run_successfully(
             "--bids-table",
             synthetic_dataset_tsv_path,
             "--output",
-            default_pheno_bids_output_path,
+            temp_output_jsonld_path,
         ],
     )
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
     assert (
-        default_pheno_bids_output_path
+        temp_output_jsonld_path
     ).exists(), "The pheno_bids.jsonld output was not created."
 
-    output = load_test_json(default_pheno_bids_output_path)
+    output = load_test_json(temp_output_jsonld_path)
     assert (
         output.get("@context") is not None
     ), "The output JSONLD is missing an @context."
@@ -57,7 +51,7 @@ def test_imaging_sessions_have_expected_labels(
     runner,
     test_data_upload_path,
     synthetic_dataset_tsv_path,
-    default_pheno_bids_output_path,
+    temp_output_jsonld_path,
     load_test_json,
 ):
     """Check that the imaging sessions in the JSONLD output have the expected session labels."""
@@ -70,11 +64,11 @@ def test_imaging_sessions_have_expected_labels(
             "--bids-table",
             synthetic_dataset_tsv_path,
             "--output",
-            default_pheno_bids_output_path,
+            temp_output_jsonld_path,
         ],
     )
 
-    output = load_test_json(default_pheno_bids_output_path)
+    output = load_test_json(temp_output_jsonld_path)
 
     for sub in output["hasSamples"]:
         # all subjects in the BIDS synthetic dataset are expected to have 4 sessions total
@@ -103,7 +97,7 @@ def test_imaging_sessions_have_expected_metadata(
     runner,
     test_data_upload_path,
     synthetic_dataset_tsv_path,
-    default_pheno_bids_output_path,
+    temp_output_jsonld_path,
     load_test_json,
     jsonld_path,
     expected_sessions_with_acq_and_pipe_metadata,
@@ -122,11 +116,11 @@ def test_imaging_sessions_have_expected_metadata(
             "--bids-table",
             synthetic_dataset_tsv_path,
             "--output",
-            default_pheno_bids_output_path,
+            temp_output_jsonld_path,
         ],
     )
 
-    output = load_test_json(default_pheno_bids_output_path)
+    output = load_test_json(temp_output_jsonld_path)
 
     sessions_with_acq_metadata = []
     sessions_with_acq_and_pipe_metadata = []
@@ -151,7 +145,7 @@ def test_imaging_sessions_have_correct_paths(
     runner,
     test_data_upload_path,
     synthetic_dataset_tsv_path,
-    default_pheno_bids_output_path,
+    temp_output_jsonld_path,
     load_test_json,
 ):
     """
@@ -169,11 +163,11 @@ def test_imaging_sessions_have_correct_paths(
             "--dataset-source-dir",
             "/public_datasets/dataset01",
             "--output",
-            default_pheno_bids_output_path,
+            temp_output_jsonld_path,
         ],
     )
 
-    pheno_bids = load_test_json(default_pheno_bids_output_path)
+    pheno_bids = load_test_json(temp_output_jsonld_path)
     subject = next(
         sub for sub in pheno_bids["hasSamples"] if sub["hasLabel"] == "sub-01"
     )
@@ -188,7 +182,7 @@ def test_imaging_sessions_have_correct_paths(
 def test_relative_source_dir_path_raises_error(
     runner,
     test_data_upload_path,
-    default_pheno_bids_output_path,
+    temp_output_jsonld_path,
     disable_rich_markup,
 ):
     """Check that a relative source directory path raises an error."""
@@ -201,7 +195,7 @@ def test_relative_source_dir_path_raises_error(
             "--dataset-source-dir",
             "data/bids",
             "--output",
-            default_pheno_bids_output_path,
+            temp_output_jsonld_path,
         ],
         catch_exceptions=False,
     )
@@ -213,7 +207,7 @@ def test_some_unsupported_suffixes_in_bids_table_raises_warning(
     runner,
     tmp_path,
     test_data_upload_path,
-    default_pheno_bids_output_path,
+    temp_output_jsonld_path,
     load_test_json,
     disable_rich_markup,
     propagate_warnings,
@@ -263,12 +257,12 @@ def test_some_unsupported_suffixes_in_bids_table_raises_warning(
             "--bids-table",
             tmp_path / "bids.tsv",
             "--output",
-            default_pheno_bids_output_path,
+            temp_output_jsonld_path,
         ],
         catch_exceptions=False,
     )
 
-    output = load_test_json(default_pheno_bids_output_path)
+    output = load_test_json(temp_output_jsonld_path)
     contrasts = utils.get_values_by_key(output, "hasContrastType")
 
     assert len(caplog.records) == 1
@@ -283,7 +277,7 @@ def test_all_unsupported_suffixes_in_bids_table_raises_error(
     runner,
     tmp_path,
     test_data_upload_path,
-    default_pheno_bids_output_path,
+    temp_output_jsonld_path,
     disable_rich_markup,
     propagate_warnings,
     caplog,
@@ -332,13 +326,13 @@ def test_all_unsupported_suffixes_in_bids_table_raises_error(
             "--bids-table",
             tmp_path / "bids.tsv",
             "--output",
-            default_pheno_bids_output_path,
+            temp_output_jsonld_path,
         ],
         catch_exceptions=False,
     )
 
     assert result.exit_code != 0
-    assert not default_pheno_bids_output_path.exists()
+    assert not temp_output_jsonld_path.exists()
     assert len(caplog.records) == 1
     assert "No Neurobagel-supported BIDS suffixes found" in caplog.text
 
@@ -347,7 +341,7 @@ def test_bids_table_missing_required_columns_exits_gracefully(
     runner,
     tmp_path,
     test_data_upload_path,
-    default_pheno_bids_output_path,
+    temp_output_jsonld_path,
     disable_rich_markup,
     propagate_errors,
     caplog,
@@ -389,13 +383,13 @@ def test_bids_table_missing_required_columns_exits_gracefully(
             "--bids-table",
             tmp_path / "bids.tsv",
             "--output",
-            default_pheno_bids_output_path,
+            temp_output_jsonld_path,
         ],
         catch_exceptions=False,
     )
 
     assert result.exit_code != 0
-    assert not default_pheno_bids_output_path.exists()
+    assert not temp_output_jsonld_path.exists()
     assert len(caplog.records) == 1
     assert "Invalid BIDS table" in caplog.text
     assert "suffix" in caplog.text

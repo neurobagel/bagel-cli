@@ -26,6 +26,7 @@ bagelbids.egg-info
 **/venv
 **/env
 Dockerfile
+Dockerfile.nightly
 
 # other configuration files and scripts
 .autorc
@@ -40,3 +41,6 @@ README.md
 
 # testing
 tests
+
+# standalone scripts
+helper_scripts

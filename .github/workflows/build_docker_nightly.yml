@@ -33,6 +33,6 @@ jobs:
         with:
           platforms: linux/arm64, linux/amd64
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile.nightly
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPO }}:nightly

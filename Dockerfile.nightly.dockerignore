@@ -1,0 +1,46 @@
+# python cache
+__pycache__/**/*
+__pycache__
+*.pyc
+
+# python distribution
+build/**/*
+build
+dist/**/*
+dist
+bagelbids.egg-info/**/*
+bagelbids.egg-info
+.eggs/**/*
+.eggs
+
+.editorconfig
+# **/.git
+**/.github
+**/.gitignore
+**/.vscode
+**/coverage
+**/.env
+**/.aws
+**/.ssh
+**/.DS_Store
+**/venv
+**/env
+Dockerfile
+Dockerfile.nightly
+
+# other configuration files and scripts
+.autorc
+.pre-commit-config.yaml
+generate_nb_vocab_file.py
+
+# documentation
+CHANGELOG.md
+CITATION.cff
+LICENSE
+README.md
+
+# testing
+tests
+
+# standalone scripts
+helper_scripts

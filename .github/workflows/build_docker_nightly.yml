@@ -17,6 +17,8 @@ jobs:
         uses: actions/checkout@v5
         # Some repos have submodules that need to be part of the Docker image
         with:
+          # To be safe, ensure we have all commits and tags so version metadata can be determined correctly
+          fetch-depth: 0
           submodules: recursive
 
       - name: Login to Docker Hub

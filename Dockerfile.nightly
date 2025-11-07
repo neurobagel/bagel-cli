@@ -5,7 +5,10 @@ WORKDIR /app
 
 COPY . /app
 
-RUN pip install --no-cache-dir /app
+# Git is needed for VCS dynamic versioning
+RUN apt-get update && apt-get install git --assume-yes
+
+RUN pip install --no-cache-dir .
 
 ENTRYPOINT [ "bagel" ]
 CMD ["--help"]

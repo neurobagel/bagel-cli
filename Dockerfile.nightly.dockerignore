@@ -36,8 +36,8 @@ generate_nb_vocab_file.py
 # documentation
 CHANGELOG.md
 CITATION.cff
-LICENSE
-README.md
+# LICENSE
+# README.md
 
 # testing
 tests

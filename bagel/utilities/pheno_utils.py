@@ -238,6 +238,27 @@ def is_column_categorical(column: str, data_dict: dict) -> bool:
         return False
 
 
+def is_column_collection(column: str, data_dict: dict) -> bool:
+    """Determine whether a column in a Neurobagel data dictionary is part of a collection."""
+    column_annotation = data_dict[column]["Annotations"]
+    try:
+        dictionary_models.CollectionNeurobagel.model_validate(
+            column_annotation
+        )
+        return True
+    except pydantic.ValidationError:
+        return False
+
+
+def get_collection_columns(data_dict: dict) -> list[str]:
+    """Return a list of all column names in a Neurobagel data dictionary that are part of a collection."""
+    collection_columns = []
+    for col, _ in get_annotated_columns(data_dict):
+        if is_column_collection(col, data_dict):
+            collection_columns.append(col)
+    return collection_columns
+
+
 def map_cat_val_to_term(
     value: Union[str, int], column: str, data_dict: dict
 ) -> str:
@@ -310,6 +331,37 @@ def get_transformed_values(
             # continuous variables than just age
             transf_vals.append(
                 transform_age(str(value), get_age_format(col, data_dict))
+            )
+
+    return transf_vals
+
+
+def get_transformed_row_for_table(
+    columns: list,
+    row: pd.Series,
+    data_dict: dict,
+) -> dict:
+    """
+    For specified columns within a row of a phenotypic table, create a dict where keys are the standardized variable IDs
+    corresponding to the columns, and values are the standardized forms of raw column values.
+
+    NOTE: Assumes that the values come from columns that have not been annotated as being about an assessment tool.
+    """
+    transf_vals: dict[str, str | float] = {}
+    for col in columns:
+        std_var_name = data_dict[col]["Annotations"]["IsAbout"]["TermURL"]
+        value = row[col]
+        if is_missing_value(value, col, data_dict):
+            transf_vals[std_var_name] = ""
+        if is_column_categorical(col, data_dict):
+            transf_vals[std_var_name] = map_cat_val_to_term(
+                value, col, data_dict
+            )
+        else:
+            # TODO: replace with more flexible solution when we have more
+            # continuous variables than just age
+            transf_vals[std_var_name] = transform_age(
+                str(value), get_age_format(col, data_dict)
             )
 
     return transf_vals

@@ -128,7 +128,7 @@ def get_columns_about(data_dict: dict, concept: str) -> list:
 def get_annotated_columns(data_dict: dict) -> list[tuple[str, dict]]:
     """
     Return a list of all columns that have Neurobagel 'Annotations' in a data dictionary,
-    where each column is represented as a tuple of the column name (dictionary key from the data dictionary) and
+    where each annotated column is represented as a tuple of the column name (dictionary key from the data dictionary) and
     properties (all dictionary contents from the data dictionary).
     """
     return [
@@ -286,14 +286,23 @@ def transform_age(value: str, value_format: str) -> float:
 
 
 def get_transformed_values(
-    columns: list, row: pd.Series, data_dict: dict
+    columns: list,
+    row: pd.Series,
+    data_dict: dict,
+    empty_missing_value: bool = False,
 ) -> list:
-    """Convert a list of raw phenotypic values to the corresponding controlled terms, from columns that have not been annotated as being about an assessment tool."""
+    """
+    Convert a list of raw phenotypic values to the corresponding controlled terms.
+    NOTE: Assumes that the values come from columns that have not been annotated as being about an assessment tool.
+    """
     transf_vals: list[float | str] = []
     for col in columns:
         value = row[col]
         if is_missing_value(value, col, data_dict):
-            continue
+            if empty_missing_value:
+                transf_vals.append("")
+            else:
+                continue
         if is_column_categorical(col, data_dict):
             transf_vals.append(map_cat_val_to_term(value, col, data_dict))
         else:

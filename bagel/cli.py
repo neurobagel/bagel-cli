@@ -832,16 +832,15 @@ def pheno_tsv(
         data_dictionary
     )
 
-    logger.info("Processing phenotypic annotations...")
+    logger.info("Harmonizing raw tabular file...")
 
     column_mapping = pheno_utils.map_categories_to_columns(data_dictionary)
     collection_mapping = pheno_utils.map_tools_to_columns(data_dictionary)
-    collection_columns = pheno_utils.get_collection_columns(data_dictionary)
 
     output_columns = []
     not_collection_output_columns = []
     for std_var, columns in column_mapping.items():
-        if std_var in collection_columns:
+        if std_var == "assessment_tool":
             output_columns.extend(columns)
         else:
             output_columns.append(columns[0])
@@ -852,7 +851,7 @@ def pheno_tsv(
         transformed_row = pheno_utils.get_transformed_row_for_table(
             not_collection_output_columns, row, data_dictionary
         )
-        if collection_columns:
+        if collection_mapping:
             for collection, columns in collection_mapping.items():
                 if pheno_utils.are_any_available(
                     columns, row, data_dictionary
@@ -864,3 +863,4 @@ def pheno_tsv(
     harmonized_pheno_df = pd.DataFrame(transformed_rows)
 
     harmonized_pheno_df.to_csv(output, sep="\t", index=False)
+    logger.info(f"Saved output to:  {output}")

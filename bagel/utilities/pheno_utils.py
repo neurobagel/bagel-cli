@@ -240,17 +240,6 @@ def is_column_type(
         return False
 
 
-def get_collection_columns(data_dict: dict) -> list[str]:
-    """Return a list of all column names in a Neurobagel data dictionary that are part of a collection."""
-    collection_columns = []
-    for col, _ in get_annotated_columns(data_dict):
-        if is_column_type(
-            col, data_dict, dictionary_models.CollectionNeurobagel
-        ):
-            collection_columns.append(col)
-    return collection_columns
-
-
 def map_cat_val_to_term(
     value: Union[str, int], column: str, data_dict: dict
 ) -> str:

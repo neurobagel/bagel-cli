@@ -226,13 +226,15 @@ def is_missing_value(
 
 
 def is_column_type(
-    column: str, data_dict: dict, type_cls: Type[dictionary_models.Neurobagel]
+    column: str,
+    data_dict: dict,
+    variable_type: Type[dictionary_models.Neurobagel],
 ) -> bool:
     """Determine whether a column annotation in a Neurobagel data dictionary fits the specified variable type."""
     column_annotation = data_dict[column]["Annotations"]
 
     try:
-        type_cls.model_validate(column_annotation)
+        variable_type.model_validate(column_annotation)
         return True
     except pydantic.ValidationError:
         return False

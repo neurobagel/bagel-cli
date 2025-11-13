@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 import typer
 
-from bagel import mappings
+from bagel import dictionary_models, mappings
 from bagel.utilities import pheno_utils
 
 
@@ -354,9 +354,11 @@ def test_get_transformed_categorical_values(
         ),
     ],
 )
-def test_detect_categorical_column(example, expected_result):
-    result = pheno_utils.is_column_categorical(
-        column="column", data_dict=example
+def test_detect_column_type(example, expected_result):
+    result = pheno_utils.is_column_type(
+        column="column",
+        data_dict=example,
+        variable_type=dictionary_models.CategoricalNeurobagel,
     )
 
     assert result is expected_result

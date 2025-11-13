@@ -748,3 +748,119 @@ def derivatives(
         },
         filename=output,
     )
+
+
+@bagel.command()
+def pheno_tsv(
+    pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
+        ...,
+        "--pheno",
+        "-t",  # for tabular
+        help="Path to a phenotypic .tsv file",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    dictionary: Path = typer.Option(
+        ...,
+        "--dictionary",
+        "-d",
+        help="Path to the .json data dictionary corresponding to the phenotypic .tsv file.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    output: Path = typer.Option(
+        "pheno.tsv",
+        "--output",
+        "-o",
+        help="Path to save the output harmonized .tsv file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    config: str = typer.Option(
+        mappings.DEFAULT_CONFIG,
+        "--config",
+        "-c",
+        # Solution for providing preset choices taken from https://github.com/fastapi/typer/issues/182#issuecomment-1708245110
+        # NOTE: Alternatively, we could dynamically create a string listing the available config names
+        # to include in the option description in the help text. We would then use a callback to validate the config name manually,
+        # instead of using click.Choice which handles displaying the choices and validation automatically.
+        # This might be useful once/if we have many community configurations to choose from or want more flexibility in errors.
+        click_type=click.Choice(
+            pheno_utils.get_available_configs(
+                mappings.CONFIG_NAMESPACES_MAPPING
+            ),
+            case_sensitive=False,
+        ),
+        help="Name of the vocabulary configuration used to generate your data dictionary in the annotation tool. "
+        "If you are processing data for a Neurobagel subcommunity, choose the subcommunity name here. "
+        f"{pheno_utils.additional_config_help_text()}",
+        rich_help_panel=OPTION_GROUP_NAMES["config"],
+    ),
+    overwrite: bool = overwrite_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
+):
+    """
+    [red]Experimental command, please avoid using in production unless explicitly advised![/red]
+    Harmonize the contents of a tabular phenotypic file (.tsv) using the annotations defined in its corresponding Neurobagel data dictionary (.json, generated using the Neurobagel annotation tool).
+    """
+    collection_available_term = "nb:available"
+    collection_unavailable_term = "nb:unavailable"
+
+    file_utils.check_overwrite(output, overwrite)
+
+    data_dictionary = file_utils.load_json(dictionary)
+    pheno_df = file_utils.load_tabular(pheno)
+
+    pheno_utils.check_if_remote_config_namespaces_used()
+
+    logger.info("Running initial checks of inputs...")
+    # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
+    # It is calculated as = length of the longer string + 2 extra spaces
+    width = 26
+    logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
+    logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
+    pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
+
+    # TODO: Remove once we no longer support annotation tool v1 data dictionaries
+    data_dictionary = pheno_utils.convert_transformation_to_format(
+        data_dictionary
+    )
+
+    logger.info("Processing phenotypic annotations...")
+
+    column_mapping = pheno_utils.map_categories_to_columns(data_dictionary)
+    collection_mapping = pheno_utils.map_tools_to_columns(data_dictionary)
+    collection_columns = pheno_utils.get_collection_columns(data_dictionary)
+
+    output_columns = []
+    not_collection_output_columns = []
+    for std_var, columns in column_mapping.items():
+        if std_var in collection_columns:
+            output_columns.extend(columns)
+        else:
+            output_columns.append(columns[0])
+            not_collection_output_columns.append(columns[0])
+
+    transformed_rows = []
+    for _, row in pheno_df.iterrows():
+        transformed_row = pheno_utils.get_transformed_row_for_table(
+            not_collection_output_columns, row, data_dictionary
+        )
+        if collection_columns:
+            for collection, columns in collection_mapping.items():
+                if pheno_utils.are_any_available(
+                    columns, row, data_dictionary
+                ):
+                    transformed_row[collection] = collection_available_term
+                else:
+                    transformed_row[collection] = collection_unavailable_term
+        transformed_rows.append(transformed_row)
+    harmonized_pheno_df = pd.DataFrame(transformed_rows)
+
+    harmonized_pheno_df.to_csv(output, sep="\t", index=False)

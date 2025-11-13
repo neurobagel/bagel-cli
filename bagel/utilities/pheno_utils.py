@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from copy import deepcopy
-from typing import Optional, Union
+from typing import Optional, Type, Union
 
 import isodate
 import jsonschema
@@ -225,26 +225,14 @@ def is_missing_value(
     return value in data_dict[column]["Annotations"].get("MissingValues", [])
 
 
-def is_column_categorical(column: str, data_dict: dict) -> bool:
-    """Determine whether a column in a Neurobagel data dictionary is categorical"""
+def is_column_type(
+    column: str, data_dict: dict, type_cls: Type[dictionary_models.Neurobagel]
+) -> bool:
+    """Determine whether a column annotation in a Neurobagel data dictionary fits the specified variable type."""
     column_annotation = data_dict[column]["Annotations"]
 
     try:
-        dictionary_models.CategoricalNeurobagel.model_validate(
-            column_annotation
-        )
-        return True
-    except pydantic.ValidationError:
-        return False
-
-
-def is_column_collection(column: str, data_dict: dict) -> bool:
-    """Determine whether a column in a Neurobagel data dictionary is part of a collection."""
-    column_annotation = data_dict[column]["Annotations"]
-    try:
-        dictionary_models.CollectionNeurobagel.model_validate(
-            column_annotation
-        )
+        type_cls.model_validate(column_annotation)
         return True
     except pydantic.ValidationError:
         return False
@@ -254,7 +242,9 @@ def get_collection_columns(data_dict: dict) -> list[str]:
     """Return a list of all column names in a Neurobagel data dictionary that are part of a collection."""
     collection_columns = []
     for col, _ in get_annotated_columns(data_dict):
-        if is_column_collection(col, data_dict):
+        if is_column_type(
+            col, data_dict, dictionary_models.CollectionNeurobagel
+        ):
             collection_columns.append(col)
     return collection_columns
 
@@ -324,7 +314,9 @@ def get_transformed_values(
                 transf_vals.append("")
             else:
                 continue
-        if is_column_categorical(col, data_dict):
+        if is_column_type(
+            col, data_dict, dictionary_models.CategoricalNeurobagel
+        ):
             transf_vals.append(map_cat_val_to_term(value, col, data_dict))
         else:
             # TODO: replace with more flexible solution when we have more
@@ -353,7 +345,13 @@ def get_transformed_row_for_table(
         value = row[col]
         if is_missing_value(value, col, data_dict):
             transf_vals[std_var_name] = ""
-        if is_column_categorical(col, data_dict):
+        elif is_column_type(
+            col, data_dict, dictionary_models.IdentifierNeurobagel
+        ):
+            transf_vals[std_var_name] = str(value)
+        elif is_column_type(
+            col, data_dict, dictionary_models.CategoricalNeurobagel
+        ):
             transf_vals[std_var_name] = map_cat_val_to_term(
                 value, col, data_dict
             )
@@ -371,7 +369,9 @@ def get_transformed_row_for_table(
 def categorical_cols_have_bids_levels(data_dict: dict) -> bool:
     for col, content in get_annotated_columns(data_dict):
         if (
-            is_column_categorical(col, data_dict)
+            is_column_type(
+                col, data_dict, dictionary_models.CategoricalNeurobagel
+            )
             and content.get("Levels") is None
         ):
             return False
@@ -386,7 +386,9 @@ def get_mismatched_categorical_levels(data_dict: dict) -> list:
     """
     mismatched_cols = []
     for col, content in get_annotated_columns(data_dict):
-        if is_column_categorical(col, data_dict):
+        if is_column_type(
+            col, data_dict, dictionary_models.CategoricalNeurobagel
+        ):
             known_levels = list(
                 content["Annotations"]["Levels"].keys()
             ) + content["Annotations"].get("MissingValues", [])
@@ -431,7 +433,9 @@ def find_undefined_cat_col_values(
     """
     all_undefined_values = {}
     for col, content in get_annotated_columns(data_dict):
-        if is_column_categorical(col, data_dict):
+        if is_column_type(
+            col, data_dict, dictionary_models.CategoricalNeurobagel
+        ):
             known_values = list(
                 content["Annotations"]["Levels"].keys()
             ) + content["Annotations"].get("MissingValues", [])

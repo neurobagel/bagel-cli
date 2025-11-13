@@ -494,7 +494,7 @@ def construct_dictionary_schema_for_validation() -> dict:
     return patched_schema
 
 
-def validate_data_dict(data_dict: dict, config: str) -> None:
+def validate_data_dict(data_dict: dict, config: str | None) -> None:
     try:
         jsonschema.validate(
             data_dict, construct_dictionary_schema_for_validation()
@@ -523,26 +523,27 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
             "The data dictionary must contain at least one column with Neurobagel annotations.",
         )
 
-    unsupported_namespaces, unrecognized_term_urls = (
-        find_unsupported_namespaces_and_term_urls(data_dict, config)
-    )
-    if unsupported_namespaces:
-        namespace_deprecation_msg = ""
-        if config == mappings.DEFAULT_CONFIG:
-            if deprecated_namespaces := find_deprecated_namespaces(
-                unsupported_namespaces
-            ):
-                namespace_deprecation_msg = (
-                    f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
-                    "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
-                )
-        log_error(
-            logger,
-            f"The data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
-            f"Unsupported vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
-            f"Please ensure the data dictionary only includes terms from vocabularies recognized by {config}. "
-            f"{namespace_deprecation_msg}",
+    if config is not None:
+        unsupported_namespaces, unrecognized_term_urls = (
+            find_unsupported_namespaces_and_term_urls(data_dict, config)
         )
+        if unsupported_namespaces:
+            namespace_deprecation_msg = ""
+            if config == mappings.DEFAULT_CONFIG:
+                if deprecated_namespaces := find_deprecated_namespaces(
+                    unsupported_namespaces
+                ):
+                    namespace_deprecation_msg = (
+                        f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
+                        "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
+                    )
+            log_error(
+                logger,
+                f"The data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
+                f"Unsupported vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
+                f"Please ensure the data dictionary only includes terms from vocabularies recognized by {config}. "
+                f"{namespace_deprecation_msg}",
+            )
 
     if (
         len(
@@ -650,7 +651,7 @@ def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
 
 
 def validate_inputs(
-    data_dict: dict, pheno_df: pd.DataFrame, config: str
+    data_dict: dict, pheno_df: pd.DataFrame, config: str | None = None
 ) -> None:
     """Determines whether input data are valid"""
     validate_data_dict(data_dict, config)

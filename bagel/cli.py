@@ -781,26 +781,6 @@ def pheno_tsv(
         dir_okay=False,
         resolve_path=True,
     ),
-    config: str = typer.Option(
-        mappings.DEFAULT_CONFIG,
-        "--config",
-        "-c",
-        # Solution for providing preset choices taken from https://github.com/fastapi/typer/issues/182#issuecomment-1708245110
-        # NOTE: Alternatively, we could dynamically create a string listing the available config names
-        # to include in the option description in the help text. We would then use a callback to validate the config name manually,
-        # instead of using click.Choice which handles displaying the choices and validation automatically.
-        # This might be useful once/if we have many community configurations to choose from or want more flexibility in errors.
-        click_type=click.Choice(
-            pheno_utils.get_available_configs(
-                mappings.CONFIG_NAMESPACES_MAPPING
-            ),
-            case_sensitive=False,
-        ),
-        help="Name of the vocabulary configuration used to generate your data dictionary in the annotation tool. "
-        "If you are processing data for a Neurobagel subcommunity, choose the subcommunity name here. "
-        f"{pheno_utils.additional_config_help_text()}",
-        rich_help_panel=OPTION_GROUP_NAMES["config"],
-    ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
     help_: bool = help_option(),
@@ -817,15 +797,13 @@ def pheno_tsv(
     data_dictionary = file_utils.load_json(dictionary)
     pheno_df = file_utils.load_tabular(pheno)
 
-    pheno_utils.check_if_remote_config_namespaces_used()
-
     logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
     # It is calculated as = length of the longer string + 2 extra spaces
     width = 26
     logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
     logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
-    pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
+    pheno_utils.validate_inputs(data_dictionary, pheno_df)
 
     # TODO: Remove once we no longer support annotation tool v1 data dictionaries
     data_dictionary = pheno_utils.convert_transformation_to_format(

@@ -440,7 +440,8 @@ def test_missing_ids_in_columns(test_data, columns, expected_indices):
     ],
 )
 def test_age_gets_converted(raw_age, expected_age, value_format):
-    assert expected_age == pheno_utils.transform_age(raw_age, value_format)
+    transformed_age = pheno_utils.transform_age(raw_age, value_format)
+    assert expected_age == pytest.approx(transformed_age, 0.01)
 
 
 @pytest.mark.parametrize(

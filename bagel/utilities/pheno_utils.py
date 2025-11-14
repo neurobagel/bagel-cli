@@ -268,12 +268,10 @@ def transform_age(value: str, value_format: str) -> float:
             else:
                 pvalue = value
             duration = isodate.parse_duration(pvalue)
-            age_years = float(duration.years + duration.months / 12)
-            return round(age_years, 2)
+            return float(duration.years + duration.months / 12)
         if value_format == AGE_FORMATS["range"]:
             a_min, a_max = value.split("-")
-            midpoint = sum(map(float, [a_min, a_max])) / 2
-            return round(midpoint, 2)
+            return sum(map(float, [a_min, a_max])) / 2
         log_error(
             logger,
             f"The data dictionary contains an unrecognized age format: {value_format}. "

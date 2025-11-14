@@ -322,9 +322,10 @@ def get_transformed_row_for_table(
 ) -> dict:
     """
     For specified columns within a row of a phenotypic table, create a dict where keys are the standardized variable IDs
-    corresponding to the columns, and values are the standardized forms of raw column values.
+    corresponding to columns, and values are the standardized categorical or continuous values corresponding to raw column values.
+    Identifier column values are left unchanged.
 
-    NOTE: Assumes that the values come from columns that have not been annotated as being about an assessment tool.
+    NOTE: Assumes that the specified columns have not been annotated as being about an assessment tool.
     """
     transf_vals: dict[str, str | float] = {}
     for col in columns:

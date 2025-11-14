@@ -36,7 +36,7 @@ def test_valid_inputs_run_successfully(
     result = runner.invoke(
         bagel,
         [
-            "pheno-tsv",
+            "harmonize-pheno",
             "--pheno",
             tests_base_path / raw_tsv,
             "--dictionary",

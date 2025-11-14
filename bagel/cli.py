@@ -751,7 +751,7 @@ def derivatives(
 
 
 @bagel.command()
-def pheno_tsv(
+def harmonize_pheno(
     pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
         ...,
         "--pheno",
@@ -773,7 +773,7 @@ def pheno_tsv(
         resolve_path=True,
     ),
     output: Path = typer.Option(
-        "pheno.tsv",
+        "harmonized.tsv",
         "--output",
         "-o",
         help="Path to save the output harmonized .tsv file.",
@@ -786,8 +786,8 @@ def pheno_tsv(
     help_: bool = help_option(),
 ):
     """
-    [red]Experimental command, please avoid using in production unless explicitly advised![/red]
-    Harmonize the contents of a tabular phenotypic file (.tsv) using the annotations defined in its corresponding Neurobagel data dictionary (.json, generated using the Neurobagel annotation tool).
+    [dim][red]Experimental command, please avoid using in production unless explicitly advised![/red]
+    Harmonize the contents of a tabular phenotypic file (.tsv) using the annotations defined in its corresponding Neurobagel data dictionary (.json, generated using the Neurobagel annotation tool).[/dim]
     """
     file_utils.check_overwrite(output, overwrite)
 

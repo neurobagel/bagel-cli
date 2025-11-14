@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 import typer
+from pandas.testing import assert_series_equal
 
 from bagel import dictionary_models, mappings
 from bagel.utilities import pheno_utils
@@ -849,4 +850,149 @@ def test_only_id_columns_annotated_raises_error(
     assert (
         "only columns annotated in the data dictionary are participant ID or session ID"
         in caplog.text
+    )
+
+
+def test_get_transformed_row_for_table():
+    """
+    Test that specified columns of a row of raw values are correctly transformed according to annotations,
+    including preserving IDs and handling missing values appropriately.
+    """
+    raw_row = pd.Series(
+        {
+            "participant_id": "sub-01",
+            "session_id": "ses-01",
+            "sex": "M",
+            "diagnosis": "NA",
+            "age": "P50Y3M",
+            "tool1_item1": "20",
+            "tool1_item2": "19",
+        }
+    )
+    expected_transformed_row = pd.Series(
+        {
+            "nb:ParticipantID": "sub-01",
+            "nb:SessionID": "ses-01",
+            "nb:Sex": "snomed:248153007",
+            "nb:Diagnosis": "",
+            "nb:Age": 50.25,
+        }
+    )
+    data_dict = {
+        "participant_id": {
+            "Description": "A participant ID",
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "nb:ParticipantID",
+                    "Label": "Subject Unique Identifier",
+                },
+                "VariableType": "Identifier",
+            },
+        },
+        "session_id": {
+            "Description": "A session ID",
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "nb:SessionID",
+                    "Label": "Unique session identifier",
+                },
+                "VariableType": "Identifier",
+            },
+        },
+        "age": {
+            "Description": "Age of the participant",
+            "Annotations": {
+                "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                "Format": {
+                    "TermURL": "nb:FromISO8601",
+                    "Label": "ISO8601 period of time",
+                },
+                "VariableType": "Continuous",
+            },
+        },
+        "sex": {
+            "Description": "Sex",
+            "Levels": {"M": "Male", "F": "Female"},
+            "Annotations": {
+                "IsAbout": {"TermURL": "nb:Sex", "Label": "Sex"},
+                "Levels": {
+                    "M": {"TermURL": "snomed:248153007", "Label": "Male"},
+                    "F": {"TermURL": "snomed:248152002", "Label": "Female"},
+                },
+                "MissingValues": ["NA"],
+                "VariableType": "Categorical",
+            },
+        },
+        "diagnosis": {
+            "Description": "Primary diagnosis",
+            "Levels": {"PAT": "Patient", "CTRL": "Healthy control"},
+            "Annotations": {
+                "IsAbout": {"TermURL": "nb:Diagnosis", "Label": "Diagnosis"},
+                "Levels": {
+                    "PAT": {
+                        "TermURL": "snomed:406506008",
+                        "Label": "Attention deficit hyperactivity disorder",
+                    },
+                    "CTRL": {
+                        "TermURL": "ncit:C94342",
+                        "Label": "Healthy control",
+                    },
+                },
+                "MissingValues": ["NA"],
+                "VariableType": "Categorical",
+            },
+        },
+        "tool1_item1": {
+            "Description": "item 1 scores for tool1",
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "nb:Assessment",
+                    "Label": "Assessment tool",
+                },
+                "IsPartOf": {
+                    "TermURL": "snomed:859351000000102",
+                    "Label": "Montreal cognitive assessment",
+                },
+                "MissingValues": ["NA"],
+                "VariableType": "Collection",
+            },
+        },
+        "tool1_item2": {
+            "Description": "item 2 scores for tool1",
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "nb:Assessment",
+                    "Label": "Assessment tool",
+                },
+                "IsPartOf": {
+                    "TermURL": "snomed:859351000000102",
+                    "Label": "Montreal cognitive assessment",
+                },
+                "MissingValues": ["NA"],
+                "VariableType": "Collection",
+            },
+        },
+    }
+
+    transformed_row = pd.Series(
+        pheno_utils.get_transformed_row_for_table(
+            # collection columns must be handled separately
+            columns=[
+                "participant_id",
+                "session_id",
+                "sex",
+                "diagnosis",
+                "age",
+            ],
+            row=raw_row,
+            data_dict=data_dict,
+        )
+    )
+
+    assert_series_equal(
+        transformed_row,
+        expected_transformed_row,
+        check_like=True,
+        check_exact=False,
+        atol=0.01,
     )

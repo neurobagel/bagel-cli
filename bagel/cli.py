@@ -821,6 +821,8 @@ def pheno_tsv(
         if std_var == "assessment_tool":
             output_columns.extend(columns)
         else:
+            # NOTE: By default, we use only the first column mapped to a specific std_var
+            # to avoid duplicate standardized column names in the output TSV.
             output_columns.append(columns[0])
             not_collection_output_columns.append(columns[0])
 

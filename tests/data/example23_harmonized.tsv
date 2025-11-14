@@ -1,0 +1,4 @@
+nb:ParticipantID	nb:Diagnosis	nb:Sex	nb:Age
+sub-01	snomed:724761004	snomed:248153007	60.5
+sub-02		snomed:248152002	56.3
+sub-03	snomed:21897009	snomed:248152002	60.5

@@ -9,16 +9,6 @@
       "VariableType": "Identifier"
     }
   },
-  "session_id": {
-    "Description": "A session ID",
-    "Annotations": {
-      "IsAbout": {
-        "TermURL": "nb:SessionID",
-        "Label": "Unique session identifier"
-      },
-      "VariableType": "Identifier"
-    }
-  },
   "primary_diag": {
     "Description": "Primary diagnosis at baseline visit",
     "Levels": {

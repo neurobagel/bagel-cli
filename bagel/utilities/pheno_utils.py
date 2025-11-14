@@ -326,7 +326,7 @@ def get_transformed_row_for_table(
     corresponding to columns, and values are standardized representations of the raw column values.
     - Continuous and categorical columns are transformed to their standardized values.
     - For columns belonging to a collection, a single standardized column is created for the collection
-      indicating whether data is available for at least one item column.
+      indicating whether data is available for at least one column in the collection.
     - Identifier column values are left unchanged.
     """
     collection_available_term = "nb:available"

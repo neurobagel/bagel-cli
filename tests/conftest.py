@@ -58,6 +58,11 @@ def bids_synthetic(bids_path):
 
 
 @pytest.fixture(scope="session")
+def tests_base_path():
+    return Path(__file__).absolute().parent
+
+
+@pytest.fixture(scope="session")
 def test_data():
     return Path(__file__).absolute().parent / "data"
 

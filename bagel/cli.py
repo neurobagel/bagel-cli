@@ -789,9 +789,6 @@ def pheno_tsv(
     [red]Experimental command, please avoid using in production unless explicitly advised![/red]
     Harmonize the contents of a tabular phenotypic file (.tsv) using the annotations defined in its corresponding Neurobagel data dictionary (.json, generated using the Neurobagel annotation tool).
     """
-    collection_available_term = "nb:available"
-    collection_unavailable_term = "nb:unavailable"
-
     file_utils.check_overwrite(output, overwrite)
 
     data_dictionary = file_utils.load_json(dictionary)
@@ -815,30 +812,21 @@ def pheno_tsv(
     column_mapping = pheno_utils.map_categories_to_columns(data_dictionary)
     collection_mapping = pheno_utils.map_tools_to_columns(data_dictionary)
 
-    output_columns = []
-    not_collection_output_columns = []
+    # Prepare list of annotated columns that will be harmonized and included in the output table
+    cols_to_harmonize = []
     for std_var, columns in column_mapping.items():
         if std_var == "assessment_tool":
-            output_columns.extend(columns)
+            cols_to_harmonize.extend(columns)
         else:
             # NOTE: By default, we use only the first column mapped to a specific std_var
-            # to avoid duplicate standardized column names in the output TSV.
-            output_columns.append(columns[0])
-            not_collection_output_columns.append(columns[0])
+            # to avoid duplicate harmonized column names in the output TSV.
+            cols_to_harmonize.append(columns[0])
 
     transformed_rows = []
     for _, row in pheno_df.iterrows():
         transformed_row = pheno_utils.get_transformed_row_for_table(
-            not_collection_output_columns, row, data_dictionary
+            cols_to_harmonize, row, data_dictionary, collection_mapping
         )
-        if collection_mapping:
-            for collection, columns in collection_mapping.items():
-                if pheno_utils.are_any_available(
-                    columns, row, data_dictionary
-                ):
-                    transformed_row[collection] = collection_available_term
-                else:
-                    transformed_row[collection] = collection_unavailable_term
         transformed_rows.append(transformed_row)
     harmonized_pheno_df = pd.DataFrame(transformed_rows)
 

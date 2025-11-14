@@ -319,38 +319,54 @@ def get_transformed_row_for_table(
     columns: list,
     row: pd.Series,
     data_dict: dict,
+    collection_mapping: dict,
 ) -> dict:
     """
     For specified columns within a row of a phenotypic table, create a dict where keys are the standardized variable IDs
-    corresponding to columns, and values are the standardized categorical or continuous values corresponding to raw column values.
-    Identifier column values are left unchanged.
-
-    NOTE: Assumes that the specified columns have not been annotated as being about an assessment tool.
+    corresponding to columns, and values are standardized representations of the raw column values.
+    - Continuous and categorical columns are transformed to their standardized values.
+    - For columns belonging to a collection, a single standardized column is created for the collection
+      indicating whether data is available for at least one item column.
+    - Identifier column values are left unchanged.
     """
-    transf_vals: dict[str, str | float] = {}
+    collection_available_term = "nb:available"
+    collection_unavailable_term = "nb:unavailable"
+
+    transformed_row: dict[str, str | float] = {}
     for col in columns:
+        if is_column_type(
+            col, data_dict, dictionary_models.CollectionNeurobagel
+        ):
+            continue
         std_var_name = data_dict[col]["Annotations"]["IsAbout"]["TermURL"]
         value = row[col]
         if is_missing_value(value, col, data_dict):
-            transf_vals[std_var_name] = ""
+            transformed_row[std_var_name] = ""
         elif is_column_type(
             col, data_dict, dictionary_models.IdentifierNeurobagel
         ):
-            transf_vals[std_var_name] = str(value)
+            transformed_row[std_var_name] = str(value)
         elif is_column_type(
             col, data_dict, dictionary_models.CategoricalNeurobagel
         ):
-            transf_vals[std_var_name] = map_cat_val_to_term(
+            transformed_row[std_var_name] = map_cat_val_to_term(
                 value, col, data_dict
             )
         else:
             # TODO: replace with more flexible solution when we have more
             # continuous variables than just age
-            transf_vals[std_var_name] = transform_age(
+            transformed_row[std_var_name] = transform_age(
                 str(value), get_age_format(col, data_dict)
             )
 
-    return transf_vals
+    if collection_mapping:
+        for collection, item_cols in collection_mapping.items():
+            if are_any_available(item_cols, row, data_dict):
+                transformed_row[collection] = collection_available_term
+            else:
+                transformed_row[collection] = collection_unavailable_term
+
+    return transformed_row
 
 
 # TODO: Check all columns and then return list of offending columns' names

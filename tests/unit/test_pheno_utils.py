@@ -856,7 +856,7 @@ def test_only_id_columns_annotated_raises_error(
 def test_get_transformed_row_for_table():
     """
     Test that specified columns of a row of raw values are correctly transformed according to annotations,
-    including preserving IDs and handling missing values appropriately.
+    including preserving IDs, handling missing values appropriately, and determining assessment availability.
     """
     raw_row = pd.Series(
         {
@@ -866,7 +866,7 @@ def test_get_transformed_row_for_table():
             "diagnosis": "NA",
             "age": "P50Y3M",
             "tool1_item1": "20",
-            "tool1_item2": "19",
+            "tool1_item2": "NA",
         }
     )
     expected_transformed_row = pd.Series(
@@ -876,6 +876,7 @@ def test_get_transformed_row_for_table():
             "nb:Sex": "snomed:248153007",
             "nb:Diagnosis": "",
             "nb:Age": 50.25,
+            "snomed:859351000000102": "nb:available",
         }
     )
     data_dict = {
@@ -973,19 +974,24 @@ def test_get_transformed_row_for_table():
             },
         },
     }
+    collection_mapping = {
+        "snomed:859351000000102": ["tool1_item1", "tool1_item2"]
+    }
 
     transformed_row = pd.Series(
         pheno_utils.get_transformed_row_for_table(
-            # collection columns must be handled separately
             columns=[
                 "participant_id",
                 "session_id",
                 "sex",
                 "diagnosis",
                 "age",
+                "tool1_item1",
+                "tool1_item2",
             ],
             row=raw_row,
             data_dict=data_dict,
+            collection_mapping=collection_mapping,
         )
     )
 

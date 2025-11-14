@@ -54,5 +54,9 @@ def test_valid_inputs_run_successfully(
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
     # The original column order may not be preserved
     assert_frame_equal(
-        harmonized_tsv, expected_harmonized_tsv, check_like=True, atol=0.01
+        harmonized_tsv,
+        expected_harmonized_tsv,
+        check_like=True,
+        check_exact=False,
+        atol=0.01,
     )

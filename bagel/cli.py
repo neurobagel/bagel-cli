@@ -843,4 +843,4 @@ def pheno_tsv(
     harmonized_pheno_df = pd.DataFrame(transformed_rows)
 
     harmonized_pheno_df.to_csv(output, sep="\t", index=False)
-    logger.info(f"Saved output to:  {output}")
+    logger.info(f"Saved harmonized table to:  {output}")

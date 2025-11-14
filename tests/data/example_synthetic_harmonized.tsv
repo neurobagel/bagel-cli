@@ -1,0 +1,11 @@
+nb:ParticipantID	nb:SessionID	nb:Age	nb:Sex	nb:Diagnosis	snomed:859351000000102	snomed:342061000000106
+sub-01	ses-01	34.1	snomed:248152002	ncit:C94342	nb:available	nb:available
+sub-01	ses-02	35.3	snomed:248152002	ncit:C94342	nb:available	nb:available
+sub-02	ses-01		snomed:248153007	snomed:406506008	nb:available	nb:available
+sub-02	ses-02	39.0	snomed:248153007	snomed:406506008	nb:available	nb:available
+sub-03	ses-01	22.1			nb:available	nb:unavailable
+sub-03	ses-02	23.2		snomed:406506008	nb:available	nb:available
+sub-04	ses-01	21.1	snomed:248152002	ncit:C94342	nb:unavailable	nb:available
+sub-04	ses-02	22.3	snomed:248152002	ncit:C94342	nb:available	nb:available
+sub-05	ses-01	42.5	snomed:248153007	snomed:406506008	nb:available	nb:available
+sub-05	ses-02	43.2	snomed:248153007	snomed:406506008	nb:available	nb:available

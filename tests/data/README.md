@@ -29,6 +29,7 @@
 | 22 | Invalid, based on example 2 but contains trailing empty rows | Valid, same as example 2 | fail |
 | iso88591 | invalid, ISO-8859-1 encoded and contains French characters in the age column | invalid, ISO-8859-1 encoded and contains French characters in the age column | fail |
 | invalid_json | - | not valid JSON, contains trailing comma after `group` key-value pair | fail |
+| 23 | Valid, contains multiple diagnosis, age, and sex columns | Valid | pass
 
 `* this is expected to fail until we enable multiple participant_ID handling`.
 

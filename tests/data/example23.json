@@ -1,0 +1,143 @@
+{
+  "participant_id": {
+    "Description": "A participant ID",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:ParticipantID",
+        "Label": "Unique participant identifier"
+      },
+      "VariableType": "Identifier"
+    }
+  },
+  "session_id": {
+    "Description": "A session ID",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:SessionID",
+        "Label": "Unique session identifier"
+      },
+      "VariableType": "Identifier"
+    }
+  },
+  "primary_diag": {
+    "Description": "Primary diagnosis at baseline visit",
+    "Levels": {
+      "GAD": "Generalized anxiety disorder",
+      "SPD": "Sporadic Parkinson disease"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Diagnosis",
+        "Label": "Diagnosis"
+      },
+      "Levels": {
+        "SPD": {
+          "TermURL": "snomed:724761004",
+          "Label": "Sporadic Parkinson disease"
+        },
+        "GAD": {
+          "TermURL": "snomed:21897009",
+          "Label": "Generalized anxiety disorder"
+        }
+      },
+      "MissingValues": [""],
+      "VariableType": "Categorical"
+    }
+  },
+  "secondary_diag": {
+    "Description": "Secondary diagnosis at baseline visit",
+    "Levels": {
+      "MDD": "Major depressive disorder"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Diagnosis",
+        "Label": "Diagnosis"
+      },
+      "Levels": {
+        "MDD": {
+          "TermURL": "snomed:370143000",
+          "Label": "Major depressive disorder"
+        }
+      },
+      "MissingValues": [""],
+      "VariableType": "Categorical"
+    }
+  },
+  "sex": {
+    "Description": "Sex variable",
+    "Levels": {
+      "M": "Male",
+      "F": "Female"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Sex",
+        "Label": "Sex"
+      },
+      "Levels": {
+        "M": {
+          "TermURL": "snomed:248153007",
+          "Label": "Male"
+        },
+        "F": {
+          "TermURL": "snomed:248152002",
+          "Label": "Female"
+        }
+      },
+      "VariableType": "Categorical"
+    }
+  },
+  "sex_full": {
+    "Description": "Sex variable",
+    "Levels": {
+      "Male": "Male",
+      "Female": "Female"
+    },
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Sex",
+        "Label": "Sex"
+      },
+      "Levels": {
+        "Male": {
+          "TermURL": "snomed:248153007",
+          "Label": "Male"
+        },
+        "Female": {
+          "TermURL": "snomed:248152002",
+          "Label": "Female"
+        }
+      },
+      "VariableType": "Categorical"
+    }
+  },
+  "participant_age": {
+    "Description": "Age of the participant",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Age",
+        "Label": "Chronological age"
+      },
+      "Format": {
+        "TermURL": "nb:FromISO8601",
+        "Label": "A period of time defined according to the ISO8601 standard"
+      },
+      "VariableType": "Continuous"
+    }
+  },
+  "participant_age_float": {
+    "Description": "Age of the participant",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:Age",
+        "Label": "Chronological age"
+      },
+      "Format": {
+        "TermURL": "nb:FromFloat",
+        "Label": "Age as a floating point number"
+      },
+      "VariableType": "Continuous"
+    }
+  }
+}

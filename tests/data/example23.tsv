@@ -1,0 +1,4 @@
+participant_id	session_id	primary_diag	secondary_diag	sex	sex_full	participant_age	participant_age_float
+sub-01	ses-01	SPD	MDD	M	Male	P60Y6M	60.5
+sub-02	ses-01			F	Female	P56Y4M	56.3
+sub-03	ses-01	GAD		F	Female	P60Y6M	60.5

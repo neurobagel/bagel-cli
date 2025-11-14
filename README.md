@@ -8,6 +8,7 @@
 [![Python versions static](https://img.shields.io/badge/python-3.10-blue?style=flat-square&logo=python)](https://www.python.org)
 [![License](https://img.shields.io/github/license/neurobagel/bagel-cli?style=flat-square&color=purple&link=LICENSE)](LICENSE)
 [![PyPI - Version](https://img.shields.io/pypi/v/bagel?style=flat-square&logo=pypi&link=https%3A%2F%2Fimg.shields.io%2Fpypi%2Fv%2Fbagel)](https://pypi.org/project/bagel/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/bagel?style=flat-square&logo=python&label=pypi%20downloads&link=https%3A%2F%2Fpypistats.org%2Fpackages%2Fbagel)](https://pypistats.org/packages/bagel)
 [![Docker Image Version (tag)](https://img.shields.io/docker/v/neurobagel/bagelcli/latest?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Fbagelcli%2Ftags)](https://hub.docker.com/r/neurobagel/bagelcli/tags)
 [![Docker Pulls](https://img.shields.io/docker/pulls/neurobagel/bagelcli?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Fbagelcli%2Ftags)](https://hub.docker.com/r/neurobagel/bagelcli/tags)
 

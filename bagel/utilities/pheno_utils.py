@@ -291,7 +291,6 @@ def get_transformed_values(
     columns: list,
     row: pd.Series,
     data_dict: dict,
-    empty_missing_value: bool = False,
 ) -> list:
     """
     Convert a list of raw phenotypic values to the corresponding controlled terms.
@@ -301,10 +300,7 @@ def get_transformed_values(
     for col in columns:
         value = row[col]
         if is_missing_value(value, col, data_dict):
-            if empty_missing_value:
-                transf_vals.append("")
-            else:
-                continue
+            continue
         if is_column_type(
             col, data_dict, dictionary_models.CategoricalNeurobagel
         ):

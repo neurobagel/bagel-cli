@@ -433,6 +433,7 @@ def test_missing_ids_in_columns(test_data, columns, expected_indices):
         ("90+", 90.0, "nb:FromBounded"),
         ("20Y6M", 20.5, "nb:FromISO8601"),
         ("P20Y6M", 20.5, "nb:FromISO8601"),
+        ("P56Y4M", 56.33, "nb:FromISO8601"),
         ("20Y9M", 20.75, "nb:FromISO8601"),
         ("20-25", 22.5, "nb:FromRange"),
         ("20.00-25.00", 22.5, "nb:FromRange"),

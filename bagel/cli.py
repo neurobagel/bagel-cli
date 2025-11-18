@@ -210,7 +210,6 @@ def bids2tsv(
     logger.info(f"Saved output to:  {output}")
 
 
-# TODO: Look into whitespace for command docstring - seems to be preserved in the help text.
 @bagel.command()
 def pheno(
     pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.

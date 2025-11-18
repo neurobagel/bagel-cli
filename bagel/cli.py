@@ -312,7 +312,7 @@ def pheno(
     logger.info("Processing phenotypic annotations...")
     subject_list = []
 
-    column_mapping = pheno_utils.map_categories_to_columns(data_dictionary)
+    column_mapping = pheno_utils.map_std_vars_to_columns(data_dictionary)
     tool_mapping = pheno_utils.map_tools_to_columns(data_dictionary)
 
     # TODO: needs refactoring once we handle multiple participant IDs
@@ -809,7 +809,7 @@ def harmonize_pheno(
 
     logger.info("Harmonizing raw tabular file...")
 
-    column_mapping = pheno_utils.map_categories_to_columns(data_dictionary)
+    column_mapping = pheno_utils.map_std_vars_to_columns(data_dictionary)
     collection_mapping = pheno_utils.map_tools_to_columns(data_dictionary)
 
     # Prepare list of annotated columns that will be harmonized and included in the output table

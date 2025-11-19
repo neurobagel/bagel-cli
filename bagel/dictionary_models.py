@@ -115,8 +115,6 @@ class CollectionNeurobagel(Neurobagel):
     such as items from an instrument.
     """
 
-    # NOTE: Optional[Identifier] was removed as part of https://github.com/neurobagel/bagel-cli/pull/389
-    # because we couldn't tell what the Optional was doing
     isPartOf: Term = Field(
         ...,
         description="If the column is a subscale or item of an assessment tool "

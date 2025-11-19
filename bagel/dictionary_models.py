@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal, Union
+from typing import Literal
 
 from pydantic import (
     AfterValidator,
@@ -11,7 +11,7 @@ from pydantic_core import PydanticCustomError
 from typing_extensions import Annotated
 
 
-def validate_unique_list(values: List[str]) -> List[str]:
+def validate_unique_list(values: list[str]) -> list[str]:
     """
     Check that provided list only has unique elements.
 
@@ -55,7 +55,7 @@ class Neurobagel(BaseModel):
         alias="IsAbout",
     )
     missingValues: Annotated[
-        List[str],
+        list[str],
         AfterValidator(validate_unique_list),
         Field(
             [],
@@ -85,7 +85,7 @@ class IdentifierNeurobagel(BaseModel):
 class CategoricalNeurobagel(Neurobagel):
     """A Neurobagel annotation for a categorical column"""
 
-    levels: Dict[str, Term] = Field(
+    levels: dict[str, Term] = Field(
         ...,
         description="For categorical variables: "
         "An object of values (keys) in the column and the semantic "
@@ -137,18 +137,22 @@ class Column(BaseModel):
         description="Free-form natural language description",
         alias="Description",
     )
-    annotations: Union[
-        CategoricalNeurobagel,
-        ContinuousNeurobagel,
-        IdentifierNeurobagel,
-        CollectionNeurobagel,
-    ] = Field(None, description="Semantic annotations", alias="Annotations")
+    annotations: (
+        CategoricalNeurobagel
+        | ContinuousNeurobagel
+        | IdentifierNeurobagel
+        | CollectionNeurobagel
+    ) = Field(
+        None,
+        description="Semantic annotations",
+        alias="Annotations",
+    )
 
 
 class CategoricalColumn(Column):
     """A BIDS column annotation for a categorical column"""
 
-    levels: Dict[str, str] = Field(
+    levels: dict[str, str] = Field(
         ...,
         description="For categorical variables: "
         "An object of possible values (keys) "
@@ -169,7 +173,7 @@ class ContinuousColumn(Column):
 
 
 class DataDictionary(
-    RootModel[Dict[str, Union[Column, ContinuousColumn, CategoricalColumn]]]
+    RootModel[dict[str, Column | ContinuousColumn | CategoricalColumn]]
 ):
     """A data dictionary with human and machine readable information for a tabular data file"""
 

@@ -748,3 +748,87 @@ def derivatives(
         },
         filename=output,
     )
+
+
+@bagel.command()
+def harmonize_pheno(
+    pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
+        ...,
+        "--pheno",
+        "-t",  # for tabular
+        help="Path to a phenotypic .tsv file",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    dictionary: Path = typer.Option(
+        ...,
+        "--dictionary",
+        "-d",
+        help="Path to the .json data dictionary corresponding to the phenotypic .tsv file.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    output: Path = typer.Option(
+        "harmonized.tsv",
+        "--output",
+        "-o",
+        help="Path to save the output harmonized .tsv file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    overwrite: bool = overwrite_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
+):
+    """
+    [dim][red]Experimental command, please avoid using in production unless explicitly advised![/red]
+    Harmonize the contents of a tabular phenotypic file (.tsv) using the annotations defined in its corresponding Neurobagel data dictionary (.json, generated using the Neurobagel annotation tool).[/dim]
+    """
+    file_utils.check_overwrite(output, overwrite)
+
+    data_dictionary = file_utils.load_json(dictionary)
+    pheno_df = file_utils.load_tabular(pheno)
+
+    logger.info("Running initial checks of inputs...")
+    # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
+    # It is calculated as = length of the longer string + 2 extra spaces
+    width = 26
+    logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
+    logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
+    pheno_utils.validate_inputs(data_dictionary, pheno_df)
+
+    # TODO: Remove once we no longer support annotation tool v1 data dictionaries
+    data_dictionary = pheno_utils.convert_transformation_to_format(
+        data_dictionary
+    )
+
+    logger.info("Harmonizing raw tabular file...")
+
+    column_mapping = pheno_utils.map_categories_to_columns(data_dictionary)
+    collection_mapping = pheno_utils.map_tools_to_columns(data_dictionary)
+
+    # Prepare list of annotated columns that will be harmonized and included in the output table
+    cols_to_harmonize = []
+    for std_var, columns in column_mapping.items():
+        if std_var == "assessment_tool":
+            cols_to_harmonize.extend(columns)
+        else:
+            # NOTE: By default, we use only the first column mapped to a specific std_var
+            # to avoid duplicate harmonized column names in the output TSV.
+            cols_to_harmonize.append(columns[0])
+
+    transformed_rows = []
+    for _, row in pheno_df.iterrows():
+        transformed_row = pheno_utils.get_transformed_row_for_table(
+            cols_to_harmonize, row, data_dictionary, collection_mapping
+        )
+        transformed_rows.append(transformed_row)
+    harmonized_pheno_df = pd.DataFrame(transformed_rows)
+
+    harmonized_pheno_df.to_csv(output, sep="\t", index=False)
+    logger.info(f"Saved harmonized table to:  {output}")

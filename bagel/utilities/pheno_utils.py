@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from copy import deepcopy
-from typing import Optional, Union
+from typing import Optional, Type, Union
 
 import isodate
 import jsonschema
@@ -128,7 +128,7 @@ def get_columns_about(data_dict: dict, concept: str) -> list:
 def get_annotated_columns(data_dict: dict) -> list[tuple[str, dict]]:
     """
     Return a list of all columns that have Neurobagel 'Annotations' in a data dictionary,
-    where each column is represented as a tuple of the column name (dictionary key from the data dictionary) and
+    where each annotated column is represented as a tuple of the column name (dictionary key from the data dictionary) and
     properties (all dictionary contents from the data dictionary).
     """
     return [
@@ -225,14 +225,16 @@ def is_missing_value(
     return value in data_dict[column]["Annotations"].get("MissingValues", [])
 
 
-def is_column_categorical(column: str, data_dict: dict) -> bool:
-    """Determine whether a column in a Neurobagel data dictionary is categorical"""
+def is_column_type(
+    column: str,
+    data_dict: dict,
+    variable_type: Type[dictionary_models.Neurobagel],
+) -> bool:
+    """Determine whether a column annotation in a Neurobagel data dictionary fits the specified variable type."""
     column_annotation = data_dict[column]["Annotations"]
 
     try:
-        dictionary_models.CategoricalNeurobagel.model_validate(
-            column_annotation
-        )
+        variable_type.model_validate(column_annotation)
         return True
     except pydantic.ValidationError:
         return False
@@ -286,15 +288,22 @@ def transform_age(value: str, value_format: str) -> float:
 
 
 def get_transformed_values(
-    columns: list, row: pd.Series, data_dict: dict
+    columns: list,
+    row: pd.Series,
+    data_dict: dict,
 ) -> list:
-    """Convert a list of raw phenotypic values to the corresponding controlled terms, from columns that have not been annotated as being about an assessment tool."""
+    """
+    Convert a list of raw phenotypic values to the corresponding controlled terms.
+    NOTE: Assumes that the values come from columns that have not been annotated as being about an assessment tool.
+    """
     transf_vals: list[float | str] = []
     for col in columns:
         value = row[col]
         if is_missing_value(value, col, data_dict):
             continue
-        if is_column_categorical(col, data_dict):
+        if is_column_type(
+            col, data_dict, dictionary_models.CategoricalNeurobagel
+        ):
             transf_vals.append(map_cat_val_to_term(value, col, data_dict))
         else:
             # TODO: replace with more flexible solution when we have more
@@ -306,11 +315,67 @@ def get_transformed_values(
     return transf_vals
 
 
+def get_transformed_row_for_table(
+    columns: list,
+    row: pd.Series,
+    data_dict: dict,
+    collection_mapping: dict,
+) -> dict:
+    """
+    For specified columns within a row of a phenotypic table, create a dict where keys are the standardized variable IDs
+    corresponding to columns, and values are standardized representations of the raw column values.
+    - Continuous and categorical columns are transformed to their standardized values.
+    - For columns belonging to a collection, a single standardized column is created for the collection
+      indicating whether data is available for at least one column in the collection.
+    - Identifier column values are left unchanged.
+    """
+    collection_available_term = "nb:available"
+    collection_unavailable_term = "nb:unavailable"
+
+    transformed_row: dict[str, str | float] = {}
+    for col in columns:
+        if is_column_type(
+            col, data_dict, dictionary_models.CollectionNeurobagel
+        ):
+            continue
+        std_var_name = data_dict[col]["Annotations"]["IsAbout"]["TermURL"]
+        value = row[col]
+        if is_missing_value(value, col, data_dict):
+            transformed_row[std_var_name] = ""
+        elif is_column_type(
+            col, data_dict, dictionary_models.IdentifierNeurobagel
+        ):
+            transformed_row[std_var_name] = str(value)
+        elif is_column_type(
+            col, data_dict, dictionary_models.CategoricalNeurobagel
+        ):
+            transformed_row[std_var_name] = map_cat_val_to_term(
+                value, col, data_dict
+            )
+        else:
+            # TODO: replace with more flexible solution when we have more
+            # continuous variables than just age
+            transformed_row[std_var_name] = transform_age(
+                str(value), get_age_format(col, data_dict)
+            )
+
+    if collection_mapping:
+        for collection, item_cols in collection_mapping.items():
+            if are_any_available(item_cols, row, data_dict):
+                transformed_row[collection] = collection_available_term
+            else:
+                transformed_row[collection] = collection_unavailable_term
+
+    return transformed_row
+
+
 # TODO: Check all columns and then return list of offending columns' names
 def categorical_cols_have_bids_levels(data_dict: dict) -> bool:
     for col, content in get_annotated_columns(data_dict):
         if (
-            is_column_categorical(col, data_dict)
+            is_column_type(
+                col, data_dict, dictionary_models.CategoricalNeurobagel
+            )
             and content.get("Levels") is None
         ):
             return False
@@ -325,7 +390,9 @@ def get_mismatched_categorical_levels(data_dict: dict) -> list:
     """
     mismatched_cols = []
     for col, content in get_annotated_columns(data_dict):
-        if is_column_categorical(col, data_dict):
+        if is_column_type(
+            col, data_dict, dictionary_models.CategoricalNeurobagel
+        ):
             known_levels = list(
                 content["Annotations"]["Levels"].keys()
             ) + content["Annotations"].get("MissingValues", [])
@@ -370,7 +437,9 @@ def find_undefined_cat_col_values(
     """
     all_undefined_values = {}
     for col, content in get_annotated_columns(data_dict):
-        if is_column_categorical(col, data_dict):
+        if is_column_type(
+            col, data_dict, dictionary_models.CategoricalNeurobagel
+        ):
             known_values = list(
                 content["Annotations"]["Levels"].keys()
             ) + content["Annotations"].get("MissingValues", [])
@@ -438,7 +507,7 @@ def construct_dictionary_schema_for_validation() -> dict:
     return patched_schema
 
 
-def validate_data_dict(data_dict: dict, config: str) -> None:
+def validate_data_dict(data_dict: dict, config: str | None) -> None:
     try:
         jsonschema.validate(
             data_dict, construct_dictionary_schema_for_validation()
@@ -467,26 +536,27 @@ def validate_data_dict(data_dict: dict, config: str) -> None:
             "The data dictionary must contain at least one column with Neurobagel annotations.",
         )
 
-    unsupported_namespaces, unrecognized_term_urls = (
-        find_unsupported_namespaces_and_term_urls(data_dict, config)
-    )
-    if unsupported_namespaces:
-        namespace_deprecation_msg = ""
-        if config == mappings.DEFAULT_CONFIG:
-            if deprecated_namespaces := find_deprecated_namespaces(
-                unsupported_namespaces
-            ):
-                namespace_deprecation_msg = (
-                    f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
-                    "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
-                )
-        log_error(
-            logger,
-            f"The data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
-            f"Unsupported vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
-            f"Please ensure the data dictionary only includes terms from vocabularies recognized by {config}. "
-            f"{namespace_deprecation_msg}",
+    if config is not None:
+        unsupported_namespaces, unrecognized_term_urls = (
+            find_unsupported_namespaces_and_term_urls(data_dict, config)
         )
+        if unsupported_namespaces:
+            namespace_deprecation_msg = ""
+            if config == mappings.DEFAULT_CONFIG:
+                if deprecated_namespaces := find_deprecated_namespaces(
+                    unsupported_namespaces
+                ):
+                    namespace_deprecation_msg = (
+                        f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
+                        "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
+                    )
+            log_error(
+                logger,
+                f"The data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
+                f"Unsupported vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
+                f"Please ensure the data dictionary only includes terms from vocabularies recognized by {config}. "
+                f"{namespace_deprecation_msg}",
+            )
 
     if (
         len(
@@ -594,7 +664,7 @@ def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
 
 
 def validate_inputs(
-    data_dict: dict, pheno_df: pd.DataFrame, config: str
+    data_dict: dict, pheno_df: pd.DataFrame, config: str | None = None
 ) -> None:
     """Determines whether input data are valid"""
     validate_data_dict(data_dict, config)

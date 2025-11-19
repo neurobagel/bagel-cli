@@ -1,3 +1,25 @@
+# v0.10.0 (Fri Nov 14 2025)
+
+#### 🚀 Enhancements
+
+- [ENH] Add `harmonize-pheno` command to create a harmonized TSV from a raw TSV & data dictionary [#591](https://github.com/neurobagel/bagel-cli/pull/591) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Ensure git is installed in `nightly` Dockerfile for dynamic versioning [#584](https://github.com/neurobagel/bagel-cli/pull/584) ([@alyssadai](https://github.com/alyssadai))
+- [FIX] Include `.git` for `nightly` Docker build to enable version detection [#583](https://github.com/neurobagel/bagel-cli/pull/583) ([@alyssadai](https://github.com/alyssadai))
+- [FIX] Build `nightly` Docker image from source rather than PyPI [#580](https://github.com/neurobagel/bagel-cli/pull/580) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [REF] Use generic fixture for output JSONLD path in integration tests [#581](https://github.com/neurobagel/bagel-cli/pull/581) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.9.2 (Tue Nov 04 2025)
 
 #### 🐛 Bug Fixes

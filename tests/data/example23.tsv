@@ -1,0 +1,4 @@
+participant_id	on_medication	primary_diag	secondary_diag	sex	sex_full	participant_age	participant_age_float
+sub-01	yes	SPD	MDD	M	Male	P60Y6M	60.5
+sub-02	no			F	Female	P56Y4M	56.3
+sub-03	yes	GAD		F	Female	P60Y6M	60.5

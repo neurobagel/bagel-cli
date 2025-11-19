@@ -1,8 +1,9 @@
 import pandas as pd
 import pytest
 import typer
+from pandas.testing import assert_series_equal
 
-from bagel import mappings
+from bagel import dictionary_models, mappings
 from bagel.utilities import pheno_utils
 
 
@@ -354,9 +355,11 @@ def test_get_transformed_categorical_values(
         ),
     ],
 )
-def test_detect_categorical_column(example, expected_result):
-    result = pheno_utils.is_column_categorical(
-        column="column", data_dict=example
+def test_detect_column_type(example, expected_result):
+    result = pheno_utils.is_column_type(
+        column="column",
+        data_dict=example,
+        variable_type=dictionary_models.CategoricalNeurobagel,
     )
 
     assert result is expected_result
@@ -431,13 +434,15 @@ def test_missing_ids_in_columns(test_data, columns, expected_indices):
         ("90+", 90.0, "nb:FromBounded"),
         ("20Y6M", 20.5, "nb:FromISO8601"),
         ("P20Y6M", 20.5, "nb:FromISO8601"),
+        ("P56Y4M", 56.33, "nb:FromISO8601"),
         ("20Y9M", 20.75, "nb:FromISO8601"),
         ("20-25", 22.5, "nb:FromRange"),
         ("20.00-25.00", 22.5, "nb:FromRange"),
     ],
 )
 def test_age_gets_converted(raw_age, expected_age, value_format):
-    assert expected_age == pheno_utils.transform_age(raw_age, value_format)
+    transformed_age = pheno_utils.transform_age(raw_age, value_format)
+    assert expected_age == pytest.approx(transformed_age, 0.01)
 
 
 @pytest.mark.parametrize(
@@ -845,4 +850,155 @@ def test_only_id_columns_annotated_raises_error(
     assert (
         "only columns annotated in the data dictionary are participant ID or session ID"
         in caplog.text
+    )
+
+
+def test_get_transformed_row_for_table():
+    """
+    Test that specified columns of a row of raw values are correctly transformed according to annotations,
+    including preserving IDs, handling missing values appropriately, and determining assessment availability.
+    """
+    raw_row = pd.Series(
+        {
+            "participant_id": "sub-01",
+            "session_id": "ses-01",
+            "sex": "M",
+            "diagnosis": "NA",
+            "age": "P50Y3M",
+            "tool1_item1": "20",
+            "tool1_item2": "NA",
+        }
+    )
+    expected_transformed_row = pd.Series(
+        {
+            "nb:ParticipantID": "sub-01",
+            "nb:SessionID": "ses-01",
+            "nb:Sex": "snomed:248153007",
+            "nb:Diagnosis": "",
+            "nb:Age": 50.25,
+            "snomed:859351000000102": "nb:available",
+        }
+    )
+    data_dict = {
+        "participant_id": {
+            "Description": "A participant ID",
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "nb:ParticipantID",
+                    "Label": "Subject Unique Identifier",
+                },
+                "VariableType": "Identifier",
+            },
+        },
+        "session_id": {
+            "Description": "A session ID",
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "nb:SessionID",
+                    "Label": "Unique session identifier",
+                },
+                "VariableType": "Identifier",
+            },
+        },
+        "age": {
+            "Description": "Age of the participant",
+            "Annotations": {
+                "IsAbout": {"TermURL": "nb:Age", "Label": "Age"},
+                "Format": {
+                    "TermURL": "nb:FromISO8601",
+                    "Label": "ISO8601 period of time",
+                },
+                "VariableType": "Continuous",
+            },
+        },
+        "sex": {
+            "Description": "Sex",
+            "Levels": {"M": "Male", "F": "Female"},
+            "Annotations": {
+                "IsAbout": {"TermURL": "nb:Sex", "Label": "Sex"},
+                "Levels": {
+                    "M": {"TermURL": "snomed:248153007", "Label": "Male"},
+                    "F": {"TermURL": "snomed:248152002", "Label": "Female"},
+                },
+                "MissingValues": ["NA"],
+                "VariableType": "Categorical",
+            },
+        },
+        "diagnosis": {
+            "Description": "Primary diagnosis",
+            "Levels": {"PAT": "Patient", "CTRL": "Healthy control"},
+            "Annotations": {
+                "IsAbout": {"TermURL": "nb:Diagnosis", "Label": "Diagnosis"},
+                "Levels": {
+                    "PAT": {
+                        "TermURL": "snomed:406506008",
+                        "Label": "Attention deficit hyperactivity disorder",
+                    },
+                    "CTRL": {
+                        "TermURL": "ncit:C94342",
+                        "Label": "Healthy control",
+                    },
+                },
+                "MissingValues": ["NA"],
+                "VariableType": "Categorical",
+            },
+        },
+        "tool1_item1": {
+            "Description": "item 1 scores for tool1",
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "nb:Assessment",
+                    "Label": "Assessment tool",
+                },
+                "IsPartOf": {
+                    "TermURL": "snomed:859351000000102",
+                    "Label": "Montreal cognitive assessment",
+                },
+                "MissingValues": ["NA"],
+                "VariableType": "Collection",
+            },
+        },
+        "tool1_item2": {
+            "Description": "item 2 scores for tool1",
+            "Annotations": {
+                "IsAbout": {
+                    "TermURL": "nb:Assessment",
+                    "Label": "Assessment tool",
+                },
+                "IsPartOf": {
+                    "TermURL": "snomed:859351000000102",
+                    "Label": "Montreal cognitive assessment",
+                },
+                "MissingValues": ["NA"],
+                "VariableType": "Collection",
+            },
+        },
+    }
+    collection_mapping = {
+        "snomed:859351000000102": ["tool1_item1", "tool1_item2"]
+    }
+
+    transformed_row = pd.Series(
+        pheno_utils.get_transformed_row_for_table(
+            columns=[
+                "participant_id",
+                "session_id",
+                "sex",
+                "diagnosis",
+                "age",
+                "tool1_item1",
+                "tool1_item2",
+            ],
+            row=raw_row,
+            data_dict=data_dict,
+            collection_mapping=collection_mapping,
+        )
+    )
+
+    assert_series_equal(
+        transformed_row,
+        expected_transformed_row,
+        check_like=True,
+        check_exact=False,
+        atol=0.01,
     )

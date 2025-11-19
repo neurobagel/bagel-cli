@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from copy import deepcopy
-from typing import Optional, Type, Union
+from typing import Type
 
 import isodate
 import jsonschema
@@ -85,11 +85,11 @@ def check_param_not_whitespace(param: CallbackParam, value: str) -> str:
     return value
 
 
-def validate_portal_uri(portal: Optional[str]) -> Optional[str]:
+def validate_portal_uri(portal: str | None) -> str | None:
     """Custom validation that portal is a valid HttpUrl"""
-    # NOTE: We need Optional in the validation type below to account for --portal being an optional argument in the pheno command
+    # NOTE: We need None in the validation type below to account for --portal being an optional argument in the pheno command
     try:
-        pydantic.TypeAdapter(Optional[pydantic.HttpUrl]).validate_python(
+        pydantic.TypeAdapter(str | pydantic.HttpUrl | None).validate_python(
             portal
         )
     except pydantic.ValidationError as err:
@@ -218,9 +218,7 @@ def map_tools_to_columns(data_dict: dict) -> dict[str, list]:
     return out_dict
 
 
-def is_missing_value(
-    value: Union[str, int], column: str, data_dict: dict
-) -> bool:
+def is_missing_value(value: str | int, column: str, data_dict: dict) -> bool:
     """Determine if a raw value is listed as a missing value in the data dictionary entry for this column"""
     return value in data_dict[column]["Annotations"].get("MissingValues", [])
 
@@ -240,9 +238,7 @@ def is_column_type(
         return False
 
 
-def map_cat_val_to_term(
-    value: Union[str, int], column: str, data_dict: dict
-) -> str:
+def map_cat_val_to_term(value: str | int, column: str, data_dict: dict) -> str:
     """Take a raw categorical value and return the controlled term it has been mapped to"""
     return data_dict[column]["Annotations"]["Levels"][value]["TermURL"]
 

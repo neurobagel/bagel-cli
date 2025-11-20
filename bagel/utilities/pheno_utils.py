@@ -89,9 +89,7 @@ def validate_portal_uri(portal: str | None) -> str | None:
     """Custom validation that portal is a valid HttpUrl"""
     # NOTE: We need None in the validation type below to account for --portal being an optional argument in the pheno command
     try:
-        pydantic.TypeAdapter(str | pydantic.HttpUrl | None).validate_python(
-            portal
-        )
+        pydantic.TypeAdapter(pydantic.HttpUrl | None).validate_python(portal)
     except pydantic.ValidationError as err:
         raise BadParameter(
             "Not a valid http or https URL: "

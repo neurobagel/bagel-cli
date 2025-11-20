@@ -1,3 +1,19 @@
+# v0.10.1 (Thu Nov 20 2025)
+
+####  🧪 Tests
+
+- [TST] Run tests on Python 3.12 and 3.13 [#597](https://github.com/neurobagel/bagel-cli/pull/597) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🔩 Dependency Updates
+
+- [FIX] Require Python <3.14 to avoid Pandera compatibility issues [#601](https://github.com/neurobagel/bagel-cli/pull/601) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.10.0 (Fri Nov 14 2025)
 
 #### 🚀 Enhancements

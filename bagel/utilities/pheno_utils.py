@@ -186,17 +186,17 @@ def find_deprecated_namespaces(namespaces: list) -> list:
     return [ns for ns in namespaces if ns in DEPRECATED_NAMESPACE_PREFIXES]
 
 
-def map_categories_to_columns(data_dict: dict) -> dict[str, list]:
+def map_std_vars_to_columns(data_dict: dict) -> dict[str, list]:
     """
-    Maps all pre-defined Neurobagel categories (e.g. "Sex") to a list containing all column names (if any) that
-    have been linked to this category.
+    Maps all Neurobagel standardized variables (e.g. "Sex") to a list containing all column names (if any) that
+    have been linked to this variable.
 
-    Returns a dictionary where the keys are the aliases for Neurobagel categories and the values are lists of column names.
+    Returns a dictionary where the keys are the aliases for Neurobagel standardized variables and the values are lists of column names.
     """
     return {
-        cat_name: get_columns_about(data_dict, cat_iri)
-        for cat_name, cat_iri in mappings.NEUROBAGEL.items()
-        if get_columns_about(data_dict, cat_iri)
+        std_var_name: get_columns_about(data_dict, std_var_iri)
+        for std_var_name, std_var_iri in mappings.NEUROBAGEL.items()
+        if get_columns_about(data_dict, std_var_iri)
     }
 
 
@@ -588,9 +588,9 @@ def validate_data_dict(data_dict: dict, config: str | None) -> None:
         )
 
     if (
-        set(map_categories_to_columns(data_dict).keys())
+        set(map_std_vars_to_columns(data_dict).keys())
         == {"participant", "session"}
-    ) or (set(map_categories_to_columns(data_dict).keys()) == {"participant"}):
+    ) or (set(map_std_vars_to_columns(data_dict).keys()) == {"participant"}):
         logger.warning(
             "The only columns annotated in the data dictionary are participant ID or session ID columns. "
             "As a result, the generated graph-ready data will not contain any subject phenotypic characteristics. "

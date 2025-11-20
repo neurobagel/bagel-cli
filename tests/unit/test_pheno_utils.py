@@ -271,11 +271,11 @@ def test_find_deprecated_namespaces(namespaces, deprecated_namespaces):
     )
 
 
-def test_map_categories_to_columns(test_data, load_test_json):
-    """Test that inverse mapping of concepts to columns is correctly created"""
+def test_map_std_vars_to_columns(test_data, load_test_json):
+    """Test that standardized variables are correctly mapped to columns."""
     data_dict = load_test_json(test_data / "example2.json")
 
-    result = pheno_utils.map_categories_to_columns(data_dict)
+    result = pheno_utils.map_std_vars_to_columns(data_dict)
 
     assert {"participant", "session", "sex"}.issubset(result.keys())
     assert ["participant_id"] == result["participant"]

@@ -210,7 +210,6 @@ def bids2tsv(
     logger.info(f"Saved output to:  {output}")
 
 
-# TODO: Look into whitespace for command docstring - seems to be preserved in the help text.
 @bagel.command()
 def pheno(
     pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
@@ -312,7 +311,7 @@ def pheno(
     logger.info("Processing phenotypic annotations...")
     subject_list = []
 
-    column_mapping = pheno_utils.map_categories_to_columns(data_dictionary)
+    column_mapping = pheno_utils.map_std_vars_to_columns(data_dictionary)
     tool_mapping = pheno_utils.map_tools_to_columns(data_dictionary)
 
     # TODO: needs refactoring once we handle multiple participant IDs
@@ -809,13 +808,13 @@ def harmonize_pheno(
 
     logger.info("Harmonizing raw tabular file...")
 
-    column_mapping = pheno_utils.map_categories_to_columns(data_dictionary)
+    column_mapping = pheno_utils.map_std_vars_to_columns(data_dictionary)
     collection_mapping = pheno_utils.map_tools_to_columns(data_dictionary)
 
     # Prepare list of annotated columns that will be harmonized and included in the output table
     cols_to_harmonize = []
-    for std_var, columns in column_mapping.items():
-        if std_var == "assessment_tool":
+    for std_var_name, columns in column_mapping.items():
+        if std_var_name == "assessment_tool":
             cols_to_harmonize.extend(columns)
         else:
             # NOTE: By default, we use only the first column mapped to a specific std_var

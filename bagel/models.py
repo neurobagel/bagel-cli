@@ -1,5 +1,5 @@
 import uuid
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
@@ -13,10 +13,13 @@ class Bagel(BaseModel):
     """identifier has to be a valid UUID prepended by the Neurobagel namespace
     by default, a random (uuid4) string UUID will be created"""
 
-    identifier: str = Field(
-        pattern=BAGEL_UUID_PATTERN,
-        default_factory=lambda: NB.pf + ":" + str(uuid.uuid4()),
-    )
+    identifier: Annotated[
+        str,
+        Field(
+            pattern=BAGEL_UUID_PATTERN,
+            default_factory=lambda: NB.pf + ":" + str(uuid.uuid4()),
+        ),
+    ]
 
     model_config = ConfigDict(extra="forbid")
 

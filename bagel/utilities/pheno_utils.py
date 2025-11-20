@@ -196,8 +196,8 @@ def map_std_vars_to_columns(data_dict: dict) -> dict[str, list]:
     Returns a dictionary where the keys are the aliases for Neurobagel standardized variables and the values are lists of column names.
     """
     return {
-        std_var_alias: get_columns_about(data_dict, std_var_iri)
-        for std_var_alias, std_var_iri in mappings.NEUROBAGEL.items()
+        std_var_name: get_columns_about(data_dict, std_var_iri)
+        for std_var_name, std_var_iri in mappings.NEUROBAGEL.items()
         if get_columns_about(data_dict, std_var_iri)
     }
 

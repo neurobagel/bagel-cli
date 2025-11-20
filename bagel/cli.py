@@ -813,8 +813,8 @@ def harmonize_pheno(
 
     # Prepare list of annotated columns that will be harmonized and included in the output table
     cols_to_harmonize = []
-    for std_var, columns in column_mapping.items():
-        if std_var == "assessment_tool":
+    for std_var_name, columns in column_mapping.items():
+        if std_var_name == "assessment_tool":
             cols_to_harmonize.extend(columns)
         else:
             # NOTE: By default, we use only the first column mapped to a specific std_var

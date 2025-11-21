@@ -452,7 +452,7 @@ def bids(
     # TODO: Should we rename the default output file to something more generic to account for the fact that
     # the file may also include derivatives data? e.g., dataset_bids.jsonld
     output: Path = typer.Option(
-        "pheno_bids.jsonld",
+        "bids.jsonld",
         "--output",
         "-o",
         help="Path to the output .jsonld file.",
@@ -630,7 +630,7 @@ def derivatives(
         resolve_path=True,
     ),
     output: Path = typer.Option(
-        "pheno_derivatives.jsonld",
+        "derivatives.jsonld",
         "--output",
         "-o",
         help="Path to the output .jsonld file.",

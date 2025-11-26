@@ -6,6 +6,40 @@ from typer import BadParameter
 
 from bagel import bids_table_model, mappings, models
 from bagel.logger import log_error, logger
+from bagel.utilities import file_utils
+
+# TODO: Revisit where this shared imaging_modalities.json file should be stored within neurobagel/communities?
+IMAGING_MODALITIES_URL = "https://raw.githubusercontent.com/neurobagel/communities/refs/heads/main/configs/Neurobagel/imaging_modalities.json"
+IMAGING_MODALITIES_PATH = (
+    Path(__file__).parents[1]
+    / "communities/configs/Neurobagel/imaging_modalities.json"
+)
+
+
+def get_bids_suffix_to_std_term_mapping() -> dict:
+    """
+    Fetch the standardized imaging modality vocabulary and return a mapping of BIDS suffixes
+    to prefixed standardized terms.
+    """
+    bids_terms_vocab, err = file_utils.request_file(
+        url=IMAGING_MODALITIES_URL, backup_path=IMAGING_MODALITIES_PATH
+    )
+    if bids_terms_vocab == []:
+        log_error(
+            logger,
+            f"Failed to fetch the standardized imaging modality vocabulary required to validate your BIDS metadata. Error: {err} "
+            "Please check that you have an internet connection and try again, or open an issue in https://github.com/neurobagel/bagel-cli/issues if the problem persists.",
+        )
+    # Only one term namespace is expected in this file
+    bids_terms_vocab = bids_terms_vocab[0]
+    namespace_prefix = bids_terms_vocab["namespace_prefix"]
+    bids_suffix_to_std_term_mapping = {}
+    for term in bids_terms_vocab["terms"]:
+        bids_suffix_to_std_term_mapping[term["abbreviation"]] = (
+            f"{namespace_prefix}:{term['id']}"
+        )
+
+    return bids_suffix_to_std_term_mapping
 
 
 def find_unsupported_image_suffixes(data: pd.DataFrame) -> list:

@@ -174,26 +174,28 @@ def bids2tsv(
     dataset_tab = b2t2.index_dataset(bids_dir)
     dataset_df = dataset_tab.to_pandas()
 
-    if not dataset_df["suffix"].isin(mappings.BIDS.keys()).any():
+    bids_term_mapping = bids_utils.get_bids_suffix_to_std_term_mapping()
+    if not dataset_df["suffix"].isin(bids_term_mapping.keys()).any():
         log_error(
             logger,
             f"No image files with supported BIDS suffixes were found in {bids_dir}. "
             "A BIDS metadata table could not be generated. "
             "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
-            f"(Supported suffixes: {list(mappings.BIDS.keys())}).",
+            f"(Supported suffixes: {list(bids_term_mapping.keys())}).",
         )
 
     unsupported_suffixes = bids_utils.find_unsupported_image_suffixes(
-        dataset_df
+        data=dataset_df,
+        supported_suffixes=bids_term_mapping.keys(),
     )
     if unsupported_suffixes:
         logger.warning(
             f"Image file suffixes unsupported by Neurobagel were found in the BIDS directory: {unsupported_suffixes}. "
-            f"These will be ignored. Supported BIDS suffixes: {list(mappings.BIDS.keys())}."
+            f"These will be ignored. Supported BIDS suffixes: {list(bids_term_mapping.keys())}."
         )
 
     dataset_df = dataset_df[
-        dataset_df["suffix"].isin(mappings.BIDS.keys())
+        dataset_df["suffix"].isin(bids_term_mapping.keys())
     ].copy()
 
     dataset_df["path"] = dataset_df.apply(
@@ -495,31 +497,33 @@ def bids(
     )
     bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
 
+    bids_term_mapping = bids_utils.get_bids_suffix_to_std_term_mapping()
     # NOTE: The BIDS table model validation will check for required columns and allowed values in the "suffix" column
     # and error out for any problem. Because we want to ignore unsupported suffixes with a warning instead of just a validation error,
     # we first check the suffix column separately and then remove any offending values.
     # For our custom suffix-check to work, we need to ensure that the "suffix" column exists here.
     if "suffix" in bids_dataset.columns:
-        if not bids_dataset["suffix"].isin(mappings.BIDS.keys()).any():
+        if not bids_dataset["suffix"].isin(bids_term_mapping.keys()).any():
             log_error(
                 logger,
                 f"No Neurobagel-supported BIDS suffixes found in BIDS table 'suffix' column: {bids_table}. "
                 "No imaging metadata could be added to the subject graph data. "
                 "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
-                f"(supported suffixes: {list(mappings.BIDS.keys())}).",
+                f"(supported suffixes: {list(bids_term_mapping.keys())}).",
             )
 
         unsupported_suffixes = bids_utils.find_unsupported_image_suffixes(
-            bids_dataset
+            data=bids_dataset,
+            supported_suffixes=bids_term_mapping.keys(),
         )
         if unsupported_suffixes:
             logger.warning(
                 f"BIDS table 'suffix' column contains image file suffixes unsupported by Neurobagel: {unsupported_suffixes}. "
-                f"These records will be ignored. Supported BIDS suffixes: {list(mappings.BIDS.keys())}."
+                f"These records will be ignored. Supported BIDS suffixes: {list(bids_term_mapping.keys())}."
             )
 
         bids_dataset = bids_dataset[
-            bids_dataset["suffix"].isin(mappings.BIDS.keys())
+            bids_dataset["suffix"].isin(bids_term_mapping.keys())
         ].copy()
 
     bids_utils.validate_bids_table(bids_dataset)
@@ -555,7 +559,8 @@ def bids(
         for session_id in sorted(bids_sessions):
             _bids_session = _bids_sub[_bids_sub["ses"] == session_id]
             image_list = bids_utils.create_acquisitions(
-                session_df=_bids_session
+                session_df=_bids_session,
+                bids_term_mapping=bids_term_mapping,
             )
 
             if not image_list:

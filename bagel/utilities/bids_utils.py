@@ -1,10 +1,11 @@
 from pathlib import Path
+from typing import Iterable
 
 import pandas as pd
 import pandera.pandas as pa
 from typer import BadParameter
 
-from bagel import bids_table_model, mappings, models
+from bagel import bids_table_model, models
 from bagel.logger import log_error, logger
 from bagel.utilities import file_utils
 
@@ -16,7 +17,7 @@ IMAGING_MODALITIES_PATH = (
 )
 
 
-def get_bids_suffix_to_std_term_mapping() -> dict:
+def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
     """
     Fetch the standardized imaging modality vocabulary and return a mapping of BIDS suffixes
     to prefixed standardized terms.
@@ -42,11 +43,13 @@ def get_bids_suffix_to_std_term_mapping() -> dict:
     return bids_suffix_to_std_term_mapping
 
 
-def find_unsupported_image_suffixes(data: pd.DataFrame) -> list:
+def find_unsupported_image_suffixes(
+    data: pd.DataFrame, supported_suffixes: Iterable[str]
+) -> list[str]:
     """Return any image file suffixes unsupported by Neurobagel that are found in the provided BIDS table."""
     return (
         data.loc[
-            ~data["suffix"].isin(mappings.BIDS.keys()),
+            ~data["suffix"].isin(supported_suffixes),
             "suffix",
         ]
         .unique()
@@ -98,6 +101,7 @@ def map_term_to_namespace(term: str, namespace: dict) -> str | bool:
 
 def create_acquisitions(
     session_df: pd.DataFrame,
+    bids_term_mapping: dict,
 ) -> list:
     """Parses BIDS image file suffixes for a specified session to create a list of Acquisition objects."""
     image_list = []
@@ -105,7 +109,7 @@ def create_acquisitions(
     for bids_file_suffix in session_df["suffix"]:
         mapped_term = map_term_to_namespace(
             term=bids_file_suffix,
-            namespace=mappings.BIDS,
+            namespace=bids_term_mapping,
         )
         if mapped_term:
             image_list.append(

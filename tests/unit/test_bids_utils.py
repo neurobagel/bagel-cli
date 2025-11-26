@@ -410,3 +410,15 @@ def test_header_only_bids_table_produces_error(caplog, propagate_errors):
         bids_utils.validate_bids_table(bids_table)
 
     assert "BIDS table is empty" in caplog.text
+
+
+def test_get_bids_suffix_to_std_term_mapping():
+    """Test that get_bids_suffix_to_std_term_mapping() returns a mapping with expected suffix to standardized term pairings."""
+    expected_prefix = "nidm"
+    bids_term_mapping = bids_utils.get_bids_suffix_to_std_term_mapping()
+
+    assert all(
+        str(value).startswith(f"{expected_prefix}:")
+        for value in bids_term_mapping.values()
+    )
+    assert bids_term_mapping["T1w"] == f"{expected_prefix}:T1Weighted"

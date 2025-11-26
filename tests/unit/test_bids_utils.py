@@ -97,11 +97,18 @@ def test_create_acquisitions(session_df_rows, expected_acquisitions):
     Test that given a table with rows corresponding to a session's BIDS files,
     create_acquisitions() creates a correct list of acquisitions matching the image file suffixes.
     """
+    mock_bids_term_mapping = {
+        "T1w": "nidm:T1Weighted",
+        "T2w": "nidm:T2Weighted",
+        "bold": "nidm:FlowWeighted",
+    }
+
     session_df = pd.DataFrame(
         session_df_rows, columns=["sub", "ses", "suffix", "path"]
     )
     image_list = bids_utils.create_acquisitions(
         session_df=session_df,
+        bids_term_mapping=mock_bids_term_mapping,
     )
 
     extracted_image_counts = Counter(
@@ -295,7 +302,7 @@ def test_valid_bids_tables_pass_validation(row_data):
                 [
                     "sub-01",
                     "ses-01",
-                    "unsupported1",  # unsupported suffix
+                    "",  # missing suffix
                     "/data/synthetic/sub-01/anat/sub-01_ses-01_unsupported1.nii.gz",
                 ],
                 [
@@ -307,7 +314,7 @@ def test_valid_bids_tables_pass_validation(row_data):
                 [
                     "sub-02",
                     "ses-01",
-                    "unsupported3",  # unsupported suffix
+                    "",  # missing suffix
                     "/data/synthetic/sub-02/anat/sub-02_ses-01_unsupported3.nii.gz",
                 ],
                 [

@@ -9,7 +9,8 @@ from bagel import bids_table_model, models
 from bagel.logger import log_error, logger
 from bagel.utilities import file_utils
 
-# TODO: Revisit where this shared imaging_modalities.json file should be stored within neurobagel/communities?
+# NOTE: A copy of the imaging modality vocab will likely end up in all community config directories,
+# but since the contents will be the same, we always pull it from the Neurobagel config for now for simplicity.
 IMAGING_MODALITIES_URL = "https://raw.githubusercontent.com/neurobagel/communities/refs/heads/main/configs/Neurobagel/imaging_modalities.json"
 IMAGING_MODALITIES_PATH = (
     Path(__file__).parents[1]
@@ -22,6 +23,8 @@ def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
     Fetch the standardized imaging modality vocabulary and return a mapping of BIDS suffixes
     to prefixed standardized terms.
     """
+    # TODO: Revisit once we cache community config files locally as part of https://github.com/neurobagel/bagel-cli/issues/493.
+    # For now we revert to a local submodule backup if the request fails, but this means we might not have the latest vocab.
     bids_terms_vocab, err = file_utils.request_file(
         url=IMAGING_MODALITIES_URL, backup_path=IMAGING_MODALITIES_PATH
     )

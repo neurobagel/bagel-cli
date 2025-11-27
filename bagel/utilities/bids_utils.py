@@ -34,7 +34,7 @@ def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
             f"Failed to fetch the standardized imaging modality vocabulary required to validate your BIDS metadata. Error: {err} "
             "Please check that you have an internet connection and try again, or open an issue in https://github.com/neurobagel/bagel-cli/issues if the problem persists.",
         )
-    # Only one term namespace is expected in this file
+    # We only expect one term namespace in the bids_term_vocab list
     bids_terms_vocab = bids_terms_vocab[0]
     namespace_prefix = bids_terms_vocab["namespace_prefix"]
     bids_suffix_to_std_term_mapping = {}

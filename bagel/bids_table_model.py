@@ -43,7 +43,7 @@ model = pa.DataFrameSchema(
             str,
             pa.Check.is_not_whitespace(error=NO_WHITESPACE_ERR),
             nullable=False,
-            # NOTE: We filter out and handle unsupported BIDS suffixes separately
+            # NOTE: We filter out unsupported BIDS suffixes and handle them separately
         ),
         "path": pa.Column(
             str,

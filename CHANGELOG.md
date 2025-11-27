@@ -1,3 +1,24 @@
+# v0.10.2 (Thu Nov 27 2025)
+
+#### 🚀 Enhancements
+
+- [REF] Fetch supported BIDS terms from `neurobagel/communities` instead of hardcoding [#611](https://github.com/neurobagel/bagel-cli/pull/611) ([@alyssadai](https://github.com/alyssadai))
+- [MNT] Update default JSONLD output filenames [#604](https://github.com/neurobagel/bagel-cli/pull/604) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [REF] Rename references to Neurobagel "category" to "standardized variable" [#595](https://github.com/neurobagel/bagel-cli/pull/595) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🔩 Dependency Updates
+
+- [ENH] Support Python 3.14 [#608](https://github.com/neurobagel/bagel-cli/pull/608) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.10.1 (Thu Nov 20 2025)
 
 ####  🧪 Tests

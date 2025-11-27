@@ -14,7 +14,6 @@ Namespace = namedtuple("Namespace", ["pf", "url"])
 COGATLAS = Namespace("cogatlas", "https://www.cognitiveatlas.org/task/id/")
 NB = Namespace("nb", "http://neurobagel.org/vocab/")
 NCIT = Namespace("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#")
-NIDM = Namespace("nidm", "http://purl.org/nidash/nidm#")
 NP = Namespace(
     "np", "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/"
 )
@@ -23,16 +22,6 @@ NP = Namespace(
 DEPRECATED_NAMESPACES = [COGATLAS]
 DEPRECATED_NAMESPACE_PREFIXES = [ns.pf for ns in DEPRECATED_NAMESPACES]
 
-BIDS = {
-    "dwi": NIDM.pf + ":DiffusionWeighted",
-    "T1w": NIDM.pf + ":T1Weighted",
-    "T2w": NIDM.pf + ":T2Weighted",
-    "bold": NIDM.pf + ":FlowWeighted",
-    "asl": NIDM.pf + ":ArterialSpinLabeling",
-    "eeg": NIDM.pf + ":Electroencephalography",
-    "meg": NIDM.pf + ":Magnetoencephalography",
-    "pet": NIDM.pf + ":PositronEmissionTomography",
-}
 NEUROBAGEL = {
     "participant": NB.pf + ":ParticipantID",
     "session": NB.pf + ":SessionID",

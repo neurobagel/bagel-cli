@@ -20,8 +20,15 @@ IMAGING_MODALITIES_PATH = (
 
 def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
     """
-    Fetch the standardized imaging modality vocabulary and return a mapping of BIDS suffixes
-    to prefixed standardized terms.
+    Fetch the standardized imaging modality vocabulary from the neurobagel/communities repository
+    and return a mapping of BIDS suffixes to prefixed standardized terms.
+
+    Returns:
+        dict[str, str]: A mapping where keys are BIDS suffixes (e.g., "T1w", "bold")
+                        and values are namespaced standardized terms (e.g., "nidm:T1Weighted").
+
+    Raises:
+        typer.Exit: If the vocabulary cannot be fetched from either the remote URL or local backup.
     """
     # TODO: Revisit once we cache community config files locally as part of https://github.com/neurobagel/bagel-cli/issues/493.
     # For now we revert to a local submodule backup if the request fails, but this means we might not have the latest vocab.

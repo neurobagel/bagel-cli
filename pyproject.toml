@@ -26,7 +26,8 @@ dependencies = [
   "isodate",
   "httpx",
   "bids2table",
-  "pandera[pandas]"
+  "pandera[pandas]",
+  "email-validator"
 ]
 
 [project.optional-dependencies]

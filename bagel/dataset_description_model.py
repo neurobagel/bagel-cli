@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Annotated
 
-from pydantic import AnyHttpUrl, BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl
 
 
 class AccessType(str, Enum):
@@ -50,7 +50,7 @@ class DatasetDescription(BaseModel):
         ),
     ]
     repository_url: Annotated[
-        AnyHttpUrl,
+        HttpUrl,
         Field(
             default=None,
             description="URL to a repository where the dataset can be downloaded or retrieved from (e.g., DataLad, Zenodo, GitHub).",
@@ -82,7 +82,7 @@ class DatasetDescription(BaseModel):
         ),
     ]
     access_link: Annotated[
-        AnyHttpUrl,
+        HttpUrl,
         Field(
             default=None,
             description="Primary link for access requests or information.",

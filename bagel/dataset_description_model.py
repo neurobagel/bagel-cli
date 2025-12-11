@@ -79,7 +79,6 @@ class DatasetDescription(BaseModel):
             alias="AccessEmail",
         ),
     ]
-    # NOTE: AnyHttpUrl validation will fail for bare DOIs like 10.1038/s41586-020-03167-3
     access_link: Annotated[
         AnyHttpUrl,
         Field(

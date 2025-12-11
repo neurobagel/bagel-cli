@@ -29,7 +29,11 @@ from bagel import dataset_description_model
             "Keywords": [],
             "AccessInstructions": "",
         },
-        {"Name": "Test Dataset", "BIDSVersion": "1.6.0"},
+        {
+            "Name": "Test Dataset",
+            "BIDSVersion": "1.6.0",  # from BIDS dataset_description.json
+            "DatasetType": "raw",  # from BIDS dataset_description.json
+        },
     ],
 )
 def test_valid_dataset_description_passes_validation(

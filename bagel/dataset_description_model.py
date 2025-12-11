@@ -31,6 +31,8 @@ class DatasetDescription(BaseModel):
             alias="Authors",
         ),
     ]
+    # TODO: In the BIDS dataset_description.json, values for this field can be string references instead of URLs.
+    # To store a 'homepage' for the dataset, we should find and use the first valid URL from this list.
     references_and_links: Annotated[
         list[str],
         Field(

@@ -49,12 +49,12 @@ class DatasetDescription(BaseModel):
             alias="Keywords",
         ),
     ]
-    datalad_url: Annotated[
+    repository_url: Annotated[
         AnyHttpUrl,
         Field(
             default=None,
-            description="URL to a DataLad repository for the dataset.",
-            alias="DataladURL",
+            description="URL to a repository where the dataset can be downloaded or retrieved from (e.g., DataLad, Zenodo, GitHub).",
+            alias="RepositoryURL",
         ),
     ]
     access_instructions: Annotated[

@@ -15,7 +15,7 @@ from bagel import dataset_description_model
                 "https://doi.org/10.1234/example-doi",
             ],
             "Keywords": ["Parkinson's Disease", "fMRI"],
-            "DataladURL": "https://datasets.datalad.org/mydataset",
+            "RepositoryURL": "https://datasets.datalad.org/mydataset",
             "AccessInstructions": "Submit a data access request at https://mydataset.org/access",
             "AccessType": "restricted",
             "AccessEmail": "first.author@gmail.com",

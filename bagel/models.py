@@ -1,8 +1,9 @@
 import uuid
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl
 
+from bagel.dataset_description_model import AccessType
 from bagel.mappings import NB
 
 UUID_PATTERN = r"[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$"
@@ -95,6 +96,18 @@ class Dataset(Bagel):
     hasLabel: str
     # NOTE: Since Pydantic v2, URL types no longer inherit from `str`
     # (see https://docs.pydantic.dev/latest/migration/#url-and-dsn-types-in-pydanticnetworks-no-longer-inherit-from-str)
-    hasPortalURI: str | HttpUrl | None = None
+    hasAuthors: list[str] | None = None
+    # hasReferencesAndLinks: list[HttpUrl] | None = None
+    hasHomepage: HttpUrl | None = (
+        None  # use first valid URL from ReferencesAndLinks?
+    )
+    hasKeywords: list[str] | None = None
+    hasRepositoryURL: HttpUrl | None = None
+    hasAccessInstructions: str | None = None
+    hasAccessType: AccessType | None = None
+    hasAccessEmail: EmailStr | None = None
+    hasPortalURI: str | HttpUrl | None = (
+        None  # use AccessLink? TODO: See if we can remove str type once we migrate to reading from JSON
+    )
     hasSamples: list[Subject]
     schemaKey: Literal["Dataset"] = "Dataset"

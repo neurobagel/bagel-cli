@@ -102,19 +102,32 @@ class DatasetDescription(BaseModel):
 
     model_config = ConfigDict(extra="ignore")
 
-    @field_validator("name", "access_instructions", mode="after")
+    @field_validator("name")
     @classmethod
-    def whitespace_string_to_none(cls, value: str | None) -> str | None:
+    def check_name_not_whitespace(cls, value: str) -> str:
+        """
+        Raise an error (will be caught as a ValidationError by Pydantic) if
+        the required 'Name' field is an empty string or all whitespace.
+        """
+        if value.strip() == "":
+            raise ValueError("'Name' field cannot be an empty string.")
+        return value
+
+    @field_validator("access_instructions")
+    @classmethod
+    def whitespace_string_to_default_none(
+        cls, value: str | None
+    ) -> str | None:
         """Convert an empty string or a string that contains only whitespace to None."""
         if value is not None and value.strip() == "":
             return None
         return value
 
-    @field_validator(
-        "authors", "references_and_links", "keywords", mode="after"
-    )
+    @field_validator("authors", "references_and_links", "keywords")
     @classmethod
-    def whitespace_list_to_empty_list(cls, value: list[str]) -> list[str]:
+    def whitespace_list_to_default_empty_list(
+        cls, value: list[str]
+    ) -> list[str]:
         """Convert a list containing only empty or whitespace strings to an empty list."""
         if all(item.strip() == "" for item in value):
             return []

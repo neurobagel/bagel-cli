@@ -19,7 +19,10 @@ class DatasetDescription(BaseModel):
         str,
         Field(
             ...,
-            description="Name of the dataset. Key reused from BIDS dataset_description.json.",
+            description=(
+                "Name of the dataset. This name will be displayed when users discover the dataset in a Neurobagel query."
+                "Key reused from BIDS dataset_description.json."
+            ),
             alias="Name",
         ),
     ]

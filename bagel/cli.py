@@ -293,8 +293,8 @@ def pheno(
 
     logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
-    # It is calculated as = length of the longer string + 2 extra spaces
-    width = 26
+    # It is arbitrarily calculated as = length of the longest string + 2 extra spaces
+    width = 30
     logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
     logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
     logger.info(

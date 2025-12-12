@@ -1,7 +1,14 @@
 from enum import Enum
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    HttpUrl,
+    field_validator,
+)
 
 
 class AccessType(str, Enum):
@@ -94,3 +101,21 @@ class DatasetDescription(BaseModel):
     ]
 
     model_config = ConfigDict(extra="ignore")
+
+    @field_validator("name", "access_instructions", mode="after")
+    @classmethod
+    def whitespace_string_to_none(cls, value: str | None) -> str | None:
+        """Convert an empty string or a string that contains only whitespace to None."""
+        if value is not None and value.strip() == "":
+            return None
+        return value
+
+    @field_validator(
+        "authors", "references_and_links", "keywords", mode="after"
+    )
+    @classmethod
+    def whitespace_list_to_empty_list(cls, value: list[str]) -> list[str]:
+        """Convert a list containing only empty or whitespace strings to an empty list."""
+        if all(item.strip() == "" for item in value):
+            return []
+        return value

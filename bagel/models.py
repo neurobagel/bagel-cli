@@ -97,17 +97,12 @@ class Dataset(Bagel):
     # NOTE: Since Pydantic v2, URL types no longer inherit from `str`
     # (see https://docs.pydantic.dev/latest/migration/#url-and-dsn-types-in-pydanticnetworks-no-longer-inherit-from-str)
     hasAuthors: list[str] | None = None
-    # hasReferencesAndLinks: list[HttpUrl] | None = None
-    hasHomepage: HttpUrl | None = (
-        None  # use first valid URL from ReferencesAndLinks?
-    )
+    hasReferencesAndLinks: list[HttpUrl] | None = None
     hasKeywords: list[str] | None = None
     hasRepositoryURL: HttpUrl | None = None
     hasAccessInstructions: str | None = None
     hasAccessType: AccessType | None = None
     hasAccessEmail: EmailStr | None = None
-    hasPortalURI: str | HttpUrl | None = (
-        None  # use AccessLink? TODO: See if we can remove str type once we migrate to reading from JSON
-    )
+    hasAccessLink: HttpUrl | None = None
     hasSamples: list[Subject]
     schemaKey: Literal["Dataset"] = "Dataset"

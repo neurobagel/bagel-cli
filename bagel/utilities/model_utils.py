@@ -40,7 +40,7 @@ def serialize_and_add_context_to_graph_dataset(
     # We can't just exclude_unset here because the identifier and schemaKey
     # for each instance are created as default values and so technically are never set
     # TODO: we should revisit this because there may be reasons to have None be meaningful in the future
-    return {**context, **dataset.model_dump(exclude_none=True)}
+    return {**context, **dataset.model_dump(exclude_none=True, mode="json")}
 
 
 def get_subs_missing_from_pheno_data(

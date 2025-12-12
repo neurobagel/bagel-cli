@@ -32,7 +32,9 @@ def generate_context(config: str) -> dict:
     return {"@context": field_preamble}
 
 
-def add_context_to_graph_dataset(dataset: models.Dataset, config: str) -> dict:
+def serialize_and_add_context_to_graph_dataset(
+    dataset: models.Dataset, config: str
+) -> dict:
     """Generate and add the Neurobagel context to a graph-ready dataset to form a JSONLD dictionary."""
     context = generate_context(config)
     # We can't just exclude_unset here because the identifier and schemaKey

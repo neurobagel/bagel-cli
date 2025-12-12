@@ -234,6 +234,17 @@ def pheno(
         dir_okay=False,
         resolve_path=True,
     ),
+    dataset_description: Path = typer.Option(
+        ...,
+        "--dataset-description",
+        "--m",  # for metadata
+        help="Path to a .json file describing the dataset and access information. "
+        "If your dataset is BIDS-compliant, you may reuse the BIDS dataset_description.json here.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
     name: str = typer.Option(
         ...,
         "--name",
@@ -294,6 +305,7 @@ def pheno(
 
     data_dictionary = file_utils.load_json(dictionary)
     pheno_df = file_utils.load_tabular(pheno)
+    dataset_metadata = file_utils.load_json(dataset_description)
 
     pheno_utils.check_if_remote_config_namespaces_used()
 
@@ -303,7 +315,11 @@ def pheno(
     width = 26
     logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
     logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
+    logger.info(
+        "%-*s%s", width, "Dataset description (.json):", dataset_description
+    )
     pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
+    pheno_utils.validate_dataset_description(dataset_metadata)
 
     # TODO: Remove once we no longer support annotation tool v1 data dictionaries
     data_dictionary = pheno_utils.convert_transformation_to_format(

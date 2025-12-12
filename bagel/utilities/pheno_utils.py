@@ -10,7 +10,7 @@ import pandas as pd
 import pydantic
 from typer import BadParameter, CallbackParam
 
-from bagel import dictionary_models, mappings
+from bagel import dataset_description_model, dictionary_models, mappings
 from bagel.logger import log_error, logger
 from bagel.mappings import DEPRECATED_NAMESPACE_PREFIXES, NB
 
@@ -78,6 +78,7 @@ def get_supported_namespaces_for_config(config_name: str) -> dict:
     return config_namespaces_dict
 
 
+# TODO: Remove
 def check_param_not_whitespace(param: CallbackParam, value: str) -> str:
     """Custom validation that the value for a string argument is not an empty string or just whitespace."""
     if value.isspace() or value == "":
@@ -85,6 +86,7 @@ def check_param_not_whitespace(param: CallbackParam, value: str) -> str:
     return value
 
 
+# TODO: Remove
 def validate_portal_uri(portal: str | None) -> str | None:
     """Custom validation that portal is a valid HttpUrl"""
     # NOTE: We need None in the validation type below to account for --portal being an optional argument in the pheno command
@@ -657,10 +659,46 @@ def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
         )
 
 
+def validate_dataset_description(
+    dataset_desc: dict,
+) -> dataset_description_model.DatasetDescription:
+    """
+    Validate the dataset description dictionary, and log an informative warning if any optional fields are missing
+    (this includes if they have been set to empty or whitespace-only strings).
+    """
+    try:
+        validated_dataset_desc = (
+            dataset_description_model.DatasetDescription.model_validate(
+                dataset_desc
+            )
+        )
+
+        model_fields = (
+            dataset_description_model.DatasetDescription.model_fields.keys()
+        )
+        unset_fields = set(model_fields) - set(
+            validated_dataset_desc.model_fields_set
+        )
+        if unset_fields:
+            logger.warning(
+                # TODO: Update with a link to the documentation page after https://github.com/neurobagel/documentation/issues/348
+                f"The dataset description is missing the following recommended fields: {unset_fields}. "
+                "Consider adding them to improve dataset reuse and clarify access procedures."
+            )
+        return validated_dataset_desc
+    except pydantic.ValidationError as err:
+        # TODO: Update with a link to the documentation page after https://github.com/neurobagel/documentation/issues/348
+        # Pydantic will list all offending fields and their issues in the error message (https://docs.pydantic.dev/latest/errors/errors/)
+        log_error(
+            logger,
+            "The dataset description file is invalid. " f"Details:\n" f"{err}",
+        )
+
+
 def validate_inputs(
     data_dict: dict, pheno_df: pd.DataFrame, config: str | None = None
 ) -> None:
-    """Determines whether input data are valid"""
+    """Determine whether the input data dictionary and phenotypic table are valid and compatible."""
     validate_data_dict(data_dict, config)
 
     if missing_annotated_cols := find_missing_annotated_cols(

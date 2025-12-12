@@ -8,7 +8,6 @@ import isodate
 import jsonschema
 import pandas as pd
 import pydantic
-from typer import BadParameter, CallbackParam
 
 from bagel import dataset_description_model, dictionary_models, mappings
 from bagel.logger import log_error, logger
@@ -76,29 +75,6 @@ def get_supported_namespaces_for_config(config_name: str) -> dict:
             ]
 
     return config_namespaces_dict
-
-
-# TODO: Remove
-def check_param_not_whitespace(param: CallbackParam, value: str) -> str:
-    """Custom validation that the value for a string argument is not an empty string or just whitespace."""
-    if value.isspace() or value == "":
-        raise BadParameter(f"{param.name} cannot be an empty string.")
-    return value
-
-
-# TODO: Remove
-def validate_portal_uri(portal: str | None) -> str | None:
-    """Custom validation that portal is a valid HttpUrl"""
-    # NOTE: We need None in the validation type below to account for --portal being an optional argument in the pheno command
-    try:
-        pydantic.TypeAdapter(pydantic.HttpUrl | None).validate_python(portal)
-    except pydantic.ValidationError as err:
-        raise BadParameter(
-            "Not a valid http or https URL: "
-            f"{err.errors()[0]['msg']} \nPlease try again."
-        ) from err
-
-    return portal
 
 
 def get_columns_about(data_dict: dict, concept: str) -> list:

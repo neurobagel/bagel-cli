@@ -686,7 +686,7 @@ def validate_dataset_description(
     dataset_desc: dict,
 ) -> dataset_description_model.DatasetDescription:
     """
-    Validate the dataset description dictionary and log an informative warning if any optional fields are missing.
+    Return a validated instance of the dataset description and log an informative warning if any optional fields are missing.
     """
     try:
         validated_dataset_desc, unset_fields = (

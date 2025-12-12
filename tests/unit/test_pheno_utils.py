@@ -1176,12 +1176,8 @@ def test_incomplete_dataset_description_raises_warning(
 @pytest.mark.parametrize(
     "invalid_dataset_desc",
     [
-        {
-            "Name": "",
-        },
-        {
-            "Name": None,
-        },
+        {"Name": ""},
+        {"Name": None},
         {
             "Name": "Test Dataset",
             "Authors": None,  # must be omitted or a list

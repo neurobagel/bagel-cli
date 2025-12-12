@@ -659,31 +659,47 @@ def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
         )
 
 
+def get_validated_dataset_description_and_incomplete_fields(
+    raw_dataset_desc: dict,
+) -> tuple[dataset_description_model.DatasetDescription, set]:
+    """
+    Return a validated dataset description instance and any incomplete optional fields (by their aliases),
+    including those were unset or those set to empty or whitespace-only strings.
+    """
+    validated_dataset_desc = (
+        dataset_description_model.DatasetDescription.model_validate(
+            raw_dataset_desc
+        )
+    )
+    model_fields = [
+        field.alias
+        for field in dataset_description_model.DatasetDescription.model_fields.values()
+    ]
+    non_default_fields = validated_dataset_desc.model_dump(
+        by_alias=True, exclude_defaults=True
+    ).keys()
+    incomplete_fields = set(model_fields) - set(non_default_fields)
+    return validated_dataset_desc, incomplete_fields
+
+
 def validate_dataset_description(
     dataset_desc: dict,
 ) -> dataset_description_model.DatasetDescription:
     """
-    Validate the dataset description dictionary, and log an informative warning if any optional fields are missing
-    (this includes if they have been set to empty or whitespace-only strings).
+    Validate the dataset description dictionary and log an informative warning if any optional fields are missing.
     """
     try:
-        validated_dataset_desc = (
-            dataset_description_model.DatasetDescription.model_validate(
+        validated_dataset_desc, unset_fields = (
+            get_validated_dataset_description_and_incomplete_fields(
                 dataset_desc
             )
-        )
-
-        model_fields = (
-            dataset_description_model.DatasetDescription.model_fields.keys()
-        )
-        unset_fields = set(model_fields) - set(
-            validated_dataset_desc.model_fields_set
         )
         if unset_fields:
             logger.warning(
                 # TODO: Update with a link to the documentation page after https://github.com/neurobagel/documentation/issues/348
-                f"The dataset description is missing the following recommended fields: {unset_fields}. "
-                "Consider adding them to improve dataset reuse and clarify access procedures."
+                "The dataset description is missing or has empty values for the following recommended fields:\n"
+                + "\n".join(f"- {field}" for field in unset_fields)
+                + "\nConsider completing these fields to improve dataset reuse and clarify access procedures."
             )
         return validated_dataset_desc
     except pydantic.ValidationError as err:
@@ -691,7 +707,7 @@ def validate_dataset_description(
         # Pydantic will list all offending fields and their issues in the error message (https://docs.pydantic.dev/latest/errors/errors/)
         log_error(
             logger,
-            "The dataset description file is invalid. " f"Details:\n" f"{err}",
+            "The dataset description is invalid. " f"Details:\n" f"{err}",
         )
 
 

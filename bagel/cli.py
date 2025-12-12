@@ -237,31 +237,13 @@ def pheno(
     dataset_description: Path = typer.Option(
         ...,
         "--dataset-description",
-        "--m",  # for metadata
+        "-m",  # for metadata
         help="Path to a .json file describing the dataset and access information. "
         "If your dataset is BIDS-compliant, you may reuse the BIDS dataset_description.json here.",
         exists=True,
         file_okay=True,
         dir_okay=False,
         resolve_path=True,
-    ),
-    name: str = typer.Option(
-        ...,
-        "--name",
-        "-n",
-        callback=pheno_utils.check_param_not_whitespace,
-        help='Full name of the dataset, enclosed in quotes ("") if it includes spaces. '
-        "This name will be displayed when users discover the dataset in a Neurobagel query. "
-        "For datasets with BIDS data, this name should ideally match the dataset_description.json 'name' field. "
-        '[italic]Example: --name "My Awesome Dataset"[/italic]',
-    ),
-    portal: str = typer.Option(
-        None,
-        "--portal",
-        "-u",  # for URL
-        callback=pheno_utils.validate_portal_uri,
-        help="URL (HTTP/HTTPS) to a website or page with access instructions "
-        "and/or additional information about the dataset.",
     ),
     output: Path = typer.Option(
         "pheno.jsonld",
@@ -319,7 +301,9 @@ def pheno(
         "%-*s%s", width, "Dataset description (.json):", dataset_description
     )
     pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
-    pheno_utils.validate_dataset_description(dataset_metadata)
+    dataset_metadata = pheno_utils.validate_dataset_description(
+        dataset_metadata
+    )
 
     # TODO: Remove once we no longer support annotation tool v1 data dictionaries
     data_dictionary = pheno_utils.convert_transformation_to_format(
@@ -415,14 +399,35 @@ def pheno(
         )
         subject_list.append(subject)
 
+    dataset_attributes = {
+        "hasLabel": dataset_metadata.name,
+        "hasAuthors": (
+            dataset_metadata.authors if dataset_metadata.authors else None
+        ),
+        "hasReferencesAndLinks": (
+            dataset_metadata.references_and_links
+            if dataset_metadata.references_and_links
+            else None
+        ),
+        "hasKeywords": (
+            dataset_metadata.keywords if dataset_metadata.keywords else None
+        ),
+        "hasRepositoryURL": dataset_metadata.repository_url,
+        "hasAccessInstructions": dataset_metadata.access_instructions,
+        "hasAccessType": dataset_metadata.access_type,
+        "hasAccessEmail": dataset_metadata.access_email,
+        "hasAccessLink": dataset_metadata.access_link,
+    }
+
     dataset = models.Dataset(
-        hasLabel=name,
-        hasPortalURI=portal,
+        **dataset_attributes,
         hasSamples=subject_list,
     )
 
     file_utils.save_jsonld(
-        data=model_utils.add_context_to_graph_dataset(dataset, config),
+        data=model_utils.serialize_and_add_context_to_graph_dataset(
+            dataset, config
+        ),
         filename=output,
     )
 

@@ -12,6 +12,7 @@ from bagel.cli import bagel
 def test_verbosity_level(
     runner,
     test_data,
+    example_dataset_description,
     tmp_path,
     verbosity_level,
     expected_log_levels,
@@ -28,8 +29,8 @@ def test_verbosity_level(
             test_data / "example1.json",
             "--output",
             tmp_path / "pheno.jsonld",
-            "--name",
-            "testing dataset",
+            "--dataset-description",
+            example_dataset_description,
             "--verbosity",
             verbosity_level,
         ],

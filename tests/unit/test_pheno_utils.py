@@ -1002,3 +1002,198 @@ def test_get_transformed_row_for_table():
         check_exact=False,
         atol=0.01,
     )
+
+
+@pytest.mark.parametrize(
+    "incomplete_dataset_desc,expected_incomplete_fields",
+    [
+        (
+            {
+                "Name": "Test Dataset",
+                "Authors": ["First Author", "Second Author"],
+                "ReferencesAndLinks": [
+                    "https://mydataset.org",
+                    "https://doi.org/10.1234/example-doi",
+                ],
+                "Keywords": ["Parkinson's Disease", "fMRI"],
+            },
+            {
+                "RepositoryURL",
+                "AccessInstructions",
+                "AccessType",
+                "AccessEmail",
+                "AccessLink",
+            },
+        ),
+        (
+            {
+                "Name": "Test Dataset",
+                "Authors": ["First Author", "Second Author"],
+                "ReferencesAndLinks": [
+                    "https://mydataset.org",
+                    "https://doi.org/10.1234/example-doi",
+                ],
+                "Keywords": ["Parkinson's Disease", "fMRI"],
+            },
+            {
+                "RepositoryURL",
+                "AccessInstructions",
+                "AccessType",
+                "AccessEmail",
+                "AccessLink",
+            },
+        ),
+        (
+            {
+                "Name": "Test Dataset",
+                "Authors": [],
+                "ReferencesAndLinks": [],
+                "Keywords": [],
+                "RepositoryURL": "https://datasets.datalad.org/mydataset",
+                "AccessInstructions": "Submit a data access request at https://mydataset.org/access",
+                "AccessType": "restricted",
+                "AccessEmail": "first.author@gmail.com",
+                "AccessLink": "https://datasets.datalad.org/access",
+            },
+            {"Authors", "ReferencesAndLinks", "Keywords"},
+        ),
+    ],
+)
+def test_unset_optional_dataset_desc_fields_are_detected(
+    incomplete_dataset_desc, expected_incomplete_fields
+):
+    """Test that unset optional fields in dataset_description are correctly identified as incomplete."""
+    validated_dataset_desc, incomplete_optional_fields = (
+        pheno_utils.get_validated_dataset_description_and_incomplete_fields(
+            incomplete_dataset_desc
+        )
+    )
+    assert incomplete_optional_fields == expected_incomplete_fields
+
+
+def test_whitespace_optional_dataset_desc_fields_treated_as_unset():
+    """
+    Test that optional dataset description fields with whitespace-only values are:
+    - detected as incomplete optional fields
+    - treated as unset and replaced with their default values when creating the DatasetDescription instance
+    """
+    dataset_desc_with_whitespace_fields = {
+        "Name": "Test Dataset",
+        "Authors": [""],
+        "ReferencesAndLinks": ["    "],
+        "Keywords": ["\n\n"],
+        "RepositoryURL": "https://datasets.datalad.org/mydataset",
+        "AccessInstructions": "",
+        "AccessType": "restricted",
+        "AccessEmail": "first.author@gmail.com",
+        "AccessLink": "https://datasets.datalad.org/access",
+    }
+    expected_validated_fields = {
+        "Name": "Test Dataset",
+        "Authors": [],
+        "ReferencesAndLinks": [],
+        "Keywords": [],
+        "RepositoryURL": "https://datasets.datalad.org/mydataset",
+        "AccessInstructions": None,
+        "AccessType": "restricted",
+        "AccessEmail": "first.author@gmail.com",
+        "AccessLink": "https://datasets.datalad.org/access",
+    }
+    expected_incomplete_fields = {
+        "Authors",
+        "ReferencesAndLinks",
+        "Keywords",
+        "AccessInstructions",
+    }
+
+    validated_dataset_desc, incomplete_optional_fields = (
+        pheno_utils.get_validated_dataset_description_and_incomplete_fields(
+            dataset_desc_with_whitespace_fields
+        )
+    )
+    assert incomplete_optional_fields == expected_incomplete_fields
+    assert (
+        validated_dataset_desc.model_dump(by_alias=True, mode="json")
+        == expected_validated_fields
+    )
+
+
+def test_valid_complete_dataset_description_passes_validation(
+    caplog, propagate_warnings
+):
+    """
+    Test that a complete, valid dataset description does not raise validation errors or warnings.
+    """
+    valid_dataset_desc = {
+        "Name": "Test Dataset",
+        "Authors": ["First Author", "Second Author"],
+        "ReferencesAndLinks": [
+            "https://mydataset.org",
+            "https://doi.org/10.1234/example-doi",
+        ],
+        "Keywords": ["Parkinson's Disease", "fMRI"],
+        "RepositoryURL": "https://datasets.datalad.org/mydataset",
+        "AccessInstructions": "Submit a data access request at https://mydataset.org/access",
+        "AccessType": "restricted",
+        "AccessEmail": "first.author@gmail.com",
+        "AccessLink": "https://mydataset.org/access",
+    }
+    pheno_utils.validate_dataset_description(valid_dataset_desc)
+    assert len(caplog.records) == 0
+
+
+@pytest.mark.parametrize(
+    "incomplete_dataset_desc",
+    [
+        {"Name": "Test Dataset"},
+        {
+            "Name": "Test Dataset",
+            "Authors": [],
+            "ReferencesAndLinks": [],
+            "Keywords": [],
+            "AccessInstructions": "",
+        },
+        {
+            "Name": "Test Dataset",
+            "BIDSVersion": "1.6.0",  # from BIDS dataset_description.json
+            "DatasetType": "raw",  # from BIDS dataset_description.json
+        },
+    ],
+)
+def test_incomplete_dataset_description_raises_warning(
+    incomplete_dataset_desc, caplog, propagate_warnings
+):
+    """Test that incomplete optional fields in a dataset description raise an informative warning without erroring out."""
+    pheno_utils.validate_dataset_description(incomplete_dataset_desc)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].levelname == "WARNING"
+    assert (
+        "is missing or has empty values for the following recommended fields"
+        in caplog.records[0].message
+    )
+
+
+@pytest.mark.parametrize(
+    "invalid_dataset_desc",
+    [
+        {"Name": ""},
+        {"Name": None},
+        {
+            "Name": "Test Dataset",
+            "Authors": None,  # must be omitted or a list
+            "AccessInstructions": None,  # must be omitted or a string
+            "AccessType": "unknown",  # unrecognized access type
+            "AccessEmail": "",  # not a valid email
+        },
+    ],
+)
+def test_invalid_dataset_description_raises_error(
+    invalid_dataset_desc, caplog, propagate_errors
+):
+    """Test that an invalid dataset description raises a validation error."""
+    with pytest.raises(typer.Exit):
+        pheno_utils.validate_dataset_description(invalid_dataset_desc)
+
+    assert len(caplog.records) == 1
+    assert caplog.records[0].levelname == "ERROR"
+    assert "dataset description is invalid" in caplog.records[0].message

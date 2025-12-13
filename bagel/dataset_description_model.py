@@ -1,7 +1,14 @@
 from enum import Enum
 from typing import Annotated
 
-from pydantic import AnyHttpUrl, BaseModel, ConfigDict, EmailStr, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    HttpUrl,
+    field_validator,
+)
 
 
 class AccessType(str, Enum):
@@ -19,7 +26,10 @@ class DatasetDescription(BaseModel):
         str,
         Field(
             ...,
-            description="Name of the dataset. Key reused from BIDS dataset_description.json.",
+            description=(
+                "Name of the dataset. This name will be displayed when users discover the dataset in a Neurobagel query."
+                "Key reused from BIDS dataset_description.json."
+            ),
             alias="Name",
         ),
     ]
@@ -50,7 +60,7 @@ class DatasetDescription(BaseModel):
         ),
     ]
     repository_url: Annotated[
-        AnyHttpUrl,
+        HttpUrl,
         Field(
             default=None,
             description="URL to a repository where the dataset can be downloaded or retrieved from (e.g., DataLad, Zenodo, GitHub).",
@@ -82,7 +92,7 @@ class DatasetDescription(BaseModel):
         ),
     ]
     access_link: Annotated[
-        AnyHttpUrl,
+        HttpUrl,
         Field(
             default=None,
             description="Primary link for access requests or information.",
@@ -91,3 +101,34 @@ class DatasetDescription(BaseModel):
     ]
 
     model_config = ConfigDict(extra="ignore")
+
+    @field_validator("name")
+    @classmethod
+    def check_name_not_whitespace(cls, value: str) -> str:
+        """
+        Raise an error (will be caught as a ValidationError by Pydantic) if
+        the required 'Name' field is an empty string or all whitespace.
+        """
+        if value.strip() == "":
+            raise ValueError("'Name' field cannot be an empty string.")
+        return value
+
+    @field_validator("access_instructions")
+    @classmethod
+    def whitespace_string_to_default_none(
+        cls, value: str | None
+    ) -> str | None:
+        """Convert an empty string or a string that contains only whitespace to None."""
+        if value is not None and value.strip() == "":
+            return None
+        return value
+
+    @field_validator("authors", "references_and_links", "keywords")
+    @classmethod
+    def whitespace_list_to_default_empty_list(
+        cls, value: list[str]
+    ) -> list[str]:
+        """Convert a list containing only empty or whitespace strings to an empty list."""
+        if all(item.strip() == "" for item in value):
+            return []
+        return value

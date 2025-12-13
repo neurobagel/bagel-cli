@@ -224,7 +224,7 @@ def test_add_context_to_graph_dataset(neurobagel_test_config):
         ],
     )
 
-    jsonld = model_utils.add_context_to_graph_dataset(
+    jsonld = model_utils.serialize_and_add_context_to_graph_dataset(
         dataset=dataset, config=neurobagel_test_config
     )
 

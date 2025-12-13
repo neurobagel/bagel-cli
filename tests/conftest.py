@@ -78,6 +78,11 @@ def test_data_upload_path(neurobagel_examples_path):
 
 
 @pytest.fixture(scope="session")
+def example_dataset_description(test_data_upload_path):
+    return test_data_upload_path / "synthetic_dataset_description.json"
+
+
+@pytest.fixture(scope="session")
 def load_test_json():
     def _read_file(file_path):
         with open(file_path, "r") as f:

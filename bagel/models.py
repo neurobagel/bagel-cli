@@ -94,8 +94,6 @@ class Subject(Bagel):
 
 class Dataset(Bagel):
     hasLabel: str
-    # NOTE: Since Pydantic v2, URL types no longer inherit from `str`
-    # (see https://docs.pydantic.dev/latest/migration/#url-and-dsn-types-in-pydanticnetworks-no-longer-inherit-from-str)
     hasAuthors: list[str] | None = None
     hasReferencesAndLinks: list[HttpUrl] | None = None
     hasKeywords: list[str] | None = None
@@ -104,5 +102,10 @@ class Dataset(Bagel):
     hasAccessType: AccessType | None = None
     hasAccessEmail: EmailStr | None = None
     hasAccessLink: HttpUrl | None = None
+    # TODO: We are keeping hasPortalURI for now for backwards compatibility,
+    # to prevent older phenotypic JSONLD files containing this property from
+    # failing model validation when the bids or derivatives commands are run on the files.
+    # Deprecate in future release.
+    hasPortalURI: HttpUrl | None = None
     hasSamples: list[Subject]
     schemaKey: Literal["Dataset"] = "Dataset"

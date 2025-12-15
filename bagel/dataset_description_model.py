@@ -99,9 +99,9 @@ class DatasetDescription(BaseModel):
         ),
     ]
 
-    # NOTE: url_preserve_empty_path is needed to prevent HttpUrl from auto-appending trailing slashes to URLs
+    # NOTE: url_preserve_empty_path (>=2.12) is needed to prevent HttpUrl from auto-appending trailing slashes to URLs
     # when the path portion of the URL is empty
-    # (see https://docs.pydantic.dev/latest/migration/#url-and-dsn-types-in-pydanticnetworks-no-longer-inherit-from-str)
+    # (https://docs.pydantic.dev/latest/migration/#url-and-dsn-types-in-pydanticnetworks-no-longer-inherit-from-str)
     model_config = ConfigDict(extra="ignore", url_preserve_empty_path=True)
 
     @field_validator("name")

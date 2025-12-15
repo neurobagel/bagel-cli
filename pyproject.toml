@@ -21,7 +21,7 @@ dependencies = [
   "pybids",
   "typer",
   "rich",
-  "pydantic>=2,<3",
+  "pydantic>=2.12,<3",
   "jsonschema",
   "isodate",
   "httpx",

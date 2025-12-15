@@ -22,7 +22,10 @@ class Bagel(BaseModel):
         ),
     ]
 
-    model_config = ConfigDict(extra="forbid")
+    # NOTE: url_preserve_empty_path is needed to prevent HttpUrl from auto-appending trailing slashes to URLs
+    # when the path portion of the URL is empty
+    # (see https://docs.pydantic.dev/latest/migration/#url-and-dsn-types-in-pydanticnetworks-no-longer-inherit-from-str)
+    model_config = ConfigDict(extra="forbid", url_preserve_empty_path=True)
 
 
 class ControlledTerm(BaseModel):

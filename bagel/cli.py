@@ -425,8 +425,9 @@ def pheno(
     )
 
     file_utils.save_jsonld(
-        data=model_utils.serialize_and_add_context_to_graph_dataset(
-            dataset, config
+        data=model_utils.dataset_to_jsonld(
+            context=model_utils.generate_context(config),
+            dataset=dataset,
         ),
         filename=output,
     )
@@ -624,10 +625,10 @@ def bids(
     # the generation of the input JSONLD and when this command is run (e.g., if the data model underwent an update in the interim).
     # This may be resolved with https://github.com/neurobagel/bagel-cli/issues/492.
     file_utils.save_jsonld(
-        data={
-            "@context": jsonld_context,
-            **jsonld_dataset.model_dump(exclude_none=True),
-        },
+        data=model_utils.dataset_to_jsonld(
+            context={"@context": jsonld_context},
+            dataset=jsonld_dataset,
+        ),
         filename=output,
     )
 
@@ -767,10 +768,10 @@ def derivatives(
     # the generation of the input JSONLD and when this command is run (e.g., if the data model underwent an update in the interim).
     # This may be resolved with https://github.com/neurobagel/bagel-cli/issues/492.
     file_utils.save_jsonld(
-        data={
-            "@context": jsonld_context,
-            **jsonld_dataset.model_dump(exclude_none=True),
-        },
+        data=model_utils.dataset_to_jsonld(
+            context={"@context": jsonld_context},
+            dataset=jsonld_dataset,
+        ),
         filename=output,
     )
 

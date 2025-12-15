@@ -32,11 +32,8 @@ def generate_context(config: str) -> dict:
     return {"@context": field_preamble}
 
 
-def serialize_and_add_context_to_graph_dataset(
-    dataset: models.Dataset, config: str
-) -> dict:
-    """Generate and add the Neurobagel context to a graph-ready dataset to form a JSONLD dictionary."""
-    context = generate_context(config)
+def dataset_to_jsonld(context: dict, dataset: models.Dataset) -> dict:
+    """Add the Neurobagel context to a graph-ready dataset to form a JSONLD dictionary."""
     # We can't just exclude_unset here because the identifier and schemaKey
     # for each instance are created as default values and so technically are never set
     # TODO: we should revisit this because there may be reasons to have None be meaningful in the future

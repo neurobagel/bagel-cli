@@ -95,8 +95,8 @@ def check_overwrite(output: Path, overwrite: bool):
 
 
 def save_jsonld(data: dict, filename: Path):
-    with open(filename, "w") as f:
-        f.write(json.dumps(data, indent=2))
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(json.dumps(data, indent=2, ensure_ascii=False))
     logger.info(f"Saved output to:  {filename}")
 
 

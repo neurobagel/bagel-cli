@@ -1,3 +1,4 @@
+import json
 import os
 
 import pytest
@@ -358,14 +359,25 @@ def test_providing_non_tsv_file_raises_error(
         assert substring in caplog.text
 
 
-# TODO: Update!
 def test_output_file_contains_dataset_level_attributes(
     runner,
     test_data,
     example_dataset_description,
     temp_output_jsonld_path,
     load_test_json,
+    tmp_path,
 ):
+    dataset_description = {
+        "Name": "Test Dataset",
+        "Authors": ["First Author", "Second Author"],
+        "ReferencesAndLinks": [],
+        "AccessType": "public",
+        "AccessInstructions": "",
+        "AccessLink": "https://mydatasetportal.org",
+    }
+    with open(tmp_path / "dataset_description.json", "w") as f:
+        json.dump(dataset_description, f)
+
     runner.invoke(
         bagel,
         [
@@ -377,16 +389,18 @@ def test_output_file_contains_dataset_level_attributes(
             "--output",
             temp_output_jsonld_path,
             "--dataset-description",
-            example_dataset_description,
-            "--portal",
-            "http://my_dataset_site.com",
+            tmp_path / "dataset_description.json",
         ],
     )
 
     pheno = load_test_json(temp_output_jsonld_path)
 
-    assert pheno.get("hasLabel") == "my_dataset_name"
-    assert pheno.get("hasPortalURI") == "http://my_dataset_site.com"
+    assert pheno.get("hasLabel") == "Test Dataset"
+    assert pheno.get("hasAuthors") == ["First Author", "Second Author"]
+    assert pheno.get("hasReferencesAndLinks") is None
+    assert pheno.get("hasAccessType") == "public"
+    assert pheno.get("hasAccessInstructions") is None
+    assert pheno.get("hasAccessLink") == "https://mydatasetportal.org"
 
 
 def test_diagnosis_and_control_status_handled(

@@ -770,3 +770,34 @@ def convert_transformation_to_format(data_dict: dict) -> dict:
             )
 
     return data_dict
+
+
+def dataset_description_to_graph_attributes(
+    dataset_description: dataset_description_model.DatasetDescription,
+) -> dict:
+    """Convert fields from a dataset description to JSONLD-ready attributes for a dataset."""
+    dataset_graph_attributes = {
+        "hasLabel": dataset_description.name,
+        "hasAuthors": (
+            dataset_description.authors
+            if dataset_description.authors
+            else None
+        ),
+        "hasReferencesAndLinks": (
+            dataset_description.references_and_links
+            if dataset_description.references_and_links
+            else None
+        ),
+        "hasKeywords": (
+            dataset_description.keywords
+            if dataset_description.keywords
+            else None
+        ),
+        "hasRepositoryURL": dataset_description.repository_url,
+        "hasAccessInstructions": dataset_description.access_instructions,
+        "hasAccessType": dataset_description.access_type,
+        "hasAccessEmail": dataset_description.access_email,
+        "hasAccessLink": dataset_description.access_link,
+    }
+
+    return dataset_graph_attributes

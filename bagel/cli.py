@@ -399,28 +399,12 @@ def pheno(
         )
         subject_list.append(subject)
 
-    dataset_attributes = {
-        "hasLabel": dataset_metadata.name,
-        "hasAuthors": (
-            dataset_metadata.authors if dataset_metadata.authors else None
-        ),
-        "hasReferencesAndLinks": (
-            dataset_metadata.references_and_links
-            if dataset_metadata.references_and_links
-            else None
-        ),
-        "hasKeywords": (
-            dataset_metadata.keywords if dataset_metadata.keywords else None
-        ),
-        "hasRepositoryURL": dataset_metadata.repository_url,
-        "hasAccessInstructions": dataset_metadata.access_instructions,
-        "hasAccessType": dataset_metadata.access_type,
-        "hasAccessEmail": dataset_metadata.access_email,
-        "hasAccessLink": dataset_metadata.access_link,
-    }
+    dataset_graph_attributes = (
+        pheno_utils.dataset_description_to_graph_attributes(dataset_metadata)
+    )
 
     dataset = models.Dataset(
-        **dataset_attributes,
+        **dataset_graph_attributes,
         hasSamples=subject_list,
     )
 

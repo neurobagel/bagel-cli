@@ -234,23 +234,17 @@ def pheno(
         dir_okay=False,
         resolve_path=True,
     ),
-    name: str = typer.Option(
+    dataset_description: Path = typer.Option(
         ...,
-        "--name",
-        "-n",
-        callback=pheno_utils.check_param_not_whitespace,
-        help='Full name of the dataset, enclosed in quotes ("") if it includes spaces. '
-        "This name will be displayed when users discover the dataset in a Neurobagel query. "
-        "For datasets with BIDS data, this name should ideally match the dataset_description.json 'name' field. "
-        '[italic]Example: --name "My Awesome Dataset"[/italic]',
-    ),
-    portal: str = typer.Option(
-        None,
-        "--portal",
-        "-u",  # for URL
-        callback=pheno_utils.validate_portal_uri,
-        help="URL (HTTP/HTTPS) to a website or page with access instructions "
-        "and/or additional information about the dataset.",
+        "--dataset-description",
+        "-m",  # for metadata
+        help="Path to a .json file describing the dataset and access information. "
+        "If your dataset is BIDS-compliant, you may reuse the BIDS dataset_description.json here."
+        "See the documentation at https://neurobagel.org/user_guide/dataset_description/",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
     ),
     output: Path = typer.Option(
         "pheno.jsonld",
@@ -294,16 +288,23 @@ def pheno(
 
     data_dictionary = file_utils.load_json(dictionary)
     pheno_df = file_utils.load_tabular(pheno)
+    dataset_metadata = file_utils.load_json(dataset_description)
 
     pheno_utils.check_if_remote_config_namespaces_used()
 
     logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
-    # It is calculated as = length of the longer string + 2 extra spaces
-    width = 26
+    # It is arbitrarily calculated as = length of the longest string + 2 extra spaces
+    width = 30
     logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
     logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
+    logger.info(
+        "%-*s%s", width, "Dataset description (.json):", dataset_description
+    )
     pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
+    dataset_metadata = pheno_utils.validate_dataset_description(
+        dataset_metadata
+    )
 
     # TODO: Remove once we no longer support annotation tool v1 data dictionaries
     data_dictionary = pheno_utils.convert_transformation_to_format(
@@ -399,14 +400,20 @@ def pheno(
         )
         subject_list.append(subject)
 
+    dataset_graph_attributes = (
+        pheno_utils.dataset_description_to_graph_attributes(dataset_metadata)
+    )
+
     dataset = models.Dataset(
-        hasLabel=name,
-        hasPortalURI=portal,
+        **dataset_graph_attributes,
         hasSamples=subject_list,
     )
 
     file_utils.save_jsonld(
-        data=model_utils.add_context_to_graph_dataset(dataset, config),
+        data=model_utils.dataset_to_jsonld(
+            context=model_utils.generate_context(config),
+            dataset=dataset,
+        ),
         filename=output,
     )
 
@@ -603,10 +610,10 @@ def bids(
     # the generation of the input JSONLD and when this command is run (e.g., if the data model underwent an update in the interim).
     # This may be resolved with https://github.com/neurobagel/bagel-cli/issues/492.
     file_utils.save_jsonld(
-        data={
-            "@context": jsonld_context,
-            **jsonld_dataset.model_dump(exclude_none=True),
-        },
+        data=model_utils.dataset_to_jsonld(
+            context={"@context": jsonld_context},
+            dataset=jsonld_dataset,
+        ),
         filename=output,
     )
 
@@ -746,10 +753,10 @@ def derivatives(
     # the generation of the input JSONLD and when this command is run (e.g., if the data model underwent an update in the interim).
     # This may be resolved with https://github.com/neurobagel/bagel-cli/issues/492.
     file_utils.save_jsonld(
-        data={
-            "@context": jsonld_context,
-            **jsonld_dataset.model_dump(exclude_none=True),
-        },
+        data=model_utils.dataset_to_jsonld(
+            context={"@context": jsonld_context},
+            dataset=jsonld_dataset,
+        ),
         filename=output,
     )
 

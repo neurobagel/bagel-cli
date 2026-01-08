@@ -15,8 +15,7 @@ data_dir=tests/neurobagel_examples/data-upload
 bagel pheno \
     --pheno "${data_dir}/example_synthetic.tsv" \
     --dictionary "${data_dir}/example_synthetic.json" \
-    --name "BIDS synthetic" \
-    --portal "https://github.com/bids-standard/bids-examples" \
+    --dataset-description "${data_dir}/synthetic_dataset_description.json" \
     --output "${data_dir}/example_synthetic.jsonld" \
     --overwrite
 

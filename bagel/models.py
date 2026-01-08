@@ -1,8 +1,9 @@
 import uuid
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl
 
+from bagel.dataset_description_model import AccessType
 from bagel.mappings import NB
 
 UUID_PATTERN = r"[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$"
@@ -21,7 +22,10 @@ class Bagel(BaseModel):
         ),
     ]
 
-    model_config = ConfigDict(extra="forbid")
+    # NOTE: url_preserve_empty_path (>=2.12) is needed to prevent HttpUrl from auto-appending trailing slashes to URLs
+    # when the path portion of the URL is empty
+    # (https://docs.pydantic.dev/latest/migration/#url-and-dsn-types-in-pydanticnetworks-no-longer-inherit-from-str)
+    model_config = ConfigDict(extra="forbid", url_preserve_empty_path=True)
 
 
 class ControlledTerm(BaseModel):
@@ -93,8 +97,13 @@ class Subject(Bagel):
 
 class Dataset(Bagel):
     hasLabel: str
-    # NOTE: Since Pydantic v2, URL types no longer inherit from `str`
-    # (see https://docs.pydantic.dev/latest/migration/#url-and-dsn-types-in-pydanticnetworks-no-longer-inherit-from-str)
-    hasPortalURI: str | HttpUrl | None = None
+    hasAuthors: list[str] | None = None
+    hasReferencesAndLinks: list[HttpUrl] | None = None
+    hasKeywords: list[str] | None = None
+    hasRepositoryURL: HttpUrl | None = None
+    hasAccessInstructions: str | None = None
+    hasAccessType: AccessType | None = None
+    hasAccessEmail: EmailStr | None = None
+    hasAccessLink: HttpUrl | None = None
     hasSamples: list[Subject]
     schemaKey: Literal["Dataset"] = "Dataset"

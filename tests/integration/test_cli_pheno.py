@@ -1,3 +1,4 @@
+import json
 import os
 
 import pytest
@@ -26,6 +27,7 @@ def test_pheno_valid_inputs_run_successfully(
     runner,
     test_data,
     test_data_upload_path,
+    example_dataset_description,
     temp_output_jsonld_path,
     example,
 ):
@@ -41,8 +43,8 @@ def test_pheno_valid_inputs_run_successfully(
                 test_data_upload_path / f"{example}.json",
                 "--output",
                 temp_output_jsonld_path,
-                "--name",
-                "synthetic",
+                "--dataset-description",
+                example_dataset_description,
             ],
         )
     else:
@@ -56,8 +58,8 @@ def test_pheno_valid_inputs_run_successfully(
                 test_data / f"{example}.json",
                 "--output",
                 temp_output_jsonld_path,
-                "--name",
-                "do not care name",
+                "--dataset-description",
+                example_dataset_description,
             ],
         )
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
@@ -135,6 +137,7 @@ def test_pheno_valid_inputs_run_successfully(
 def test_invalid_inputs_are_handled_gracefully(
     runner,
     test_data,
+    example_dataset_description,
     temp_output_jsonld_path,
     example,
     expected_message,
@@ -152,8 +155,8 @@ def test_invalid_inputs_are_handled_gracefully(
             test_data / f"{example}.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "do not care name",
+            "--dataset-description",
+            example_dataset_description,
         ],
         catch_exceptions=False,
     )
@@ -164,51 +167,10 @@ def test_invalid_inputs_are_handled_gracefully(
         assert substring in caplog.text
 
 
-@pytest.mark.parametrize(
-    # See also https://docs.pydantic.dev/latest/api/networks/#pydantic.networks.HttpUrl for v2 URL requirements
-    "portal",
-    [
-        "openneuro.org/datasets/ds002080",
-        "not a url",
-        "www.github.com/mycoolrepo/mycooldataset",
-    ],
-)
-def test_invalid_portal_uris_produces_error(
-    runner,
-    test_data,
-    temp_output_jsonld_path,
-    portal,
-):
-    """Tests that invalid or non-HTTP/HTTPS URLs result in a user-friendly error."""
-    result = runner.invoke(
-        bagel,
-        [
-            "pheno",
-            "--pheno",
-            test_data / "example2.tsv",
-            "--dictionary",
-            test_data / "example2.json",
-            "--output",
-            temp_output_jsonld_path,
-            "--name",
-            "test dataset 2",
-            "--portal",
-            portal,
-        ],
-        catch_exceptions=False,
-    )
-
-    assert result.exit_code != 0
-    # For some reason, it seems the Rich formatting of the error causes problems
-    # with matching the entire error substring at once
-    assert all(
-        word in str(result.output) for word in "not a valid http or https URL"
-    )
-
-
 def test_multiple_columns_about_single_column_variable_raises_warning(
     runner,
     test_data,
+    example_dataset_description,
     temp_output_jsonld_path,
     caplog,
     propagate_warnings,
@@ -227,8 +189,8 @@ def test_multiple_columns_about_single_column_variable_raises_warning(
             test_data / "example20.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "Multiple age/sex/subject group columns dataset",
+            "--dataset-description",
+            example_dataset_description,
         ],
         catch_exceptions=False,
     )
@@ -245,6 +207,7 @@ def test_multiple_columns_about_single_column_variable_raises_warning(
 def test_missing_bids_levels_raises_warning(
     runner,
     test_data,
+    example_dataset_description,
     temp_output_jsonld_path,
     caplog,
     propagate_warnings,
@@ -259,8 +222,8 @@ def test_missing_bids_levels_raises_warning(
             test_data / "example12.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "testing dataset",
+            "--dataset-description",
+            example_dataset_description,
         ],
         catch_exceptions=False,
     )
@@ -274,6 +237,7 @@ def test_missing_bids_levels_raises_warning(
 def test_bids_neurobagel_levels_mismatch_raises_warning(
     runner,
     test_data,
+    example_dataset_description,
     temp_output_jsonld_path,
     caplog,
     propagate_warnings,
@@ -288,8 +252,8 @@ def test_bids_neurobagel_levels_mismatch_raises_warning(
             test_data / "example13.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "testing dataset",
+            "--dataset-description",
+            example_dataset_description,
         ],
         catch_exceptions=False,
     )
@@ -307,6 +271,7 @@ def test_bids_neurobagel_levels_mismatch_raises_warning(
 def test_unused_missing_values_raises_warning(
     runner,
     test_data,
+    example_dataset_description,
     temp_output_jsonld_path,
     caplog,
     propagate_warnings,
@@ -325,8 +290,8 @@ def test_unused_missing_values_raises_warning(
             test_data / "example10.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "testing dataset",
+            "--dataset-description",
+            example_dataset_description,
         ],
         catch_exceptions=False,
     )
@@ -362,6 +327,7 @@ def test_providing_non_tsv_file_raises_error(
     expected_err,
     runner,
     test_data,
+    example_dataset_description,
     tmp_path,
     temp_output_jsonld_path,
     caplog,
@@ -381,8 +347,8 @@ def test_providing_non_tsv_file_raises_error(
             test_data / dictionary_file,
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "testing dataset",
+            "--dataset-description",
+            example_dataset_description,
         ],
         catch_exceptions=False,
     )
@@ -394,8 +360,24 @@ def test_providing_non_tsv_file_raises_error(
 
 
 def test_output_file_contains_dataset_level_attributes(
-    runner, test_data, temp_output_jsonld_path, load_test_json
+    runner,
+    test_data,
+    example_dataset_description,
+    temp_output_jsonld_path,
+    load_test_json,
+    tmp_path,
 ):
+    dataset_description = {
+        "Name": "Test Dataset",
+        "Authors": ["First Author", "Second Author"],
+        "ReferencesAndLinks": [],
+        "AccessType": "public",
+        "AccessInstructions": "",
+        "AccessLink": "https://mydatasetportal.org",
+    }
+    with open(tmp_path / "dataset_description.json", "w") as f:
+        json.dump(dataset_description, f)
+
     runner.invoke(
         bagel,
         [
@@ -406,21 +388,27 @@ def test_output_file_contains_dataset_level_attributes(
             test_data / "example2.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "my_dataset_name",
-            "--portal",
-            "http://my_dataset_site.com",
+            "--dataset-description",
+            tmp_path / "dataset_description.json",
         ],
     )
 
     pheno = load_test_json(temp_output_jsonld_path)
 
-    assert pheno.get("hasLabel") == "my_dataset_name"
-    assert pheno.get("hasPortalURI") == "http://my_dataset_site.com"
+    assert pheno.get("hasLabel") == "Test Dataset"
+    assert pheno.get("hasAuthors") == ["First Author", "Second Author"]
+    assert pheno.get("hasReferencesAndLinks") is None
+    assert pheno.get("hasAccessType") == "public"
+    assert pheno.get("hasAccessInstructions") is None
+    assert pheno.get("hasAccessLink") == "https://mydatasetportal.org"
 
 
 def test_diagnosis_and_control_status_handled(
-    runner, test_data, temp_output_jsonld_path, load_test_json
+    runner,
+    test_data,
+    example_dataset_description,
+    temp_output_jsonld_path,
+    load_test_json,
 ):
     runner.invoke(
         bagel,
@@ -432,8 +420,8 @@ def test_diagnosis_and_control_status_handled(
             test_data / "example6.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "my_dataset_name",
+            "--dataset-description",
+            example_dataset_description,
         ],
     )
 
@@ -460,6 +448,7 @@ def test_controlled_terms_have_identifiers(
     attribute,
     runner,
     test_data_upload_path,
+    example_dataset_description,
     temp_output_jsonld_path,
     load_test_json,
 ):
@@ -473,8 +462,8 @@ def test_controlled_terms_have_identifiers(
             test_data_upload_path / "example_synthetic.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "do not care name",
+            "--dataset-description",
+            example_dataset_description,
         ],
     )
 
@@ -492,7 +481,11 @@ def test_controlled_terms_have_identifiers(
 
 
 def test_controlled_term_classes_have_uri_type(
-    runner, test_data_upload_path, temp_output_jsonld_path, load_test_json
+    runner,
+    test_data_upload_path,
+    example_dataset_description,
+    temp_output_jsonld_path,
+    load_test_json,
 ):
     """Tests that classes specified as schemaKeys (@type) for subject-level attributes in a .jsonld are also defined in the context."""
     runner.invoke(
@@ -505,8 +498,8 @@ def test_controlled_term_classes_have_uri_type(
             test_data_upload_path / "example_synthetic.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "do not care name",
+            "--dataset-description",
+            example_dataset_description,
         ],
     )
 
@@ -544,6 +537,7 @@ def test_controlled_term_classes_have_uri_type(
 def test_assessment_data_are_parsed_correctly(
     runner,
     test_data,
+    example_dataset_description,
     temp_output_jsonld_path,
     load_test_json,
     assessment,
@@ -559,8 +553,8 @@ def test_assessment_data_are_parsed_correctly(
             test_data / "example6.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "my_dataset_name",
+            "--dataset-description",
+            example_dataset_description,
         ],
     )
 
@@ -578,6 +572,7 @@ def test_assessment_data_are_parsed_correctly(
 def test_cli_age_is_processed(
     runner,
     test_data,
+    example_dataset_description,
     temp_output_jsonld_path,
     load_test_json,
     expected_age,
@@ -593,8 +588,8 @@ def test_cli_age_is_processed(
             test_data / "example2.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "my_dataset_name",
+            "--dataset-description",
+            example_dataset_description,
         ],
     )
 
@@ -606,7 +601,11 @@ def test_cli_age_is_processed(
 
 
 def test_output_includes_context(
-    runner, test_data, temp_output_jsonld_path, load_test_json
+    runner,
+    test_data,
+    example_dataset_description,
+    temp_output_jsonld_path,
+    load_test_json,
 ):
     runner.invoke(
         bagel,
@@ -618,8 +617,8 @@ def test_output_includes_context(
             test_data / "example2.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "my_dataset_name",
+            "--dataset-description",
+            example_dataset_description,
         ],
     )
 
@@ -642,6 +641,7 @@ def test_output_includes_context(
 def test_output_excludes_properties_for_missing_vals(
     runner,
     test_data_upload_path,
+    example_dataset_description,
     temp_output_jsonld_path,
     load_test_json,
     sub_id,
@@ -662,8 +662,8 @@ def test_output_excludes_properties_for_missing_vals(
             test_data_upload_path / "example_synthetic.json",
             "--output",
             temp_output_jsonld_path,
-            "--name",
-            "BIDS synthetic test",
+            "--dataset-description",
+            example_dataset_description,
         ],
     )
 
@@ -676,7 +676,9 @@ def test_output_excludes_properties_for_missing_vals(
                 ), f"{sub_id} output contains value for {entry} where annotated as missing"
 
 
-def test_default_output_filename(runner, test_data_upload_path, tmp_path):
+def test_default_output_filename(
+    runner, test_data_upload_path, example_dataset_description, tmp_path
+):
     """Tests that the default output filename is used correctly when --output is not set."""
     os.chdir(tmp_path)
 
@@ -688,8 +690,8 @@ def test_default_output_filename(runner, test_data_upload_path, tmp_path):
             test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
             test_data_upload_path / "example_synthetic.json",
-            "--name",
-            "BIDS synthetic test",
+            "--dataset-description",
+            example_dataset_description,
         ],
     )
 
@@ -706,6 +708,7 @@ def test_default_output_filename(runner, test_data_upload_path, tmp_path):
 def test_overwrite_flag_behaviour(
     runner,
     test_data_upload_path,
+    example_dataset_description,
     tmp_path,
     overwrite_flag,
     should_show_output_exists_message,
@@ -722,8 +725,8 @@ def test_overwrite_flag_behaviour(
             test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
             test_data_upload_path / "example_synthetic.json",
-            "--name",
-            "BIDS synthetic test",
+            "--dataset-description",
+            example_dataset_description,
             "--output",
             tmp_path / "synthetic_dataset.jsonld",
         ],
@@ -739,8 +742,8 @@ def test_overwrite_flag_behaviour(
             test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
             test_data_upload_path / "example_synthetic.json",
-            "--name",
-            "BIDS synthetic test",
+            "--dataset-description",
+            example_dataset_description,
             "--output",
             tmp_path / "synthetic_dataset.jsonld",
         ]
@@ -759,6 +762,7 @@ def test_overwrite_flag_behaviour(
 def test_pheno_sessions_have_correct_labels(
     runner,
     test_data_upload_path,
+    example_dataset_description,
     tmp_path,
     load_test_json,
 ):
@@ -771,10 +775,8 @@ def test_pheno_sessions_have_correct_labels(
             test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
             test_data_upload_path / "example_synthetic.json",
-            "--name",
-            "don't matter",
-            "--portal",
-            "https://www.google.com",
+            "--dataset-description",
+            example_dataset_description,
             "--output",
             tmp_path / "example_synthetic.jsonld",
         ],
@@ -800,6 +802,7 @@ def test_pheno_sessions_have_correct_labels(
 def test_pheno_session_created_for_missing_session_column(
     runner,
     test_data,
+    example_dataset_description,
     temp_output_jsonld_path,
     load_test_json,
 ):
@@ -815,8 +818,8 @@ def test_pheno_session_created_for_missing_session_column(
             test_data / "example17.tsv",
             "--dictionary",
             test_data / "example17.json",
-            "--name",
-            "Missing session column dataset",
+            "--dataset-description",
+            example_dataset_description,
             "--output",
             temp_output_jsonld_path,
         ],
@@ -832,6 +835,7 @@ def test_pheno_session_created_for_missing_session_column(
 def test_multicolumn_diagnosis_annot_is_handled(
     runner,
     test_data,
+    example_dataset_description,
     temp_output_jsonld_path,
     load_test_json,
 ):
@@ -844,8 +848,8 @@ def test_multicolumn_diagnosis_annot_is_handled(
             test_data / "example19.tsv",
             "--dictionary",
             test_data / "example19.json",
-            "--name",
-            "Multi-column annotation dataset",
+            "--dataset-description",
+            example_dataset_description,
             "--output",
             temp_output_jsonld_path,
         ],
@@ -863,7 +867,11 @@ def test_multicolumn_diagnosis_annot_is_handled(
 
 
 def test_healthy_control_subject_with_diagnosis_is_handled(
-    runner, test_data, temp_output_jsonld_path, load_test_json
+    runner,
+    test_data,
+    example_dataset_description,
+    temp_output_jsonld_path,
+    load_test_json,
 ):
     """
     Test that when a subject has both a diagnosis and a healthy control status,
@@ -877,8 +885,8 @@ def test_healthy_control_subject_with_diagnosis_is_handled(
             test_data / "example19.tsv",
             "--dictionary",
             test_data / "example19.json",
-            "--name",
-            "Multi-column annotation dataset",
+            "--dataset-description",
+            example_dataset_description,
             "--output",
             temp_output_jsonld_path,
         ],
@@ -907,6 +915,7 @@ def test_healthy_control_subject_with_diagnosis_is_handled(
 def test_pheno_command_succeeds_with_short_option_names(
     runner,
     test_data,
+    example_dataset_description,
     temp_output_jsonld_path,
 ):
     """Test that the pheno command does not error when invoked with short option names."""
@@ -921,8 +930,8 @@ def test_pheno_command_succeeds_with_short_option_names(
             test_data / f"{example}.json",
             "-o",
             temp_output_jsonld_path,
-            "-n",
-            "Test dataset",
+            "-m",
+            example_dataset_description,
         ],
     )
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
@@ -931,45 +940,10 @@ def test_pheno_command_succeeds_with_short_option_names(
     ).exists(), "The pheno.jsonld output was not created."
 
 
-@pytest.mark.parametrize(
-    "invalid_dataset_name",
-    [
-        "",
-        "    ",
-        "\n\t",
-    ],
-)
-def test_empty_string_dataset_name_raises_error(
-    runner,
-    test_data_upload_path,
-    temp_output_jsonld_path,
-    invalid_dataset_name,
-    disable_rich_markup,
-):
-    """Ensure that provided dataset names cannot be empty strings or only contain whitespace."""
-    result = runner.invoke(
-        bagel,
-        [
-            "pheno",
-            "--pheno",
-            test_data_upload_path / "example_synthetic.tsv",
-            "--dictionary",
-            test_data_upload_path / "example_synthetic.json",
-            "--output",
-            temp_output_jsonld_path,
-            "--name",
-            invalid_dataset_name,
-        ],
-        catch_exceptions=False,
-    )
-
-    assert result.exit_code != 0
-    assert "cannot be an empty string" in result.output
-
-
 def test_backup_used_with_warning_when_request_for_config_namespaces_fails(
     runner,
     test_data_upload_path,
+    example_dataset_description,
     temp_output_jsonld_path,
     caplog,
     propagate_warnings,
@@ -994,8 +968,8 @@ def test_backup_used_with_warning_when_request_for_config_namespaces_fails(
             test_data_upload_path / "example_synthetic.json",
             "--config",
             "neuroBagel",
-            "--name",
-            "Config test",
+            "--dataset-description",
+            example_dataset_description,
             "--output",
             temp_output_jsonld_path,
         ],

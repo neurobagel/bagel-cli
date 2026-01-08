@@ -672,10 +672,10 @@ def validate_dataset_description(
         )
         if unset_fields:
             logger.warning(
-                # TODO: Update with a link to the documentation page after https://github.com/neurobagel/documentation/issues/348
                 "The dataset description is missing or has empty values for the following recommended fields:\n"
                 + "\n".join(f"- {field}" for field in unset_fields)
                 + "\nConsider completing these fields to improve dataset reuse and clarify access procedures."
+                + "\nSee the documentation at https://neurobagel.org/user_guide/dataset_description/"
             )
         return validated_dataset_desc
     except pydantic.ValidationError as err:
@@ -683,7 +683,10 @@ def validate_dataset_description(
         # Pydantic will list all offending fields and their issues in the error message (https://docs.pydantic.dev/latest/errors/errors/)
         log_error(
             logger,
-            "The dataset description is invalid. " f"Details:\n" f"{err}",
+            "The dataset description is invalid. "
+            "\nSee the documentation at https://neurobagel.org/user_guide/dataset_description/. "
+            f"\nValidation details:\n"
+            f"{err}",
         )
 
 

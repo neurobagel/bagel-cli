@@ -239,7 +239,8 @@ def pheno(
         "--dataset-description",
         "-m",  # for metadata
         help="Path to a .json file describing the dataset and access information. "
-        "If your dataset is BIDS-compliant, you may reuse the BIDS dataset_description.json here.",
+        "If your dataset is BIDS-compliant, you may reuse the BIDS dataset_description.json here."
+        "See the documentation at https://neurobagel.org/user_guide/dataset_description/",
         exists=True,
         file_okay=True,
         dir_okay=False,

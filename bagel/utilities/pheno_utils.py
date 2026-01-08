@@ -679,7 +679,6 @@ def validate_dataset_description(
             )
         return validated_dataset_desc
     except pydantic.ValidationError as err:
-        # TODO: Update with a link to the documentation page after https://github.com/neurobagel/documentation/issues/348
         # Pydantic will list all offending fields and their issues in the error message (https://docs.pydantic.dev/latest/errors/errors/)
         log_error(
             logger,

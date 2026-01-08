@@ -1,3 +1,20 @@
+# v0.11.0 (Thu Jan 08 2026)
+
+#### 💥 Breaking Changes
+
+- [ENH] Replace `--name` and `--portal` with required arg for data description file [#623](https://github.com/neurobagel/bagel-cli/pull/623) ([@alyssadai](https://github.com/alyssadai) [@surchs](https://github.com/surchs))
+
+#### 🏠 Internal
+
+- [MODEL] Add schema for dataset description file [#622](https://github.com/neurobagel/bagel-cli/pull/622) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
 # v0.10.2 (Thu Nov 27 2025)
 
 #### 🚀 Enhancements

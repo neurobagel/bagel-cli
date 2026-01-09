@@ -422,3 +422,15 @@ def test_get_bids_suffix_to_std_term_mapping():
         for value in bids_term_mapping.values()
     )
     assert bids_term_mapping["T1w"] == f"{expected_prefix}:T1Weighted"
+
+
+def test_find_unrecognized_bids_file_suffixes():
+    """Test that file suffixes that are not recognized by BIDS are correctly identified."""
+    suffixes_from_bids_dir = pd.Series(
+        ["T1w", "bold", "bold", "bolld", "sessions", "scans", "custom1"]
+    )
+    unrecognized_suffixes = bids_utils.find_unrecognized_bids_file_suffixes(
+        suffixes_from_bids_dir
+    )
+
+    assert unrecognized_suffixes == ["bolld", "custom1"]

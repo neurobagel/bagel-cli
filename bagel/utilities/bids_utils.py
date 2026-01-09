@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Iterable
 
+import bidsschematools.schema as bst
 import pandas as pd
 import pandera.pandas as pa
 from typer import BadParameter
@@ -16,6 +17,8 @@ IMAGING_MODALITIES_PATH = (
     Path(__file__).parents[1]
     / "communities/configs/Neurobagel/imaging_modalities.json"
 )
+
+bids_schema = bst.load_schema()
 
 
 def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
@@ -51,6 +54,19 @@ def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
         )
 
     return bids_suffix_to_std_term_mapping
+
+
+def find_unrecognized_bids_file_suffixes(suffixes: pd.Series) -> list[str]:
+    """Return any file suffixes that are not recognized by BIDS."""
+    all_bids_suffixes = {
+        bids_suffix["value"]
+        for bids_suffix in bids_schema.objects.suffixes.values()
+    }
+    return [
+        suffix
+        for suffix in suffixes.unique()
+        if suffix not in all_bids_suffixes
+    ]
 
 
 def find_unsupported_image_suffixes(

@@ -175,7 +175,15 @@ def bids2tsv(
     dataset_df = dataset_tab.to_pandas()
 
     bids_term_mapping = bids_utils.get_bids_suffix_to_std_term_mapping()
-    if not dataset_df["suffix"].isin(bids_term_mapping.keys()).any():
+
+    _, any_suffixes_supported = (
+        bids_utils.find_all_neurobagel_unsupported_suffixes(
+            suffixes=dataset_df["suffix"],
+            supported_suffixes=bids_term_mapping.keys(),
+        )
+    )
+
+    if not any_suffixes_supported:
         log_error(
             logger,
             f"No image files with supported BIDS suffixes were found in {bids_dir}. "
@@ -184,13 +192,22 @@ def bids2tsv(
             f"(Supported suffixes: {list(bids_term_mapping.keys())}).",
         )
 
-    unsupported_suffixes = bids_utils.find_unsupported_image_suffixes(
-        data=dataset_df,
+    if bids_unrecognized_suffixes := bids_utils.find_unrecognized_bids_file_suffixes(
+        suffixes=dataset_df["suffix"]
+    ):
+        logger.warning(
+            f"File suffixes unrecognized by BIDS were found in the BIDS directory: {bids_unrecognized_suffixes}. "
+            "These will be ignored. "
+            "Please refer to the BIDS specification https://bids-specification.readthedocs.io/en/stable/ for file naming conventions."
+        )
+
+    unsupported_bids_suffixes = bids_utils.find_unsupported_bids_suffixes(
+        suffixes=dataset_df["suffix"],
         supported_suffixes=bids_term_mapping.keys(),
     )
-    if unsupported_suffixes:
+    if unsupported_bids_suffixes:
         logger.warning(
-            f"Image file suffixes unsupported by Neurobagel were found in the BIDS directory: {unsupported_suffixes}. "
+            f"BIDS raw data file suffixes unsupported by Neurobagel were found in the BIDS directory: {unsupported_bids_suffixes}. "
             f"These will be ignored. Supported BIDS suffixes: {list(bids_term_mapping.keys())}."
         )
 
@@ -503,7 +520,13 @@ def bids(
     # we check the suffix column separately here and then remove any offending values.
     # For our custom suffix-check to work, we need to ensure that the "suffix" column exists here.
     if "suffix" in bids_dataset.columns:
-        if not bids_dataset["suffix"].isin(bids_term_mapping.keys()).any():
+        unsupported_suffixes, any_supported = (
+            bids_utils.find_all_neurobagel_unsupported_suffixes(
+                suffixes=bids_dataset["suffix"],
+                supported_suffixes=bids_term_mapping.keys(),
+            )
+        )
+        if not any_supported:
             log_error(
                 logger,
                 f"No Neurobagel-supported BIDS suffixes found in BIDS table 'suffix' column: {bids_table}. "
@@ -511,14 +534,9 @@ def bids(
                 "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
                 f"(supported suffixes: {list(bids_term_mapping.keys())}).",
             )
-
-        unsupported_suffixes = bids_utils.find_unsupported_image_suffixes(
-            data=bids_dataset,
-            supported_suffixes=bids_term_mapping.keys(),
-        )
         if unsupported_suffixes:
             logger.warning(
-                f"BIDS table 'suffix' column contains image file suffixes unsupported by Neurobagel: {unsupported_suffixes}. "
+                f"BIDS table 'suffix' column contains file suffixes unsupported by Neurobagel: {unsupported_suffixes}. "
                 f"These records will be ignored. Supported BIDS suffixes: {list(bids_term_mapping.keys())}."
             )
 

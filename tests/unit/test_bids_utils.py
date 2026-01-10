@@ -434,3 +434,41 @@ def test_find_unrecognized_bids_file_suffixes():
     )
 
     assert unrecognized_suffixes == ["bolld", "custom1"]
+
+
+def test_find_unsupported_bids_suffixes():
+    """Test that valid BIDS raw data file suffixes which are unsupported by Neurobagel are correctly identified."""
+    suffixes_from_bids_dir = pd.Series(
+        ["T1w", "bold", "2PE", "phase1", "notbids1", "notbids2"]
+    )
+    # Mock minimal set of Neurobagel supported suffixes
+    neurobagel_supported_suffixes = {"T1w", "T2w", "bold", "dwi"}
+    unsupported_bids_suffixes = bids_utils.find_unsupported_bids_suffixes(
+        suffixes=suffixes_from_bids_dir,
+        supported_suffixes=neurobagel_supported_suffixes,
+    )
+
+    assert unsupported_bids_suffixes == ["2PE", "phase1"]
+
+
+def test_find_all_neurobagel_unsupported_suffixes():
+    """Test that all suffixes which are unsupported by Neurobagel are correctly identified."""
+    suffixes_from_bids_dir = pd.Series(
+        ["T1w", "bold", "2PE", "phase1", "notbids1", "notbids2"]
+    )
+    # Mock minimal set of Neurobagel supported suffixes
+    neurobagel_supported_suffixes = {"T1w", "T2w", "bold", "dwi"}
+    unsupported_bids_suffixes, any_supported = (
+        bids_utils.find_all_neurobagel_unsupported_suffixes(
+            suffixes=suffixes_from_bids_dir,
+            supported_suffixes=neurobagel_supported_suffixes,
+        )
+    )
+
+    assert unsupported_bids_suffixes == [
+        "2PE",
+        "phase1",
+        "notbids1",
+        "notbids2",
+    ]
+    assert any_supported is True

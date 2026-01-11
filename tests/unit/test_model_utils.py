@@ -198,8 +198,8 @@ def test_used_namespaces_in_context(test_data_upload_path, load_test_json):
             ), f"The namespace '{ns}' was not found in the @context of {jsonld}."
 
 
-def test_add_context_to_graph_dataset(neurobagel_test_config):
-    """Test that add_context_to_graph_dataset() correctly adds the @context to a graph dataset instance."""
+def test_dataset_to_jsonld(neurobagel_test_config):
+    """Test that the @context is correctly added to each dict serialization of a graph dataset instance."""
     dataset = models.Dataset(
         hasLabel="test_dataset",
         hasSamples=[
@@ -224,9 +224,8 @@ def test_add_context_to_graph_dataset(neurobagel_test_config):
         ],
     )
 
-    jsonld = model_utils.add_context_to_graph_dataset(
-        dataset=dataset, config=neurobagel_test_config
-    )
+    context = model_utils.generate_context(config=neurobagel_test_config)
+    jsonld = model_utils.dataset_to_jsonld(context=context, dataset=dataset)
 
     assert "@context" in jsonld.keys()
     assert len(jsonld["hasSamples"]) == 2

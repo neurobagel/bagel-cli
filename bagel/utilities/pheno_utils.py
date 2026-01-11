@@ -8,9 +8,8 @@ import isodate
 import jsonschema
 import pandas as pd
 import pydantic
-from typer import BadParameter, CallbackParam
 
-from bagel import dictionary_models, mappings
+from bagel import dataset_description_model, dictionary_models, mappings
 from bagel.logger import log_error, logger
 from bagel.mappings import DEPRECATED_NAMESPACE_PREFIXES, NB
 
@@ -76,27 +75,6 @@ def get_supported_namespaces_for_config(config_name: str) -> dict:
             ]
 
     return config_namespaces_dict
-
-
-def check_param_not_whitespace(param: CallbackParam, value: str) -> str:
-    """Custom validation that the value for a string argument is not an empty string or just whitespace."""
-    if value.isspace() or value == "":
-        raise BadParameter(f"{param.name} cannot be an empty string.")
-    return value
-
-
-def validate_portal_uri(portal: str | None) -> str | None:
-    """Custom validation that portal is a valid HttpUrl"""
-    # NOTE: We need None in the validation type below to account for --portal being an optional argument in the pheno command
-    try:
-        pydantic.TypeAdapter(pydantic.HttpUrl | None).validate_python(portal)
-    except pydantic.ValidationError as err:
-        raise BadParameter(
-            "Not a valid http or https URL: "
-            f"{err.errors()[0]['msg']} \nPlease try again."
-        ) from err
-
-    return portal
 
 
 def get_columns_about(data_dict: dict, concept: str) -> list:
@@ -657,10 +635,64 @@ def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
         )
 
 
+def get_validated_dataset_description_and_incomplete_fields(
+    raw_dataset_desc: dict,
+) -> tuple[dataset_description_model.DatasetDescription, set]:
+    """
+    Return a validated dataset description instance and any incomplete optional fields (by their aliases),
+    including those were unset or those set to empty or whitespace-only strings.
+    """
+    validated_dataset_desc = (
+        dataset_description_model.DatasetDescription.model_validate(
+            raw_dataset_desc
+        )
+    )
+    model_fields = [
+        field.alias
+        for field in dataset_description_model.DatasetDescription.model_fields.values()
+    ]
+    non_default_fields = validated_dataset_desc.model_dump(
+        by_alias=True, exclude_defaults=True
+    ).keys()
+    incomplete_fields = set(model_fields) - set(non_default_fields)
+    return validated_dataset_desc, incomplete_fields
+
+
+def validate_dataset_description(
+    dataset_desc: dict,
+) -> dataset_description_model.DatasetDescription:
+    """
+    Return a validated instance of the dataset description and log an informative warning if any optional fields are missing.
+    """
+    try:
+        validated_dataset_desc, unset_fields = (
+            get_validated_dataset_description_and_incomplete_fields(
+                dataset_desc
+            )
+        )
+        if unset_fields:
+            logger.warning(
+                "The dataset description is missing or has empty values for the following recommended fields:\n"
+                + "\n".join(f"- {field}" for field in unset_fields)
+                + "\nConsider completing these fields to improve dataset reuse and clarify access procedures."
+                + "\nSee the documentation at https://neurobagel.org/user_guide/dataset_description/"
+            )
+        return validated_dataset_desc
+    except pydantic.ValidationError as err:
+        # Pydantic will list all offending fields and their issues in the error message (https://docs.pydantic.dev/latest/errors/errors/)
+        log_error(
+            logger,
+            "The dataset description is invalid. "
+            "\nSee the documentation at https://neurobagel.org/user_guide/dataset_description/. "
+            f"\nValidation details:\n"
+            f"{err}",
+        )
+
+
 def validate_inputs(
     data_dict: dict, pheno_df: pd.DataFrame, config: str | None = None
 ) -> None:
-    """Determines whether input data are valid"""
+    """Determine whether the input data dictionary and phenotypic table are valid and compatible."""
     validate_data_dict(data_dict, config)
 
     if missing_annotated_cols := find_missing_annotated_cols(
@@ -740,3 +772,34 @@ def convert_transformation_to_format(data_dict: dict) -> dict:
             )
 
     return data_dict
+
+
+def dataset_description_to_graph_attributes(
+    dataset_description: dataset_description_model.DatasetDescription,
+) -> dict:
+    """Convert fields from a dataset description to JSONLD-ready attributes for a dataset."""
+    dataset_graph_attributes = {
+        "hasLabel": dataset_description.name,
+        "hasAuthors": (
+            dataset_description.authors
+            if dataset_description.authors
+            else None
+        ),
+        "hasReferencesAndLinks": (
+            dataset_description.references_and_links
+            if dataset_description.references_and_links
+            else None
+        ),
+        "hasKeywords": (
+            dataset_description.keywords
+            if dataset_description.keywords
+            else None
+        ),
+        "hasRepositoryURL": dataset_description.repository_url,
+        "hasAccessInstructions": dataset_description.access_instructions,
+        "hasAccessType": dataset_description.access_type,
+        "hasAccessEmail": dataset_description.access_email,
+        "hasAccessLink": dataset_description.access_link,
+    }
+
+    return dataset_graph_attributes

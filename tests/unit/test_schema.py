@@ -53,6 +53,7 @@ def test_invalid_dataset_description_fails_validation():
     invalid_dataset_description = {
         "Name": "Test Dataset",
         "Authors": None,  # must be omitted or a list
+        "RepositoryURL": "not-a-valid-url",  # must be a valid HTTP URL
         "AccessInstructions": None,  # must be omitted or a string
         "AccessType": "unknown",  # unrecognized access type
         "AccessEmail": "",  # not a valid email
@@ -66,9 +67,10 @@ def test_invalid_dataset_description_fails_validation():
     errors = err.value.errors()
     invalid_fields = {error["loc"][0] for error in errors}
 
-    assert len(errors) == 4
+    assert len(errors) == 5
     assert invalid_fields == {
         "Authors",
+        "RepositoryURL",
         "AccessInstructions",
         "AccessType",
         "AccessEmail",

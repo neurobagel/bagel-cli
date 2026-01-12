@@ -98,7 +98,7 @@ class Subject(Bagel):
 class Dataset(Bagel):
     hasLabel: str
     hasAuthors: list[str] | None = None
-    hasReferencesAndLinks: list[HttpUrl] | None = None
+    hasReferencesAndLinks: list[str] | None = None
     hasKeywords: list[str] | None = None
     hasRepositoryURL: HttpUrl | None = None
     hasAccessInstructions: str | None = None

@@ -1130,6 +1130,7 @@ def test_valid_complete_dataset_description_passes_validation(
         "ReferencesAndLinks": [
             "https://mydataset.org",
             "https://doi.org/10.1234/example-doi",
+            "Doe J. (2026). Study name. Journal Name, 2, 234001.",
         ],
         "Keywords": ["Parkinson's Disease", "fMRI"],
         "RepositoryURL": "https://datasets.datalad.org/mydataset",

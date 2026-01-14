@@ -1,3 +1,15 @@
+# v0.11.1 (Mon Jan 12 2026)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Support string references under `ReferencesAndLinks` in dataset description file [#631](https://github.com/neurobagel/bagel-cli/pull/631) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.11.0 (Thu Jan 08 2026)
 
 #### 💥 Breaking Changes

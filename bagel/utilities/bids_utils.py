@@ -1,3 +1,4 @@
+from functools import lru_cache
 from pathlib import Path
 from typing import Iterable
 
@@ -69,6 +70,7 @@ def find_unrecognized_bids_file_suffixes(suffixes: pd.Series) -> list[str]:
     ]
 
 
+@lru_cache()
 def get_bids_raw_data_suffixes() -> set[str]:
     """Return all BIDS recognized suffixes corresponding to raw data files."""
     bids_raw_data_suffixes = set()

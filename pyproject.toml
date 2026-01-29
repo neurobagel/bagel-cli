@@ -7,7 +7,10 @@ name = "bagel"
 dynamic = ["version"]
 license = { file = "LICENSE" }
 authors = [{ name = "Neurobagel Developers" }]
-maintainers = [{ name = "Sebastian Urchs", email = "sebastian.urchs@mcgill.ca" }]
+maintainers = [
+  { name = "Alyssa Dai", email = "alyssa.ydai@gmail.com" },
+  { name = "Sebastian Urchs", email = "sebastian.urchs@mcgill.ca" }
+]
 description = "Automatic parsing of subjects' tabular data and imaging metadata into Neurobagel graph-compatible JSONLD files."
 readme = "README.md"
 classifiers = [

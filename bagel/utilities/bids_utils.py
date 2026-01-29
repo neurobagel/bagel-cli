@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Iterable
 
+import bidsschematools.schema as bst
 import pandas as pd
 import pandera.pandas as pa
 from typer import BadParameter
@@ -16,6 +17,8 @@ IMAGING_MODALITIES_PATH = (
     Path(__file__).parents[1]
     / "communities/configs/Neurobagel/imaging_modalities.json"
 )
+
+bids_schema = bst.load_schema()
 
 
 def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
@@ -53,18 +56,74 @@ def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
     return bids_suffix_to_std_term_mapping
 
 
-def find_unsupported_image_suffixes(
-    data: pd.DataFrame, supported_suffixes: Iterable[str]
+def find_unrecognized_bids_file_suffixes(suffixes: pd.Series) -> list[str]:
+    """Return file suffixes that are not recognized by BIDS."""
+    all_bids_suffixes = {
+        bids_suffix["value"]
+        for bids_suffix in bids_schema.objects.suffixes.values()
+    }
+    return [
+        suffix
+        for suffix in suffixes.unique()
+        if suffix not in all_bids_suffixes
+    ]
+
+
+def get_bids_raw_data_suffixes() -> set[str]:
+    """Return all BIDS recognized suffixes corresponding to raw data files."""
+    bids_raw_data_suffixes = set()
+    for file_datatype in bids_schema.rules.files.raw.values():
+        for file_subtype in file_datatype.values():
+            bids_raw_data_suffixes.update(file_subtype["suffixes"])
+
+    return bids_raw_data_suffixes
+
+
+def find_unsupported_bids_suffixes(
+    suffixes: pd.Series,
+    supported_suffixes: Iterable[str],
 ) -> list[str]:
-    """Return any image file suffixes unsupported by Neurobagel that are found in the provided BIDS table."""
-    return (
-        data.loc[
-            ~data["suffix"].isin(supported_suffixes),
-            "suffix",
-        ]
-        .unique()
-        .tolist()
+    """Return suffixes that are valid BIDS raw data file suffixes but are unsupported by Neurobagel."""
+    bids_raw_data_suffixes = get_bids_raw_data_suffixes()
+    return [
+        suffix
+        for suffix in suffixes.unique()
+        if suffix in bids_raw_data_suffixes
+        and suffix not in supported_suffixes
+    ]
+
+
+def find_all_neurobagel_unsupported_suffixes(
+    suffixes: pd.Series,
+    supported_suffixes: Iterable[str],
+) -> tuple[list[str], bool]:
+    """
+    Return suffixes unsupported by Neurobagel.
+
+    Parameters
+    ----------
+    suffixes: pd.Series
+        File suffixes to check.
+    supported_suffixes: Iterable[str]
+        Neurobagel-supported BIDS suffixes.
+
+    Returns
+    -------
+    tuple[list[str], bool]
+        The list of unsupported suffixes and a boolean indicating
+        whether any supported suffixes were found.
+    """
+    unique_suffixes = suffixes.unique()
+    unsupported = [
+        suffix
+        for suffix in unique_suffixes
+        if suffix not in supported_suffixes
+    ]
+    any_supported = any(
+        suffix in supported_suffixes for suffix in unique_suffixes
     )
+
+    return unsupported, any_supported
 
 
 def check_absolute_path(dir_path: Path | None) -> Path | None:

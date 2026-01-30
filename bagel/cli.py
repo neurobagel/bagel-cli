@@ -184,7 +184,7 @@ def bids2tsv(
     )
     if bids_unrecognized_suffixes:
         logger.warning(
-            f"File suffixes unrecognized by BIDS were found in the BIDS directory: {bids_unrecognized_suffixes}. "
+            f"Files with suffixes not recognized by BIDS were found: {bids_unrecognized_suffixes}. "
             "These will be ignored. "
             "Please refer to the BIDS specification https://bids-specification.readthedocs.io/en/stable/ for file naming conventions."
         )
@@ -200,7 +200,7 @@ def bids2tsv(
     )
     if neurobagel_unsupported_suffixes:
         logger.warning(
-            f"BIDS raw data file suffixes unsupported by Neurobagel were found in the BIDS directory: {neurobagel_unsupported_suffixes}. "
+            f"Data files with valid BIDS suffixes that are not supported by Neurobagel were found: {neurobagel_unsupported_suffixes}. "
             f"These will be ignored. Supported BIDS suffixes: {list(bids_term_mapping.keys())}."
         )
     if not neurobagel_supported_suffixes:

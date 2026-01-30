@@ -57,17 +57,13 @@ def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
     return bids_suffix_to_std_term_mapping
 
 
-def find_unrecognized_bids_file_suffixes(suffixes: pd.Series) -> list[str]:
-    """Return file suffixes that are not recognized by BIDS."""
-    all_bids_suffixes = {
+@lru_cache()
+def get_all_bids_suffixes() -> set[str]:
+    """Return all file suffixes that are recognized by BIDS."""
+    return {
         bids_suffix["value"]
         for bids_suffix in bids_schema.objects.suffixes.values()
     }
-    return [
-        suffix
-        for suffix in suffixes.unique()
-        if suffix not in all_bids_suffixes
-    ]
 
 
 @lru_cache()
@@ -81,18 +77,34 @@ def get_bids_raw_data_suffixes() -> set[str]:
     return bids_raw_data_suffixes
 
 
-def find_unsupported_bids_suffixes(
-    suffixes: pd.Series,
-    supported_suffixes: Iterable[str],
-) -> list[str]:
-    """Return suffixes that are valid BIDS raw data file suffixes but are unsupported by Neurobagel."""
-    bids_raw_data_suffixes = get_bids_raw_data_suffixes()
-    return [
-        suffix
-        for suffix in suffixes.unique()
-        if suffix in bids_raw_data_suffixes
-        and suffix not in supported_suffixes
-    ]
+def partition_suffixes(
+    suffixes: pd.Series, reference_suffixes: Iterable[str]
+) -> tuple[list[str], list[str]]:
+    """
+    Partition suffixes into those found in a reference collection and those not found.
+
+    Parameters
+    ----------
+    suffixes : pd.Series
+        Series of file suffixes to partition.
+    reference_suffixes : Iterable[str]
+        Suffixes to compare the input list against.
+
+    Returns
+    -------
+    tuple[list[str], list[str]]
+        A tuple containing two lists:
+        - The first list contains suffixes found in the reference list.
+        - The second list contains suffixes not found in the reference list.
+    """
+    in_reference = []
+    not_in_reference = []
+    for suffix in suffixes.unique():
+        if suffix in reference_suffixes:
+            in_reference.append(suffix)
+        else:
+            not_in_reference.append(suffix)
+    return in_reference, not_in_reference
 
 
 def find_all_neurobagel_unsupported_suffixes(

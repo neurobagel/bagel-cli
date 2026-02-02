@@ -25,7 +25,7 @@ bids_schema = bst.load_schema()
 def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
     """
     Fetch the standardized imaging modality vocabulary from the neurobagel/communities repository
-    and return a mapping of BIDS suffixes to prefixed standardized terms.
+    and return a mapping of supported BIDS suffixes to prefixed standardized terms.
 
     Returns:
         dict[str, str]: A mapping where keys are BIDS suffixes (e.g., "T1w", "bold")
@@ -78,15 +78,15 @@ def get_bids_raw_data_suffixes() -> set[str]:
 
 
 def partition_suffixes(
-    suffixes: pd.Series, reference_suffixes: Iterable[str]
+    suffixes: list[str], reference_suffixes: Iterable[str]
 ) -> tuple[list[str], list[str]]:
     """
     Partition suffixes into those found in a reference collection and those not found.
 
     Parameters
     ----------
-    suffixes : pd.Series
-        Series of file suffixes to partition.
+    suffixes : list[str]
+        List of file suffixes to partition.
     reference_suffixes : Iterable[str]
         Suffixes to compare the input list against.
 
@@ -99,7 +99,7 @@ def partition_suffixes(
     """
     in_reference = []
     not_in_reference = []
-    for suffix in suffixes.unique():
+    for suffix in suffixes:
         if suffix in reference_suffixes:
             in_reference.append(suffix)
         else:
@@ -107,37 +107,39 @@ def partition_suffixes(
     return in_reference, not_in_reference
 
 
-def find_all_neurobagel_unsupported_suffixes(
-    suffixes: pd.Series,
-    supported_suffixes: Iterable[str],
-) -> tuple[list[str], bool]:
+def filter_bids_dir_suffixes(suffixes: pd.Series, imaging_vocab: dict) -> list:
     """
-    Return suffixes unsupported by Neurobagel.
-
-    Parameters
-    ----------
-    suffixes: pd.Series
-        File suffixes to check.
-    supported_suffixes: Iterable[str]
-        Neurobagel-supported BIDS suffixes.
-
-    Returns
-    -------
-    tuple[list[str], bool]
-        The list of unsupported suffixes and a boolean indicating
-        whether any supported suffixes were found.
+    Filter BIDS directory suffixes to those supported by Neurobagel,
+    logging warnings for unrecognized or unsupported suffixes.
     """
-    unique_suffixes = suffixes.unique()
-    unsupported = [
-        suffix
-        for suffix in unique_suffixes
-        if suffix not in supported_suffixes
-    ]
-    any_supported = any(
-        suffix in supported_suffixes for suffix in unique_suffixes
+    suffixes_unique = suffixes.unique().tolist()
+    bids_recognized_suffixes, bids_unrecognized_suffixes = partition_suffixes(
+        suffixes=suffixes_unique,
+        reference_suffixes=get_all_bids_suffixes(),
     )
+    if bids_unrecognized_suffixes:
+        logger.warning(
+            f"Files with suffixes not recognized by BIDS were found: {bids_unrecognized_suffixes}. "
+            "These will be ignored. "
+            "Please refer to the BIDS specification https://bids-specification.readthedocs.io/en/stable/ for file naming conventions."
+        )
+    bids_raw_data_suffixes, _ = partition_suffixes(
+        suffixes=bids_recognized_suffixes,
+        reference_suffixes=get_bids_raw_data_suffixes(),
+    )
+    neurobagel_supported_suffixes, neurobagel_unsupported_suffixes = (
+        partition_suffixes(
+            suffixes=bids_raw_data_suffixes,
+            reference_suffixes=imaging_vocab.keys(),
+        )
+    )
+    if neurobagel_unsupported_suffixes:
+        logger.warning(
+            f"Data files with valid BIDS suffixes that are not supported by Neurobagel were found: {neurobagel_unsupported_suffixes}. "
+            f"These will be ignored. Supported BIDS suffixes: {list(imaging_vocab.keys())}."
+        )
 
-    return unsupported, any_supported
+    return neurobagel_supported_suffixes
 
 
 def check_absolute_path(dir_path: Path | None) -> Path | None:

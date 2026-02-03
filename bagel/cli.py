@@ -176,10 +176,11 @@ def bids2tsv(
 
     bids_term_mapping = bids_utils.get_bids_suffix_to_std_term_mapping()
 
-    supported_suffixes = bids_utils.filter_bids_dir_suffixes(
-        suffixes=dataset_df["suffix"], imaging_vocab=bids_term_mapping
+    filtered_suffixes = bids_utils.filter_bids_dir_suffixes(
+        suffixes=dataset_df["suffix"],
+        imaging_vocab_suffixes=bids_term_mapping.keys(),
     )
-    if not supported_suffixes:
+    if not filtered_suffixes:
         log_error(
             logger,
             f"No image files with supported BIDS suffixes were found in {bids_dir}. "
@@ -189,7 +190,7 @@ def bids2tsv(
         )
 
     dataset_df = dataset_df[
-        dataset_df["suffix"].isin(supported_suffixes)
+        dataset_df["suffix"].isin(filtered_suffixes)
     ].copy()
 
     dataset_df["path"] = dataset_df.apply(
@@ -522,12 +523,12 @@ def bids(
             )
         if unsupported_suffixes:
             logger.warning(
-                f"BIDS table 'suffix' column contains file suffixes unsupported by Neurobagel: {unsupported_suffixes}. "
+                f"BIDS table 'suffix' column contains file suffixes unsupported by Neurobagel: {list(unsupported_suffixes)}. "
                 f"These records will be ignored. Supported BIDS suffixes: {list(bids_term_mapping.keys())}."
             )
 
         bids_dataset = bids_dataset[
-            bids_dataset["suffix"].isin(bids_term_mapping.keys())
+            bids_dataset["suffix"].isin(supported_suffixes)
         ].copy()
 
     bids_utils.validate_bids_table(bids_dataset)
@@ -542,6 +543,11 @@ def bids(
     )
 
     logger.info("Initial checks of inputs passed.")
+
+    logger.info(
+        "Subject metadata for the following Neurobagel-supported imaging modalities "
+        f"will be added to the subject graph data: {list(supported_suffixes)}"
+    )
 
     logger.info("Merging BIDS metadata with existing subject annotations...")
 

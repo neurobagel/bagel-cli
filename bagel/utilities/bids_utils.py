@@ -78,48 +78,50 @@ def get_bids_raw_data_suffixes() -> set[str]:
 
 
 def partition_suffixes(
-    suffixes: list[str], reference_suffixes: Iterable[str]
-) -> tuple[list[str], list[str]]:
+    suffixes: Iterable[str], reference_suffixes: Iterable[str]
+) -> tuple[set[str], set[str]]:
     """
     Partition suffixes into those found in a reference collection and those not found.
 
     Parameters
     ----------
-    suffixes : list[str]
-        List of file suffixes to partition.
+    suffixes : Iterable[str]
+        File suffixes to partition.
     reference_suffixes : Iterable[str]
         Suffixes to compare the input list against.
 
     Returns
     -------
-    tuple[list[str], list[str]]
-        A tuple containing two lists:
-        - The first list contains suffixes found in the reference list.
-        - The second list contains suffixes not found in the reference list.
+    tuple[set[str], set[str]]
+        A tuple containing two sets:
+        - The first set contains suffixes found in the reference list.
+        - The second set contains suffixes not found in the reference list.
     """
-    in_reference = []
-    not_in_reference = []
+    reference_set = set(reference_suffixes)
+    in_reference = set()
+    not_in_reference = set()
     for suffix in suffixes:
-        if suffix in reference_suffixes:
-            in_reference.append(suffix)
+        if suffix in reference_set:
+            in_reference.add(suffix)
         else:
-            not_in_reference.append(suffix)
+            not_in_reference.add(suffix)
     return in_reference, not_in_reference
 
 
-def filter_bids_dir_suffixes(suffixes: pd.Series, imaging_vocab: dict) -> list:
+def filter_bids_dir_suffixes(
+    suffixes: pd.Series, imaging_vocab_suffixes: Iterable[str]
+) -> set:
     """
-    Filter BIDS directory suffixes to those supported by Neurobagel,
+    Filter BIDS directory suffixes to the unique subset supported by Neurobagel,
     logging warnings for unrecognized or unsupported suffixes.
     """
-    suffixes_unique = suffixes.unique().tolist()
     bids_recognized_suffixes, bids_unrecognized_suffixes = partition_suffixes(
-        suffixes=suffixes_unique,
+        suffixes=suffixes.unique().tolist(),
         reference_suffixes=get_all_bids_suffixes(),
     )
     if bids_unrecognized_suffixes:
         logger.warning(
-            f"Files with suffixes not recognized by BIDS were found: {bids_unrecognized_suffixes}. "
+            f"Files with suffixes not recognized by BIDS were found: {list(bids_unrecognized_suffixes)}. "
             "These will be ignored. "
             "Please refer to the BIDS specification https://bids-specification.readthedocs.io/en/stable/ for file naming conventions."
         )
@@ -130,13 +132,13 @@ def filter_bids_dir_suffixes(suffixes: pd.Series, imaging_vocab: dict) -> list:
     neurobagel_supported_suffixes, neurobagel_unsupported_suffixes = (
         partition_suffixes(
             suffixes=bids_raw_data_suffixes,
-            reference_suffixes=imaging_vocab.keys(),
+            reference_suffixes=imaging_vocab_suffixes,
         )
     )
     if neurobagel_unsupported_suffixes:
         logger.warning(
-            f"Data files with valid BIDS suffixes that are not supported by Neurobagel were found: {neurobagel_unsupported_suffixes}. "
-            f"These will be ignored. Supported BIDS suffixes: {list(imaging_vocab.keys())}."
+            f"Data files with valid BIDS suffixes that are not supported by Neurobagel were found: {list(neurobagel_unsupported_suffixes)}. "
+            f"These will be ignored. Supported BIDS suffixes: {list(imaging_vocab_suffixes)}."
         )
 
     return neurobagel_supported_suffixes

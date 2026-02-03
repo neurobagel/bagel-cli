@@ -80,7 +80,9 @@ def test_unsupported_suffixes_filtered_out_with_informative_warnings(
     Test that when a BIDS directory contains BIDS-unrecognized or Neurobagel-unsupported file suffixes,
     bids2tsv filters them out of the output table with separate informative warnings.
     """
-    #
+    # We use a temporarily modified version of the bids-examples 'synthetic' dataset which includes:
+    # - 'beh' files (from original synthetic dataset)
+    # - a file with a BIDS-unrecognized suffix 'FAKE'
     result = runner.invoke(
         bagel,
         [
@@ -96,6 +98,7 @@ def test_unsupported_suffixes_filtered_out_with_informative_warnings(
 
     assert result.exit_code == 0
     assert len(messages) == 2
+    # TODO: Update assertions if/once Neurobagel supports 'beh' files
     assert any(
         "suffixes not recognized by BIDS" in msg for msg in messages
     ), "Unrecognized suffixes warning not found"

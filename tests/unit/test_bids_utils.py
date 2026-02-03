@@ -424,51 +424,135 @@ def test_get_bids_suffix_to_std_term_mapping():
     assert bids_term_mapping["T1w"] == f"{expected_prefix}:T1Weighted"
 
 
-def test_find_unrecognized_bids_file_suffixes():
-    """Test that file suffixes that are not recognized by BIDS are correctly identified."""
-    suffixes_from_bids_dir = pd.Series(
-        ["T1w", "bold", "bold", "bolld", "sessions", "scans", "custom1"]
-    )
-    unrecognized_suffixes = bids_utils.find_unrecognized_bids_file_suffixes(
-        suffixes_from_bids_dir
-    )
+def test_partition_suffixes():
+    """
+    Test that suffixes are correctly partitioned into unique sets of those found in and not found in a reference list.
+    """
+    suffixes = [
+        "T1w",
+        "T1w",
+        "bold",
+        "bold",
+        "unknown1",
+        "unknown1",
+        "unknown2",
+    ]
+    reference_suffixes = ["T1w", "T2w", "bold", "dwi"]
 
-    assert unrecognized_suffixes == ["bolld", "custom1"]
-
-
-def test_find_unsupported_bids_suffixes():
-    """Test that valid BIDS raw data file suffixes which are unsupported by Neurobagel are correctly identified."""
-    suffixes_from_bids_dir = pd.Series(
-        ["T1w", "bold", "2PE", "phase1", "notbids1", "notbids2"]
+    found_in_reference, not_found_in_reference = bids_utils.partition_suffixes(
+        suffixes, reference_suffixes
     )
+    assert found_in_reference == {"T1w", "bold"}
+    assert not_found_in_reference == {"unknown1", "unknown2"}
+
+
+@pytest.mark.parametrize(
+    "bids_dir_suffixes, expected_warning",
+    [
+        (
+            ["T1w", "bold", "bold", "notbids1", "notbids2"],
+            ("suffixes not recognized by BIDS", "notbids1", "notbids2"),
+        ),
+        (
+            ["T1w", "bold", "2PE", "phase1"],
+            (
+                "valid BIDS suffixes that are not supported by Neurobagel",
+                "2PE",
+                "phase1",
+            ),
+        ),
+    ],
+)
+def test_single_warning_for_only_unrecognized_or_unsupported_file_suffixes(
+    bids_dir_suffixes, expected_warning, caplog, propagate_warnings
+):
+    """
+    Test that when only unrecognized or only unsupported file suffixes are present,
+    they are filtered out and a single informative warning is logged.
+    """
+    bids_dir_suffixes = pd.Series(bids_dir_suffixes)
     # Mock minimal set of Neurobagel supported suffixes
     neurobagel_supported_suffixes = {"T1w", "T2w", "bold", "dwi"}
-    unsupported_bids_suffixes = bids_utils.find_unsupported_bids_suffixes(
-        suffixes=suffixes_from_bids_dir,
-        supported_suffixes=neurobagel_supported_suffixes,
+    filtered_suffixes = bids_utils.filter_bids_dir_suffixes(
+        suffixes=bids_dir_suffixes,
+        imaging_vocab_suffixes=neurobagel_supported_suffixes,
     )
 
-    assert unsupported_bids_suffixes == ["2PE", "phase1"]
+    warnings = [
+        record.message
+        for record in caplog.records
+        if record.levelname == "WARNING"
+    ]
+
+    assert len(warnings) == 1
+    assert all(substr in warnings[0] for substr in expected_warning)
+    assert filtered_suffixes == {"T1w", "bold"}
 
 
-def test_find_all_neurobagel_unsupported_suffixes():
-    """Test that all suffixes which are unsupported by Neurobagel are correctly identified."""
-    suffixes_from_bids_dir = pd.Series(
+def test_multi_warning_for_mixed_unrecognized_and_unsupported_file_suffixes(
+    caplog, propagate_warnings
+):
+    """
+    Test that when both unrecognized and unsupported file suffixes are present,
+    they are filtered out and separate informative warnings are logged.
+    """
+    bids_dir_suffixes = pd.Series(
         ["T1w", "bold", "2PE", "phase1", "notbids1", "notbids2"]
     )
-    # Mock minimal set of Neurobagel supported suffixes
-    neurobagel_supported_suffixes = {"T1w", "T2w", "bold", "dwi"}
-    unsupported_bids_suffixes, any_supported = (
-        bids_utils.find_all_neurobagel_unsupported_suffixes(
-            suffixes=suffixes_from_bids_dir,
-            supported_suffixes=neurobagel_supported_suffixes,
-        )
-    )
-
-    assert unsupported_bids_suffixes == [
-        "2PE",
-        "phase1",
+    expected_unrecognized_suffixes_warning = (
+        "suffixes not recognized by BIDS",
         "notbids1",
         "notbids2",
+    )
+    expected_unsupported_suffixes_warning = (
+        "valid BIDS suffixes that are not supported by Neurobagel",
+        "2PE",
+        "phase1",
+    )
+
+    # Mock minimal set of Neurobagel supported suffixes
+    neurobagel_supported_suffixes = {"T1w", "T2w", "bold", "dwi"}
+    filtered_suffixes = bids_utils.filter_bids_dir_suffixes(
+        suffixes=bids_dir_suffixes,
+        imaging_vocab_suffixes=neurobagel_supported_suffixes,
+    )
+
+    warnings = [
+        record.message
+        for record in caplog.records
+        if record.levelname == "WARNING"
     ]
-    assert any_supported is True
+
+    assert len(warnings) == 2
+    assert any(
+        all(
+            substr in warning
+            for substr in expected_unrecognized_suffixes_warning
+        )
+        for warning in warnings
+    ), "Unrecognized suffixes warning not found"
+    assert any(
+        all(
+            substr in warning
+            for substr in expected_unsupported_suffixes_warning
+        )
+        for warning in warnings
+    ), "Unsupported suffixes warning not found"
+    assert filtered_suffixes == {"T1w", "bold"}
+
+
+def test_no_warning_for_non_data_file_suffixes(caplog, propagate_warnings):
+    """
+    Test that no warnings are logged when all file suffixes are recognized by BIDS
+    and all data file suffixes are supported by Neurobagel.
+    """
+    bids_dir_suffixes = pd.Series(["T1w", "bold", "sessions", "scans"])
+    # Mock minimal set of Neurobagel supported suffixes
+    neurobagel_supported_suffixes = {"T1w", "T2w", "bold", "dwi"}
+    filtered_suffixes = bids_utils.filter_bids_dir_suffixes(
+        suffixes=bids_dir_suffixes,
+        imaging_vocab_suffixes=neurobagel_supported_suffixes,
+    )
+
+    assert len(caplog.records) == 0
+    assert filtered_suffixes == {"T1w", "bold"}

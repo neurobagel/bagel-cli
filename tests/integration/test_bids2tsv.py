@@ -80,6 +80,7 @@ def test_unsupported_suffixes_filtered_out_with_informative_warnings(
     Test that when a BIDS directory contains BIDS-unrecognized or Neurobagel-unsupported file suffixes,
     bids2tsv filters them out of the output table with separate informative warnings.
     """
+    #
     result = runner.invoke(
         bagel,
         [
@@ -96,19 +97,10 @@ def test_unsupported_suffixes_filtered_out_with_informative_warnings(
     assert result.exit_code == 0
     assert len(messages) == 2
     assert any(
-        all(
-            substring in msg
-            for substring in ["suffixes unrecognized by BIDS", "FAKE"]
-        )
-        for msg in messages
+        "suffixes not recognized by BIDS" in msg for msg in messages
     ), "Unrecognized suffixes warning not found"
-    # The bids-examples 'synthetic' dataset includes beh data files by default
-    # TODO: Update assertions if/once Neurobagel supports this suffix
     assert any(
-        all(
-            substring in msg
-            for substring in ["suffixes unsupported by Neurobagel", "beh"]
-        )
+        "valid BIDS suffixes that are not supported by Neurobagel" in msg
         for msg in messages
     ), "Unsupported suffixes warning not found"
     assert "FAKE" not in bids_tsv["suffix"].unique()
@@ -159,7 +151,10 @@ def test_exits_gracefully_if_no_supported_suffixes_in_bids_dir(
     propagate_warnings,
     caplog,
 ):
-    """Test that bids2tsv exits with an informative error if no supported suffixes are found in the BIDS directory."""
+    """
+    Test that if a BIDS directory contains BIDS-recognized suffixes but none supported by Neurobagel,
+    bids2tsv logs a warning about the unsupported suffixes and exits with an informative error.
+    """
     result = runner.invoke(
         bagel,
         [
@@ -171,9 +166,23 @@ def test_exits_gracefully_if_no_supported_suffixes_in_bids_dir(
         ],
     )
 
+    warnings = [
+        record.message
+        for record in caplog.records
+        if record.levelname == "WARNING"
+    ]
+    errors = [
+        record.message
+        for record in caplog.records
+        if record.levelname == "ERROR"
+    ]
+
     assert result.exit_code != 0
     assert not default_bids2tsv_output_path.exists()
-    assert len(caplog.records) == 1
+    assert len(warnings) == 1
+    assert len(errors) == 1
     assert (
-        "No image files with supported BIDS suffixes were found" in caplog.text
+        "valid BIDS suffixes that are not supported by Neurobagel"
+        in warnings[0]
     )
+    assert "No image files with supported BIDS suffixes" in errors[0]

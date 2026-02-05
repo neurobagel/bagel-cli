@@ -108,42 +108,6 @@ def partition_suffixes(
     return in_reference, not_in_reference
 
 
-def filter_bids_dir_suffixes(
-    suffixes: pd.Series, imaging_vocab_suffixes: Iterable[str]
-) -> set:
-    """
-    Filter BIDS directory suffixes to the unique subset supported by Neurobagel,
-    logging warnings for unrecognized or unsupported suffixes.
-    """
-    bids_recognized_suffixes, bids_unrecognized_suffixes = partition_suffixes(
-        suffixes=suffixes.unique().tolist(),
-        reference_suffixes=get_all_bids_suffixes(),
-    )
-    if bids_unrecognized_suffixes:
-        logger.warning(
-            f"Files with suffixes not recognized by BIDS were found: {list(bids_unrecognized_suffixes)}. "
-            "These will be ignored. "
-            "Please refer to the BIDS specification https://bids-specification.readthedocs.io/en/stable/ for file naming conventions."
-        )
-    bids_raw_data_suffixes, _ = partition_suffixes(
-        suffixes=bids_recognized_suffixes,
-        reference_suffixes=get_bids_raw_data_suffixes(),
-    )
-    neurobagel_supported_suffixes, neurobagel_unsupported_suffixes = (
-        partition_suffixes(
-            suffixes=bids_raw_data_suffixes,
-            reference_suffixes=imaging_vocab_suffixes,
-        )
-    )
-    if neurobagel_unsupported_suffixes:
-        logger.warning(
-            f"Data files with valid BIDS suffixes that are not supported by Neurobagel were found: {list(neurobagel_unsupported_suffixes)}. "
-            f"These will be ignored. Supported BIDS suffixes: {list(imaging_vocab_suffixes)}."
-        )
-
-    return neurobagel_supported_suffixes
-
-
 def check_absolute_path(dir_path: Path | None) -> Path | None:
     """
     Raise an error if the input path does not look like an absolute path.

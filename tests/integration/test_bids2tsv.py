@@ -1,3 +1,5 @@
+import shutil
+
 import pandas as pd
 import pytest
 
@@ -25,6 +27,24 @@ def bids_synthetic_with_fake_suffix_file(bids_synthetic):
     yield bids_synthetic
 
     fake_suffix_file.unlink()
+
+
+@pytest.fixture()
+def bids_synthetic_without_beh_data(bids_synthetic, tmp_path):
+    """
+    Yield a temporary bids-examples 'synthetic' dataset with all 'beh', 'physio', and 'stim' files removed.
+    """
+    tmp_synthetic = tmp_path / "synthetic"
+    shutil.copytree(bids_synthetic, tmp_synthetic)
+
+    for beh_dir in tmp_synthetic.rglob("sub-*/ses-*/beh"):
+        shutil.rmtree(beh_dir)
+
+    for file in tmp_synthetic.rglob("sub-*/ses-*/func/*"):
+        if any(suffix in file.name for suffix in ["physio", "stim"]):
+            file.unlink()
+
+    yield tmp_synthetic
 
 
 @pytest.mark.parametrize(
@@ -69,7 +89,7 @@ def test_valid_bids_dataset_converted_successfully(
     assert set(bids_tsv["suffix"].unique()) == expected_suffixes
 
 
-def test_unsupported_suffixes_filtered_out_with_informative_warnings(
+def test_unrecognized_and_unsupported_suffixes_filtered_out_with_informative_warnings(
     runner,
     bids_synthetic_with_fake_suffix_file,
     default_bids2tsv_output_path,
@@ -80,6 +100,19 @@ def test_unsupported_suffixes_filtered_out_with_informative_warnings(
     Test that when a BIDS directory contains BIDS-unrecognized or Neurobagel-unsupported file suffixes,
     bids2tsv filters them out of the output table with separate informative warnings.
     """
+    expected_filtered_suffixes = {"T1w", "bold"}
+    expected_unrecognized_suffixes_warning = (
+        "suffixes not recognized by BIDS were found",
+        "FAKE",
+    )
+    # TODO: Update if/once Neurobagel supports 'beh' files
+    expected_unsupported_suffixes_warning = (
+        "valid BIDS suffixes that are not supported by Neurobagel",
+        "beh",
+        "physio",
+        "stim",
+    )
+
     # We use a temporarily modified version of the bids-examples 'synthetic' dataset which includes:
     # - 'beh' files (from original synthetic dataset)
     # - a file with a BIDS-unrecognized suffix 'FAKE'
@@ -93,21 +126,28 @@ def test_unsupported_suffixes_filtered_out_with_informative_warnings(
             default_bids2tsv_output_path,
         ],
     )
-    messages = [record.message for record in caplog.records]
+
+    warnings = [record.message for record in caplog.records]
+
     bids_tsv = pd.read_csv(default_bids2tsv_output_path, sep="\t")
 
     assert result.exit_code == 0
-    assert len(messages) == 2
-    # TODO: Update assertions if/once Neurobagel supports 'beh' files
+    assert len(warnings) == 2
     assert any(
-        "suffixes not recognized by BIDS" in msg for msg in messages
+        all(
+            substr in warning
+            for substr in expected_unrecognized_suffixes_warning
+        )
+        for warning in warnings
     ), "Unrecognized suffixes warning not found"
     assert any(
-        "valid BIDS suffixes that are not supported by Neurobagel" in msg
-        for msg in messages
+        all(
+            substr in warning
+            for substr in expected_unsupported_suffixes_warning
+        )
+        for warning in warnings
     ), "Unsupported suffixes warning not found"
-    assert "FAKE" not in bids_tsv["suffix"].unique()
-    assert "beh" not in bids_tsv["suffix"].unique()
+    assert set(bids_tsv["suffix"].unique()) == expected_filtered_suffixes
 
 
 def test_tsv_from_bids_dir_with_unsupported_suffixes_passes_bids_cmd(
@@ -145,6 +185,39 @@ def test_tsv_from_bids_dir_with_unsupported_suffixes_passes_bids_cmd(
     )
 
     assert result.exit_code == 0
+
+
+def test_non_data_file_suffixes_not_warned_about_but_filtered_out(
+    runner,
+    bids_synthetic_without_beh_data,
+    default_bids2tsv_output_path,
+    propagate_warnings,
+    caplog,
+):
+    """
+    Test that when all file suffixes are recognized by BIDS and all data file suffixes are supported by Neurobagel,
+    any non-data files are filtered out of the output TSV without warnings.
+    """
+    # We use a temporarily modified version of the bids-examples 'synthetic' dataset:
+    # - does not include any data file suffixes that are not supported by Neurobagel
+    # - still includes (non-data) _scans.tsv and _sessions.tsv files for subjects
+    result = runner.invoke(
+        bagel,
+        [
+            "bids2tsv",
+            "--bids-dir",
+            bids_synthetic_without_beh_data,
+            "--output",
+            default_bids2tsv_output_path,
+        ],
+    )
+
+    bids_tsv = pd.read_csv(default_bids2tsv_output_path, sep="\t")
+
+    assert result.exit_code == 0
+    assert len(caplog.records) == 0
+    assert "scans" not in bids_tsv["suffix"].unique()
+    assert "sessions" not in bids_tsv["suffix"].unique()
 
 
 def test_exits_gracefully_if_no_supported_suffixes_in_bids_dir(

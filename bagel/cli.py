@@ -176,11 +176,34 @@ def bids2tsv(
 
     bids_term_mapping = bids_utils.get_bids_suffix_to_std_term_mapping()
 
-    filtered_suffixes = bids_utils.filter_bids_dir_suffixes(
-        suffixes=dataset_df["suffix"],
-        imaging_vocab_suffixes=bids_term_mapping.keys(),
+    bids_recognized_suffixes, bids_unrecognized_suffixes = (
+        bids_utils.partition_suffixes(
+            suffixes=dataset_df["suffix"].unique().tolist(),
+            reference_suffixes=bids_utils.get_all_bids_suffixes(),
+        )
     )
-    if not filtered_suffixes:
+    if bids_unrecognized_suffixes:
+        logger.warning(
+            f"Files with suffixes not recognized by BIDS were found: {list(bids_unrecognized_suffixes)}. "
+            "These will be ignored. "
+            "Please refer to the BIDS specification https://bids-specification.readthedocs.io/en/stable/ for file naming conventions."
+        )
+    bids_raw_data_suffixes, _ = bids_utils.partition_suffixes(
+        suffixes=bids_recognized_suffixes,
+        reference_suffixes=bids_utils.get_bids_raw_data_suffixes(),
+    )
+    neurobagel_supported_suffixes, neurobagel_unsupported_suffixes = (
+        bids_utils.partition_suffixes(
+            suffixes=bids_raw_data_suffixes,
+            reference_suffixes=bids_term_mapping.keys(),
+        )
+    )
+    if neurobagel_unsupported_suffixes:
+        logger.warning(
+            f"Data files with valid BIDS suffixes that are not supported by Neurobagel were found: {list(neurobagel_unsupported_suffixes)}. "
+            f"These will be ignored. Supported BIDS suffixes: {list(bids_term_mapping.keys())}."
+        )
+    if not neurobagel_supported_suffixes:
         log_error(
             logger,
             f"No image files with supported BIDS suffixes were found in {bids_dir}. "
@@ -190,7 +213,7 @@ def bids2tsv(
         )
 
     dataset_df = dataset_df[
-        dataset_df["suffix"].isin(filtered_suffixes)
+        dataset_df["suffix"].isin(neurobagel_supported_suffixes)
     ].copy()
 
     dataset_df["path"] = dataset_df.apply(

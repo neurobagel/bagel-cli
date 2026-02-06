@@ -33,7 +33,7 @@ def bids_synthetic_with_fake_suffix_file(bids_synthetic):
 def bids_synthetic_without_unsupported_suffixes(bids_synthetic, tmp_path):
     """
     Yield a temporary bids-examples 'synthetic' dataset with all 'beh', 'physio', and 'stim' files removed
-    (suffixes that are not supported by Neurobagel).
+    (i.e., all suffixes not currently supported by Neurobagel).
 
     TODO: Update when/if we add support for 'beh' files.
     """

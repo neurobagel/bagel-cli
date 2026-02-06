@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Any
 
 from pydantic import (
     BaseModel,
@@ -59,7 +59,7 @@ class DatasetDescription(BaseModel):
         ),
     ]
     repository_url: Annotated[
-        HttpUrl,
+        HttpUrl | None,
         Field(
             default=None,
             description="URL to a repository where the dataset can be downloaded or retrieved from (e.g., DataLad, Zenodo, GitHub).",
@@ -67,7 +67,7 @@ class DatasetDescription(BaseModel):
         ),
     ]
     access_instructions: Annotated[
-        str,
+        str | None,
         Field(
             default=None,
             description="Description of how to access the data.",
@@ -83,7 +83,7 @@ class DatasetDescription(BaseModel):
         ),
     ]
     access_email: Annotated[
-        EmailStr,
+        EmailStr | None,
         Field(
             default=None,
             description="Primary email for access requests.",
@@ -91,7 +91,7 @@ class DatasetDescription(BaseModel):
         ),
     ]
     access_link: Annotated[
-        HttpUrl,
+        HttpUrl | None,
         Field(
             default=None,
             description="Primary link for access requests or information.",
@@ -133,4 +133,14 @@ class DatasetDescription(BaseModel):
         """Convert a list containing only empty or whitespace strings to an empty list."""
         if all(item.strip() == "" for item in value):
             return []
+        return value
+
+    @field_validator(
+        "repository_url", "access_link", "access_email", mode="before"
+    )
+    @classmethod
+    def empty_string_to_default_none(cls, value: Any) -> Any:
+        """Convert an empty string to None before type validation for optional fields with special types."""
+        if value == "":
+            return None
         return value

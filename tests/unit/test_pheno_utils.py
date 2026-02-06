@@ -1082,28 +1082,31 @@ def test_whitespace_optional_dataset_desc_fields_treated_as_unset():
         "Authors": [""],
         "ReferencesAndLinks": ["    "],
         "Keywords": ["\n\n"],
-        "RepositoryURL": "https://datasets.datalad.org/mydataset",
+        "RepositoryURL": "",
         "AccessInstructions": "",
         "AccessType": "restricted",
-        "AccessEmail": "first.author@gmail.com",
-        "AccessLink": "https://datasets.datalad.org/access",
+        "AccessEmail": "",
+        "AccessLink": "",
+    }
+    expected_incomplete_fields = {
+        "Authors",
+        "ReferencesAndLinks",
+        "Keywords",
+        "RepositoryURL",
+        "AccessInstructions",
+        "AccessEmail",
+        "AccessLink",
     }
     expected_validated_fields = {
         "Name": "Test Dataset",
         "Authors": [],
         "ReferencesAndLinks": [],
         "Keywords": [],
-        "RepositoryURL": "https://datasets.datalad.org/mydataset",
+        "RepositoryURL": None,
         "AccessInstructions": None,
         "AccessType": "restricted",
-        "AccessEmail": "first.author@gmail.com",
-        "AccessLink": "https://datasets.datalad.org/access",
-    }
-    expected_incomplete_fields = {
-        "Authors",
-        "ReferencesAndLinks",
-        "Keywords",
-        "AccessInstructions",
+        "AccessEmail": None,
+        "AccessLink": None,
     }
 
     validated_dataset_desc, incomplete_optional_fields = (
@@ -1152,7 +1155,10 @@ def test_valid_complete_dataset_description_passes_validation(
             "Authors": [],
             "ReferencesAndLinks": [],
             "Keywords": [],
+            "RepositoryURL": "",
             "AccessInstructions": "",
+            "AccessEmail": "",
+            "AccessLink": "",
         },
         {
             "Name": "Test Dataset",
@@ -1166,6 +1172,7 @@ def test_incomplete_dataset_description_raises_warning(
 ):
     """Test that incomplete optional fields in a dataset description raise an informative warning without erroring out."""
     pheno_utils.validate_dataset_description(incomplete_dataset_desc)
+
     assert len(caplog.records) == 1
     assert caplog.records[0].levelname == "WARNING"
     assert (
@@ -1175,26 +1182,36 @@ def test_incomplete_dataset_description_raises_warning(
 
 
 @pytest.mark.parametrize(
-    "invalid_dataset_desc",
+    "invalid_dataset_desc, invalid_fields",
     [
-        {"Name": ""},
-        {"Name": None},
-        {
-            "Name": "Test Dataset",
-            "Authors": None,  # must be omitted or a list
-            "AccessInstructions": None,  # must be omitted or a string
-            "AccessType": "unknown",  # unrecognized access type
-            "AccessEmail": "",  # not a valid email
-        },
+        ({"Name": ""}, ["Name"]),
+        ({"Name": None}, ["Name"]),
+        (
+            {
+                "Name": "Test Dataset",
+                "Authors": None,  # must be omitted or a list
+                "AccessType": "unknown",  # unrecognized access type
+                "AccessEmail": "invalid email",  # not a valid email
+                "AccessLink": "invalid URL",  # not a valid URL
+            },
+            ["Authors", "AccessType", "AccessEmail", "AccessLink"],
+        ),
     ],
 )
 def test_invalid_dataset_description_raises_error(
-    invalid_dataset_desc, caplog, propagate_errors
+    invalid_dataset_desc, invalid_fields, caplog, propagate_errors
 ):
     """Test that an invalid dataset description raises a validation error."""
     with pytest.raises(typer.Exit):
         pheno_utils.validate_dataset_description(invalid_dataset_desc)
 
-    assert len(caplog.records) == 1
-    assert caplog.records[0].levelname == "ERROR"
-    assert "dataset description is invalid" in caplog.records[0].message
+    errors = [
+        record.message
+        for record in caplog.records
+        if record.levelname == "ERROR"
+    ]
+
+    assert len(errors) == 1
+    assert "dataset description is invalid" in errors[0]
+    for invalid_field in invalid_fields:
+        assert invalid_field in errors[0]

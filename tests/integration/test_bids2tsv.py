@@ -30,9 +30,12 @@ def bids_synthetic_with_fake_suffix_file(bids_synthetic):
 
 
 @pytest.fixture()
-def bids_synthetic_without_beh_data(bids_synthetic, tmp_path):
+def bids_synthetic_without_unsupported_suffixes(bids_synthetic, tmp_path):
     """
-    Yield a temporary bids-examples 'synthetic' dataset with all 'beh', 'physio', and 'stim' files removed.
+    Yield a temporary bids-examples 'synthetic' dataset with all 'beh', 'physio', and 'stim' files removed
+    (suffixes that are not supported by Neurobagel).
+
+    TODO: Update when/if we add support for 'beh' files.
     """
     tmp_synthetic = tmp_path / "synthetic"
     shutil.copytree(bids_synthetic, tmp_synthetic)
@@ -189,7 +192,7 @@ def test_tsv_from_bids_dir_with_unsupported_suffixes_passes_bids_cmd(
 
 def test_non_data_file_suffixes_not_warned_about_but_filtered_out(
     runner,
-    bids_synthetic_without_beh_data,
+    bids_synthetic_without_unsupported_suffixes,
     default_bids2tsv_output_path,
     propagate_warnings,
     caplog,
@@ -206,7 +209,7 @@ def test_non_data_file_suffixes_not_warned_about_but_filtered_out(
         [
             "bids2tsv",
             "--bids-dir",
-            bids_synthetic_without_beh_data,
+            bids_synthetic_without_unsupported_suffixes,
             "--output",
             default_bids2tsv_output_path,
         ],

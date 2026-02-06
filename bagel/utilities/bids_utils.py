@@ -145,24 +145,17 @@ def validate_bids_table(bids_table: pd.DataFrame):
         )
 
 
-def map_term_to_namespace(term: str, namespace: dict) -> str | bool:
-    """Returns the mapped namespace term if it exists, or False otherwise."""
-    return namespace.get(term, False)
-
-
 def create_acquisitions(
     session_df: pd.DataFrame,
-    bids_term_mapping: dict,
+    bids_suffix_term_map: dict,
 ) -> list:
     """Parses BIDS image file suffixes for a specified session to create a list of Acquisition objects."""
     image_list = []
 
     for bids_file_suffix in session_df["suffix"]:
-        mapped_term = map_term_to_namespace(
-            term=bids_file_suffix,
-            namespace=bids_term_mapping,
-        )
-        if mapped_term:
+        if (
+            mapped_term := bids_suffix_term_map.get(bids_file_suffix)
+        ) is not None:
             image_list.append(
                 models.Acquisition(
                     hasContrastType=models.Image(identifier=mapped_term)

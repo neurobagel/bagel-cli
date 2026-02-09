@@ -1,6 +1,8 @@
+from functools import lru_cache
 from pathlib import Path
 from typing import Iterable
 
+import bidsschematools.schema as bst
 import pandas as pd
 import pandera.pandas as pa
 from typer import BadParameter
@@ -17,11 +19,13 @@ IMAGING_MODALITIES_PATH = (
     / "communities/configs/Neurobagel/imaging_modalities.json"
 )
 
+bids_schema = bst.load_schema()
+
 
 def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
     """
     Fetch the standardized imaging modality vocabulary from the neurobagel/communities repository
-    and return a mapping of BIDS suffixes to prefixed standardized terms.
+    and return a mapping of supported BIDS suffixes to prefixed standardized terms.
 
     Returns:
         dict[str, str]: A mapping where keys are BIDS suffixes (e.g., "T1w", "bold")
@@ -53,18 +57,55 @@ def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
     return bids_suffix_to_std_term_mapping
 
 
-def find_unsupported_image_suffixes(
-    data: pd.DataFrame, supported_suffixes: Iterable[str]
-) -> list[str]:
-    """Return any image file suffixes unsupported by Neurobagel that are found in the provided BIDS table."""
-    return (
-        data.loc[
-            ~data["suffix"].isin(supported_suffixes),
-            "suffix",
-        ]
-        .unique()
-        .tolist()
-    )
+@lru_cache()
+def get_all_bids_suffixes() -> set[str]:
+    """Return all file suffixes that are recognized by BIDS."""
+    return {
+        bids_suffix["value"]
+        for bids_suffix in bids_schema.objects.suffixes.values()
+    }
+
+
+@lru_cache()
+def get_bids_raw_data_suffixes() -> set[str]:
+    """Return all BIDS recognized suffixes corresponding to raw data files."""
+    bids_raw_data_suffixes = set()
+    for file_datatype in bids_schema.rules.files.raw.values():
+        for file_subtype in file_datatype.values():
+            bids_raw_data_suffixes.update(file_subtype["suffixes"])
+
+    return bids_raw_data_suffixes
+
+
+def partition_suffixes(
+    suffixes: Iterable[str], reference_suffixes: Iterable[str]
+) -> tuple[set[str], set[str]]:
+    """
+    Partition suffixes into those found in a reference collection and those not found.
+
+    Parameters
+    ----------
+    suffixes : Iterable[str]
+        File suffixes to partition.
+    reference_suffixes : Iterable[str]
+        Suffixes to compare the input list against.
+
+    Returns
+    -------
+    tuple[set[str], set[str]]
+        A tuple containing two sets:
+        - The first set contains suffixes found in the reference list.
+        - The second set contains suffixes not found in the reference list.
+    """
+    reference_set = set(reference_suffixes)
+    in_reference = set()
+    not_in_reference = set()
+    for suffix in suffixes:
+        if suffix in reference_set:
+            in_reference.add(suffix)
+        else:
+            not_in_reference.add(suffix)
+    return in_reference, not_in_reference
 
 
 def check_absolute_path(dir_path: Path | None) -> Path | None:
@@ -104,24 +145,17 @@ def validate_bids_table(bids_table: pd.DataFrame):
         )
 
 
-def map_term_to_namespace(term: str, namespace: dict) -> str | bool:
-    """Returns the mapped namespace term if it exists, or False otherwise."""
-    return namespace.get(term, False)
-
-
 def create_acquisitions(
     session_df: pd.DataFrame,
-    bids_term_mapping: dict,
+    bids_suffix_term_map: dict,
 ) -> list:
     """Parses BIDS image file suffixes for a specified session to create a list of Acquisition objects."""
     image_list = []
 
     for bids_file_suffix in session_df["suffix"]:
-        mapped_term = map_term_to_namespace(
-            term=bids_file_suffix,
-            namespace=bids_term_mapping,
-        )
-        if mapped_term:
+        if (
+            mapped_term := bids_suffix_term_map.get(bids_file_suffix)
+        ) is not None:
             image_list.append(
                 models.Acquisition(
                     hasContrastType=models.Image(identifier=mapped_term)

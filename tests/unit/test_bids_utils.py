@@ -97,7 +97,7 @@ def test_create_acquisitions(session_df_rows, expected_acquisitions):
     Test that given a table with rows corresponding to a session's BIDS files,
     create_acquisitions() creates a correct list of acquisitions matching the image file suffixes.
     """
-    mock_bids_term_mapping = {
+    mock_bids_suffix_term_map = {
         "T1w": "nidm:T1Weighted",
         "T2w": "nidm:T2Weighted",
         "bold": "nidm:FlowWeighted",
@@ -108,7 +108,7 @@ def test_create_acquisitions(session_df_rows, expected_acquisitions):
     )
     image_list = bids_utils.create_acquisitions(
         session_df=session_df,
-        bids_term_mapping=mock_bids_term_mapping,
+        bids_suffix_term_map=mock_bids_suffix_term_map,
     )
 
     extracted_image_counts = Counter(
@@ -415,10 +415,32 @@ def test_header_only_bids_table_produces_error(caplog, propagate_errors):
 def test_get_bids_suffix_to_std_term_mapping():
     """Test that get_bids_suffix_to_std_term_mapping() returns a mapping with expected suffix to standardized term pairings."""
     expected_prefix = "nidm"
-    bids_term_mapping = bids_utils.get_bids_suffix_to_std_term_mapping()
+    nb_bids_suffix_term_map = bids_utils.get_bids_suffix_to_std_term_mapping()
 
     assert all(
         str(value).startswith(f"{expected_prefix}:")
-        for value in bids_term_mapping.values()
+        for value in nb_bids_suffix_term_map.values()
     )
-    assert bids_term_mapping["T1w"] == f"{expected_prefix}:T1Weighted"
+    assert nb_bids_suffix_term_map["T1w"] == f"{expected_prefix}:T1Weighted"
+
+
+def test_partition_suffixes():
+    """
+    Test that suffixes are correctly partitioned into unique sets of those found in and not found in a reference list.
+    """
+    suffixes = [
+        "T1w",
+        "T1w",
+        "bold",
+        "bold",
+        "unknown1",
+        "unknown1",
+        "unknown2",
+    ]
+    reference_suffixes = ["T1w", "T2w", "bold", "dwi"]
+
+    found_in_reference, not_found_in_reference = bids_utils.partition_suffixes(
+        suffixes, reference_suffixes
+    )
+    assert found_in_reference == {"T1w", "bold"}
+    assert not_found_in_reference == {"unknown1", "unknown2"}

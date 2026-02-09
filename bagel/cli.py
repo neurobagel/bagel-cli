@@ -188,6 +188,7 @@ def bids2tsv(
             "These will be ignored. "
             "Please refer to the BIDS specification https://bids-specification.readthedocs.io/en/stable/ for file naming conventions."
         )
+    # We don't care about and don't warn for valid BIDS file suffixes that don't correspond to raw data files
     bids_raw_data_suffixes, _ = bids_utils.partition_suffixes(
         suffixes=bids_recognized_suffixes,
         reference_suffixes=bids_utils.get_bids_raw_data_suffixes(),

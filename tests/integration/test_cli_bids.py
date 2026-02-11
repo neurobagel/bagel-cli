@@ -210,12 +210,14 @@ def test_some_unsupported_suffixes_in_bids_table_raises_warning(
     temp_output_jsonld_path,
     load_test_json,
     disable_rich_markup,
-    propagate_warnings,
+    propagate_info,
     caplog,
 ):
     """
-    Check that a BIDS table containing some unsupported suffixes raises a warning
-    and the unsupported suffixes are dropped in the graph data output.
+    Check that when the input BIDS table contains some unsupported suffixes:
+    - an informative warning is logged
+    - info is logged about the suffixes that WILL be added to the graph data
+    - the unsupported suffixes are dropped in the graph data output
     """
     row_data = [
         [
@@ -264,10 +266,23 @@ def test_some_unsupported_suffixes_in_bids_table_raises_warning(
 
     output = load_test_json(temp_output_jsonld_path)
     contrasts = utils.get_values_by_key(output, "hasContrastType")
+    warnings = [
+        record.msg
+        for record in caplog.records
+        if record.levelname == "WARNING"
+    ]
 
-    assert len(caplog.records) == 1
-    assert "suffixes unsupported by Neurobagel" in caplog.text
-    assert "unsupported1" in caplog.text
+    assert len(warnings) == 1
+    for warning_substr in [
+        "suffixes unsupported by Neurobagel",
+        "unsupported1",
+    ]:
+        assert warning_substr in warnings[0]
+    for info_substr in [
+        "the following Neurobagel-supported imaging modalities will be added",
+        "bold",
+    ]:
+        assert info_substr in caplog.text
     assert all(
         contrast["identifier"] == "nidm:FlowWeighted" for contrast in contrasts
     )

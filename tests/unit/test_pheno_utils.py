@@ -1085,8 +1085,8 @@ def test_whitespace_optional_dataset_desc_fields_treated_as_unset():
         "RepositoryURL": "",
         "AccessInstructions": "",
         "AccessType": "restricted",
-        "AccessEmail": "",
-        "AccessLink": "",
+        "AccessEmail": "    ",
+        "AccessLink": " ",
     }
     expected_incomplete_fields = {
         "Authors",
@@ -1192,7 +1192,7 @@ def test_incomplete_dataset_description_raises_warning(
                 "Authors": None,  # must be omitted or a list
                 "AccessType": "unknown",  # unrecognized access type
                 "AccessEmail": "invalid email",  # not a valid email
-                "AccessLink": "invalid URL",  # not a valid URL
+                "AccessLink": 12345,  # not a valid URL
             },
             ["Authors", "AccessType", "AccessEmail", "AccessLink"],
         ),

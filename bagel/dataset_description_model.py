@@ -2,13 +2,22 @@ from enum import Enum
 from typing import Annotated, Any
 
 from pydantic import (
+    AfterValidator,
     BaseModel,
+    BeforeValidator,
     ConfigDict,
     EmailStr,
     Field,
     HttpUrl,
     field_validator,
 )
+
+
+def whitespace_string_to_default_none(value: Any) -> Any:
+    """Convert an empty string or a string that contains only whitespace to None."""
+    if isinstance(value, str) and value.strip() == "":
+        return None
+    return value
 
 
 class AccessType(str, Enum):
@@ -65,6 +74,7 @@ class DatasetDescription(BaseModel):
             description="URL to a repository where the dataset can be downloaded or retrieved from (e.g., DataLad, Zenodo, GitHub).",
             alias="RepositoryURL",
         ),
+        BeforeValidator(whitespace_string_to_default_none),
     ]
     access_instructions: Annotated[
         str | None,
@@ -73,6 +83,7 @@ class DatasetDescription(BaseModel):
             description="Description of how to access the data.",
             alias="AccessInstructions",
         ),
+        AfterValidator(whitespace_string_to_default_none),
     ]
     access_type: Annotated[
         AccessType,
@@ -89,6 +100,7 @@ class DatasetDescription(BaseModel):
             description="Primary email for access requests.",
             alias="AccessEmail",
         ),
+        BeforeValidator(whitespace_string_to_default_none),
     ]
     access_link: Annotated[
         HttpUrl | None,
@@ -97,6 +109,7 @@ class DatasetDescription(BaseModel):
             description="Primary link for access requests or information.",
             alias="AccessLink",
         ),
+        BeforeValidator(whitespace_string_to_default_none),
     ]
 
     # NOTE: url_preserve_empty_path (>=2.12) is needed to prevent HttpUrl from auto-appending trailing slashes to URLs
@@ -115,16 +128,6 @@ class DatasetDescription(BaseModel):
             raise ValueError("'Name' field cannot be an empty string.")
         return value
 
-    @field_validator("access_instructions")
-    @classmethod
-    def whitespace_string_to_default_none(
-        cls, value: str | None
-    ) -> str | None:
-        """Convert an empty string or a string that contains only whitespace to None."""
-        if value is not None and value.strip() == "":
-            return None
-        return value
-
     @field_validator("authors", "references_and_links", "keywords")
     @classmethod
     def whitespace_list_to_default_empty_list(
@@ -133,14 +136,4 @@ class DatasetDescription(BaseModel):
         """Convert a list containing only empty or whitespace strings to an empty list."""
         if all(item.strip() == "" for item in value):
             return []
-        return value
-
-    @field_validator(
-        "repository_url", "access_link", "access_email", mode="before"
-    )
-    @classmethod
-    def empty_string_to_default_none(cls, value: Any) -> Any:
-        """Convert an empty string to None before type validation for optional fields with special types."""
-        if value == "":
-            return None
         return value

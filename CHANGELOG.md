@@ -1,3 +1,15 @@
+# v0.11.2 (Fri Feb 13 2026)
+
+#### 🚀 Enhancements
+
+- [ENH] More informative warnings for invalid vs unsupported BIDS suffixes in `bids2tsv` command [#628](https://github.com/neurobagel/bagel-cli/pull/628) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.11.1 (Mon Jan 12 2026)
 
 #### 🐛 Bug Fixes

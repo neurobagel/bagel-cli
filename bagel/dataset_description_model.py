@@ -1,14 +1,23 @@
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Any
 
 from pydantic import (
+    AfterValidator,
     BaseModel,
+    BeforeValidator,
     ConfigDict,
     EmailStr,
     Field,
     HttpUrl,
     field_validator,
 )
+
+
+def whitespace_string_to_default_none(value: Any) -> Any:
+    """Convert an empty string or a string that contains only whitespace to None."""
+    if isinstance(value, str) and value.strip() == "":
+        return None
+    return value
 
 
 class AccessType(str, Enum):
@@ -59,20 +68,22 @@ class DatasetDescription(BaseModel):
         ),
     ]
     repository_url: Annotated[
-        HttpUrl,
+        HttpUrl | None,
         Field(
             default=None,
             description="URL to a repository where the dataset can be downloaded or retrieved from (e.g., DataLad, Zenodo, GitHub).",
             alias="RepositoryURL",
         ),
+        BeforeValidator(whitespace_string_to_default_none),
     ]
     access_instructions: Annotated[
-        str,
+        str | None,
         Field(
             default=None,
             description="Description of how to access the data.",
             alias="AccessInstructions",
         ),
+        AfterValidator(whitespace_string_to_default_none),
     ]
     access_type: Annotated[
         AccessType,
@@ -83,20 +94,22 @@ class DatasetDescription(BaseModel):
         ),
     ]
     access_email: Annotated[
-        EmailStr,
+        EmailStr | None,
         Field(
             default=None,
             description="Primary email for access requests.",
             alias="AccessEmail",
         ),
+        BeforeValidator(whitespace_string_to_default_none),
     ]
     access_link: Annotated[
-        HttpUrl,
+        HttpUrl | None,
         Field(
             default=None,
             description="Primary link for access requests or information.",
             alias="AccessLink",
         ),
+        BeforeValidator(whitespace_string_to_default_none),
     ]
 
     # NOTE: url_preserve_empty_path (>=2.12) is needed to prevent HttpUrl from auto-appending trailing slashes to URLs
@@ -113,16 +126,6 @@ class DatasetDescription(BaseModel):
         """
         if value.strip() == "":
             raise ValueError("'Name' field cannot be an empty string.")
-        return value
-
-    @field_validator("access_instructions")
-    @classmethod
-    def whitespace_string_to_default_none(
-        cls, value: str | None
-    ) -> str | None:
-        """Convert an empty string or a string that contains only whitespace to None."""
-        if value is not None and value.strip() == "":
-            return None
         return value
 
     @field_validator("authors", "references_and_links", "keywords")

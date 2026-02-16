@@ -1,0 +1,389 @@
+{
+  "@context": {
+    "nb": "http://neurobagel.org/vocab/",
+    "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
+    "nidm": "http://purl.org/nidash/nidm#",
+    "ncit": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#",
+    "np": "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/",
+    "Acquisition": "nb:Acquisition",
+    "identifier": "@id",
+    "hasContrastType": {
+      "@id": "nb:hasContrastType"
+    },
+    "schemaKey": "@type",
+    "Assessment": "nb:Assessment",
+    "Bagel": "nb:Bagel",
+    "BaseModel": "nb:BaseModel",
+    "CompletedPipeline": "nb:CompletedPipeline",
+    "hasPipelineVersion": {
+      "@id": "nb:hasPipelineVersion"
+    },
+    "hasPipelineName": {
+      "@id": "nb:hasPipelineName"
+    },
+    "ControlledTerm": "nb:ControlledTerm",
+    "Dataset": "nb:Dataset",
+    "hasLabel": {
+      "@id": "nb:hasLabel"
+    },
+    "hasAuthors": {
+      "@id": "nb:hasAuthors"
+    },
+    "hasReferencesAndLinks": {
+      "@id": "nb:hasReferencesAndLinks"
+    },
+    "hasKeywords": {
+      "@id": "nb:hasKeywords"
+    },
+    "hasRepositoryURL": {
+      "@id": "nb:hasRepositoryURL"
+    },
+    "hasAccessInstructions": {
+      "@id": "nb:hasAccessInstructions"
+    },
+    "hasAccessType": {
+      "@id": "nb:hasAccessType"
+    },
+    "hasAccessEmail": {
+      "@id": "nb:hasAccessEmail"
+    },
+    "hasAccessLink": {
+      "@id": "nb:hasAccessLink"
+    },
+    "hasPortalURI": {
+      "@id": "nb:hasPortalURI"
+    },
+    "hasSamples": {
+      "@id": "nb:hasSamples"
+    },
+    "Diagnosis": "nb:Diagnosis",
+    "Image": "nb:Image",
+    "ImagingSession": "nb:ImagingSession",
+    "hasFilePath": {
+      "@id": "nb:hasFilePath"
+    },
+    "hasAcquisition": {
+      "@id": "nb:hasAcquisition"
+    },
+    "hasCompletedPipeline": {
+      "@id": "nb:hasCompletedPipeline"
+    },
+    "PhenotypicSession": "nb:PhenotypicSession",
+    "hasAge": {
+      "@id": "nb:hasAge"
+    },
+    "hasSex": {
+      "@id": "nb:hasSex"
+    },
+    "isSubjectGroup": {
+      "@id": "nb:isSubjectGroup"
+    },
+    "hasDiagnosis": {
+      "@id": "nb:hasDiagnosis"
+    },
+    "hasAssessment": {
+      "@id": "nb:hasAssessment"
+    },
+    "Pipeline": "nb:Pipeline",
+    "Session": "nb:Session",
+    "Sex": "nb:Sex",
+    "Subject": "nb:Subject",
+    "hasSession": {
+      "@id": "nb:hasSession"
+    },
+    "SubjectGroup": "nb:SubjectGroup"
+  },
+  "identifier": "nb:81b969c4-64a1-45dd-be65-aee0cb30c056",
+  "hasLabel": "BIDS synthetic",
+  "hasAuthors": [
+    "Markiewicz, C. J.",
+    "Gau, Rémi"
+  ],
+  "hasReferencesAndLinks": [
+    "https://bids-website.readthedocs.io/en/latest/datasets/examples.html#mri"
+  ],
+  "hasKeywords": [
+    "synthetic",
+    "nback"
+  ],
+  "hasRepositoryURL": "https://github.com/bids-standard/bids-examples.git",
+  "hasAccessInstructions": "Clone the git repository. The dataset is located in the 'synthetic' subdirectory.",
+  "hasAccessType": "public",
+  "hasAccessEmail": "bids.curator@gmail.com",
+  "hasAccessLink": "https://github.com/bids-standard/bids-examples.git",
+  "hasSamples": [
+    {
+      "identifier": "nb:bce258d2-045e-40d0-9df1-2b5e713102aa",
+      "hasLabel": "01",
+      "hasSession": [
+        {
+          "identifier": "nb:0e7f571c-de35-4c91-9a48-faead9470703",
+          "hasLabel": "01",
+          "hasAge": 34.1,
+          "hasSex": {
+            "identifier": "snomed:248152002",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "ncit:C94342",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:6fa192e1-b0cb-4349-a5dc-50f0253125ae",
+          "hasLabel": "02",
+          "hasAge": 35.3,
+          "hasSex": {
+            "identifier": "snomed:248152002",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "ncit:C94342",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "nb:d789cb8a-4f8f-4a5c-b390-89de9fd86fb5",
+      "hasLabel": "02",
+      "hasSession": [
+        {
+          "identifier": "nb:694ae330-e651-4b13-949c-5d4396ee33cd",
+          "hasLabel": "01",
+          "hasSex": {
+            "identifier": "snomed:248153007",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "snomed:406506008",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:b0c8119a-e76a-4e10-a453-af0465180395",
+          "hasLabel": "02",
+          "hasAge": 39.0,
+          "hasSex": {
+            "identifier": "snomed:248153007",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "snomed:406506008",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "nb:80109949-f21b-43f7-a73d-7165cd82b994",
+      "hasLabel": "03",
+      "hasSession": [
+        {
+          "identifier": "nb:9771c95c-6235-416c-abd8-7c959ff1c982",
+          "hasLabel": "01",
+          "hasAge": 22.1,
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:9be7c0ce-e194-483f-b1b8-a2da2ceea567",
+          "hasLabel": "02",
+          "hasAge": 23.2,
+          "hasDiagnosis": [
+            {
+              "identifier": "snomed:406506008",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "nb:bd781029-cf2a-4561-acf0-7ca289e1ac71",
+      "hasLabel": "04",
+      "hasSession": [
+        {
+          "identifier": "nb:63fe3ab1-a66a-44f3-98d9-1a9e98f3e96a",
+          "hasLabel": "01",
+          "hasAge": 21.1,
+          "hasSex": {
+            "identifier": "snomed:248152002",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "ncit:C94342",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:3bc7ac46-33ba-4050-a7aa-21932ef7f1d9",
+          "hasLabel": "02",
+          "hasAge": 22.3,
+          "hasSex": {
+            "identifier": "snomed:248152002",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "ncit:C94342",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "nb:d2d653b9-c63a-4e93-84a3-423cde407da5",
+      "hasLabel": "05",
+      "hasSession": [
+        {
+          "identifier": "nb:1f9c91d7-6a21-4803-9841-6cde737a01ad",
+          "hasLabel": "01",
+          "hasAge": 42.5,
+          "hasSex": {
+            "identifier": "snomed:248153007",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "snomed:406506008",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:d8ef02e4-916d-4b7b-acce-08778292f7f7",
+          "hasLabel": "02",
+          "hasAge": 43.2,
+          "hasSex": {
+            "identifier": "snomed:248153007",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "snomed:406506008",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        }
+      ],
+      "schemaKey": "Subject"
+    }
+  ],
+  "schemaKey": "Dataset"
+}

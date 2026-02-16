@@ -138,6 +138,14 @@ def bids2tsv(
         dir_okay=False,
         resolve_path=True,
     ),
+    strip_id_prefixes: bool = typer.Option(
+        False,
+        "--strip-id-prefixes",
+        help="Strip 'sub-' and 'ses-' prefixes from subject and session IDs in the output BIDS table. "
+        "Useful if your phenotypic data table does not contain a BIDS subject ID column, "
+        "and you want to ensure that your BIDS subject IDs match those in your phenotypic data "
+        "(as required for the 'bagel bids' command).",
+    ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
     help_: bool = help_option(),
@@ -222,10 +230,11 @@ def bids2tsv(
     )
     dataset_df = dataset_df[output_columns]
 
-    dataset_df["sub"] = dataset_df["sub"].apply(lambda id: f"sub-{id}")
-    dataset_df["ses"] = dataset_df["ses"].apply(
-        lambda id: f"ses-{id}" if pd.notna(id) else id
-    )
+    if not strip_id_prefixes:
+        dataset_df["sub"] = dataset_df["sub"].apply(lambda id: f"sub-{id}")
+        dataset_df["ses"] = dataset_df["ses"].apply(
+            lambda id: f"ses-{id}" if pd.notna(id) else id
+        )
 
     dataset_df.to_csv(output, sep="\t", index=False)
     logger.info(f"Saved output to:  {output}")
@@ -609,7 +618,7 @@ def bids(
             session_label = (
                 CUSTOM_SESSION_LABEL
                 if session_id.strip() == ""
-                else session_id
+                else session_id.strip()  # Remove any leading/trailing whitespace from session ID
             )
             session_path = bids_utils.get_session_path(
                 dataset_root=dataset_source_dir,

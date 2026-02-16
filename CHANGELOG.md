@@ -1,3 +1,15 @@
+# v0.11.3 (Mon Feb 16 2026)
+
+#### 🚀 Enhancements
+
+- [ENH] Warn instead of error when email and URL fields have empty strings [#646](https://github.com/neurobagel/bagel-cli/pull/646) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.11.2 (Fri Feb 13 2026)
 
 #### 🚀 Enhancements

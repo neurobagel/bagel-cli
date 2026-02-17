@@ -618,7 +618,7 @@ def bids(
             session_label = (
                 CUSTOM_SESSION_LABEL
                 if session_id.strip() == ""
-                else session_id.strip()  # Remove any leading/trailing whitespace from session ID
+                else session_id
             )
             session_path = bids_utils.get_session_path(
                 dataset_root=dataset_source_dir,

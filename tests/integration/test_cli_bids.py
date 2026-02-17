@@ -408,3 +408,70 @@ def test_bids_table_missing_required_columns_exits_gracefully(
     assert len(caplog.records) == 1
     assert "Invalid BIDS table" in caplog.text
     assert "suffix" in caplog.text
+
+
+def test_no_error_when_bids_table_id_columns_have_no_prefixes(
+    runner, tmp_path, test_data, temp_output_jsonld_path, load_test_json
+):
+    """
+    Test that when BIDS table 'sub' and 'ses' columns do not include "sub-" and "ses-" prefixes, respectively,
+    the bids command runs successfully and IDs in the output JSONLD also do not include these prefixes.
+    """
+    bids_table = pd.DataFrame(
+        [
+            [
+                "01",
+                "01",
+                "T1w",
+                "/data/synthetic/sub-01/ses-01/anat/sub-01_ses-01_T1w.nii.gz",
+            ],
+            [
+                "01",
+                "01",
+                "bold",
+                "/data/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-nback_run-01_bold.nii.gz",
+            ],
+            [
+                "02",
+                "01",
+                "T1w",
+                "/data/synthetic/sub-02/ses-01/anat/sub-02_ses-01_T1w.nii.gz",
+            ],
+            [
+                "02",
+                "01",
+                "bold",
+                "/data/synthetic/sub-02/ses-01/func/sub-02_ses-01_task-nback_run-01_bold.nii.gz",
+            ],
+        ],
+        columns=["sub", "ses", "suffix", "path"],
+    )
+    bids_table.to_csv(tmp_path / "bids.tsv", sep="\t", index=False)
+
+    result = runner.invoke(
+        bagel,
+        [
+            "bids",
+            "--jsonld-path",
+            test_data / "example_synthetic_no_id_prefixes.jsonld",
+            "--bids-table",
+            tmp_path / "bids.tsv",
+            "--output",
+            temp_output_jsonld_path,
+        ],
+        catch_exceptions=False,
+    )
+
+    output = load_test_json(temp_output_jsonld_path)
+
+    output_sub_ids = set()
+    output_ses_ids = set()
+    for sub in output["hasSamples"]:
+        output_sub_ids.add(sub["hasLabel"])
+        for ses in sub["hasSession"]:
+            output_ses_ids.add(ses["hasLabel"])
+
+    assert result.exit_code == 0
+    assert temp_output_jsonld_path.exists()
+    assert all(not item.startswith("sub-") for item in output_sub_ids)
+    assert all(not item.startswith("ses-") for item in output_ses_ids)

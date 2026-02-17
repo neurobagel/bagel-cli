@@ -224,33 +224,33 @@ def test_valid_bids_tables_pass_validation(row_data):
     [
         (
             [
-                # all rows missing 'ses-' prefix
+                # all rows missing subject IDs
                 [
-                    "sub-01",
+                    "",
                     "01",
                     "T1w",
                     "/data/synthetic/sub-01/ses-01/anat/sub-01_ses-01_T1w.nii",
                 ],
                 [
-                    "sub-01",
+                    "",
                     "01",
                     "bold",
                     "/data/synthetic/sub-01/ses-01/func/sub-01_ses-01_task-rest_bold.nii",
                 ],
                 [
-                    "sub-02",
+                    "  ",
                     "01",
                     "T1w",
                     "/data/synthetic/sub-02/ses-01/anat/sub-02_ses-01_T1w.nii",
                 ],
                 [
-                    "sub-02",
+                    "  ",
                     "01",
                     "bold",
                     "/data/synthetic/sub-02/ses-01/func/sub-02_ses-01_task-rest_bold.nii",
                 ],
             ],
-            "ses",
+            "sub",
             [0, 1, 2, 3],
         ),
         (

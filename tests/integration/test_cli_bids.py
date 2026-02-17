@@ -470,8 +470,17 @@ def test_no_error_when_bids_table_id_columns_have_no_prefixes(
         output_sub_ids.add(sub["hasLabel"])
         for ses in sub["hasSession"]:
             output_ses_ids.add(ses["hasLabel"])
+    sub01 = next(
+        sub for sub in output["hasSamples"] if sub["hasLabel"] == "01"
+    )
+    sub01_imaging_ses01 = next(
+        ses
+        for ses in sub01["hasSession"]
+        if ses["hasLabel"] == "01" and ses["schemaKey"] == "ImagingSession"
+    )
 
     assert result.exit_code == 0
     assert temp_output_jsonld_path.exists()
     assert all(not item.startswith("sub-") for item in output_sub_ids)
     assert all(not item.startswith("ses-") for item in output_ses_ids)
+    assert sub01_imaging_ses01["hasFilePath"] == "01/01"

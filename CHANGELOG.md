@@ -1,3 +1,15 @@
+# v0.11.4 (Wed Feb 18 2026)
+
+#### 🚀 Enhancements
+
+- [ENH] Relax sub prefix requirement [#651](https://github.com/neurobagel/bagel-cli/pull/651) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.11.3 (Mon Feb 16 2026)
 
 #### 🚀 Enhancements

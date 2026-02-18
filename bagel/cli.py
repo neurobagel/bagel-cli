@@ -230,6 +230,7 @@ def bids2tsv(
     )
     dataset_df = dataset_df[output_columns]
 
+    # bids2table returns the IDs without the 'sub-' and 'ses-' prefixes by default
     if not strip_id_prefixes:
         dataset_df["sub"] = dataset_df["sub"].apply(lambda id: f"sub-{id}")
         dataset_df["ses"] = dataset_df["ses"].apply(

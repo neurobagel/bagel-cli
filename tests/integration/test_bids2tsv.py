@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from bagel.cli import bagel
+from bagel.utilities import file_utils
 
 
 @pytest.fixture(scope="function")
@@ -265,3 +266,30 @@ def test_exits_gracefully_if_no_supported_suffixes_in_bids_dir(
         in warnings[0]
     )
     assert "No image files with supported BIDS suffixes" in errors[0]
+
+
+def test_strip_id_prefixes_option(
+    runner, bids_synthetic, default_bids2tsv_output_path
+):
+    """
+    Test that when --strip-id-prefixes is set, sub and ses columns in the output TSV do not contain BIDS prefixes.
+    """
+    result = runner.invoke(
+        bagel,
+        [
+            "bids2tsv",
+            "--bids-dir",
+            bids_synthetic,
+            "--output",
+            default_bids2tsv_output_path,
+            "--strip-id-prefixes",
+        ],
+    )
+
+    # NOTE: We use our custom TSV loading function here to ensure that ID column values are kept as strings
+    bids_tsv = file_utils.load_tabular(default_bids2tsv_output_path)
+
+    assert result.exit_code == 0
+    assert bids_tsv[["sub", "ses"]].notna().all(axis=None)
+    assert not bids_tsv["sub"].str.startswith("sub-").all()
+    assert not bids_tsv["ses"].str.startswith("ses-").all()

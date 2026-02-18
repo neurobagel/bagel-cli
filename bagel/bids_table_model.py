@@ -23,20 +23,11 @@ model = pa.DataFrameSchema(
     {
         "sub": pa.Column(
             str,
-            checks=[
-                pa.Check.is_not_whitespace(error=NO_WHITESPACE_ERR),
-                pa.Check.str_startswith("sub-"),
-            ],
+            pa.Check.is_not_whitespace(error=NO_WHITESPACE_ERR),
             nullable=False,
         ),
         "ses": pa.Column(
             str,
-            pa.Check(
-                lambda ses: (ses.str.strip() == "")
-                | ses.str.startswith("ses-"),
-                ignore_na=True,
-                error='Session ID must be left empty or start with the "ses-" prefix.',
-            ),
             nullable=True,
         ),
         "suffix": pa.Column(

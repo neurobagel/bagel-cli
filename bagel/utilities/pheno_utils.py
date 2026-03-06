@@ -480,25 +480,23 @@ def construct_dictionary_schema_for_validation() -> dict:
 
 
 def validate_data_dict(data_dict: dict, config: str | None) -> None:
-    try:
-        jsonschema.validate(
-            data_dict, construct_dictionary_schema_for_validation()
+    validator = jsonschema.Draft7Validator(
+        construct_dictionary_schema_for_validation()
+    )
+    errors = list(validator.iter_errors(data_dict))
+
+    if errors:
+        err_messages = "\n".join(
+            f"- {e.path[-1] if e.path else 'Entire document'}: {e.message}"
+            for e in errors
         )
-    except jsonschema.ValidationError as e:
-        # TODO: When *every* item in an input JSON is not schema valid,
-        # jsonschema.validate will raise a ValidationError for only *one* item among them.
-        # Weirdly, the item that is chosen can vary, possibly due to jsonschema internally processing/validating
-        # items in an inconsistent order.
-        # You can reproduce this by running `bagel pheno` on the example_invalid input pair.
-        # This isn't necessarily a problem as the error will not be wrong, but if we care about
-        # returning ALL invalid items, we may want to use something like a Draft7Validator instance instead.
-        # NOTE: If the validation error occurs at the root level (i.e., the entire JSON object fails),
-        # e.path may be empty. We have a backup descriptor "Entire document" for the offending item in this case.
+        # Escape Rich markup brackets in the messages
+        err_messages = err_messages.replace("[", "\\[").replace("]", "\\]")
+
         log_error(
             logger,
-            "The data dictionary is not a valid Neurobagel data dictionary. "
-            f"Entry that failed validation: {e.path[-1] if e.path else 'Entire document'}\n"
-            f"Details: {e.message}\n"
+            f"The data dictionary is not a valid Neurobagel data dictionary. Found {len(errors)} error(s):\n"
+            f"{err_messages}\n"
             "[italic]TIP: Ensure each annotated column contains an 'Annotations' key.[/italic]",
         )
 

@@ -882,5 +882,5 @@ def harmonize_pheno(
     logger.info(f"Saved harmonized table to:  {output}")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     bagel()

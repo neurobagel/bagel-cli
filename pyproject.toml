@@ -33,12 +33,12 @@ dependencies = [
   "email-validator"
 ]
 
-[project.optional-dependencies]
-test = [
-  "pytest",
-  "coverage",
+[dependency-groups]
+dev = [
+    "pytest",
+    "coverage",
+    "pre-commit"
 ]
-dev = ["bagel[test]", "pre-commit"]
 
 [project.scripts]
 bagel = "bagel.cli:bagel"

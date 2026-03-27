@@ -84,10 +84,6 @@ dev = [
     { name = "pre-commit" },
     { name = "pytest" },
 ]
-test = [
-    { name = "coverage" },
-    { name = "pytest" },
-]
 
 [package.metadata]
 requires-dist = [
@@ -107,10 +103,6 @@ requires-dist = [
 dev = [
     { name = "coverage" },
     { name = "pre-commit" },
-    { name = "pytest" },
-]
-test = [
-    { name = "coverage" },
     { name = "pytest" },
 ]
 

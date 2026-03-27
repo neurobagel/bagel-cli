@@ -25,8 +25,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        # we explicitly skip the lockfile here with --frozen=false to ensure a fresh install as the user would do it        
-        uv sync --group dev --frozen=false
+        # we explicitly skip the lockfile here with --upgrade to ensure a fresh install as the user would do it
+        uv sync --group dev --upgrade
 
     - name: Test with pytest
       run: |

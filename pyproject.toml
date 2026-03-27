@@ -29,7 +29,7 @@ dependencies = [
   "isodate",
   "httpx",
   "bids2table",
-  "pandera[pandas]",
+  "pandera[pandas]<0.30", # temporary pin until #671 is addressed
   "email-validator"
 ]
 

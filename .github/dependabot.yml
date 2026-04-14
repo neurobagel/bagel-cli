@@ -63,7 +63,8 @@ updates:
   # See https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/configuring-dependabot-security-updates#overriding-the-default-behavior-with-a-configuration-file
   # Note: this configuration only has an effect in repositories that have
   # a requirements.txt file / use python / pip.
-  - package-ecosystem: "pip"
+  # Temporary setting this to uv until we update the synced workflow
+  - package-ecosystem: "uv"
     directory: "/"
     schedule:
       interval: "weekly"

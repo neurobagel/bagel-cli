@@ -29,16 +29,16 @@ dependencies = [
   "isodate",
   "httpx",
   "bids2table",
-  "pandera[pandas]",
+  "pandera[pandas]<0.30", # temporary pin until #671 is addressed
   "email-validator"
 ]
 
-[project.optional-dependencies]
-test = [
-  "pytest",
-  "coverage",
+[dependency-groups]
+dev = [
+    "pytest",
+    "coverage",
+    "pre-commit"
 ]
-dev = ["bagel[test]", "pre-commit"]
 
 [project.scripts]
 bagel = "bagel.cli:bagel"

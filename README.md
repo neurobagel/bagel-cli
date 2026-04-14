@@ -41,7 +41,7 @@ We [use uv](https://docs.astral.sh/uv/getting-started/installation/) to set up l
     cd bagel-cli
     ```
 
-2. Install the CLI and all development dependencies in editable mode with uv:
+2. Install the CLI and all development dependencies in editable mode with `uv`:
 
     ```bash
     uv sync --group dev
@@ -56,7 +56,7 @@ We [use uv](https://docs.astral.sh/uv/getting-started/installation/) to set up l
 Confirm that everything works well by running the tests: 
 `uv run pytest .`
 
-To launch the CLI during local development, use:
+To run the CLI during local development, use:
 
 ```bash
 uv run bagel
@@ -75,7 +75,9 @@ pre-commit will now run automatically whenever you run `git commit`.
 
 ### Updating dependencies
 If new runtime or development dependencies are needed, [add them with `uv add`](https://docs.astral.sh/uv/concepts/projects/dependencies/#adding-dependencies). 
-To change the version constraints of dependencies, edit `pyproject.toml`.
+To change the version constraints of existing dependencies,
+edit `pyproject.toml` and then update the lockfile using
+[`uv lock`](https://docs.astral.sh/uv/concepts/projects/sync/#creating-the-lockfile).
 
 ## Regenerating the Neurobagel vocabulary file
 Terms in the Neurobagel namespace (`nb` prefix) and their class relationships are serialized to a file 

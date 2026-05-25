@@ -21,6 +21,7 @@ from bagel.cli import bagel
         "example19",
         "example20",
         "example21",
+        "example24",
     ],
 )
 def test_pheno_valid_inputs_run_successfully(

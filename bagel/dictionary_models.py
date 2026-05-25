@@ -113,6 +113,21 @@ class CategoricalNeurobagel(Neurobagel):
     ]
 
 
+class ValueRange(BaseModel):
+    """A range of values for a continuous column, expressed as strings to preserve original formatting."""
+
+    minimum: Annotated[
+        str,
+        Field(..., alias="Minimum"),
+    ]
+    maximum: Annotated[
+        str,
+        Field(..., alias="Maximum"),
+    ]
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class ContinuousNeurobagel(Neurobagel):
     """A Neurobagel annotation for a continuous column"""
 
@@ -129,6 +144,14 @@ class ContinuousNeurobagel(Neurobagel):
     ]
     variableType: Annotated[
         Literal["Continuous"], Field(..., alias="VariableType")
+    ]
+    valueRange: Annotated[
+        ValueRange | None,
+        Field(
+            None,
+            description="An optional range of valid values for this continuous column.",
+            alias="ValueRange",
+        ),
     ]
 
 

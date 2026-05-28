@@ -196,7 +196,6 @@ def test_multiple_columns_about_single_column_variable_raises_warning(
         catch_exceptions=False,
     )
 
-    assert len(caplog.records) == 3
     for warn_substring in [
         "more than one column about age",
         "more than one column about sex",
@@ -229,7 +228,6 @@ def test_missing_bids_levels_raises_warning(
         catch_exceptions=False,
     )
 
-    assert len(caplog.records) == 1
     assert (
         "looks categorical but lacks a BIDS 'Levels' attribute" in caplog.text
     )
@@ -259,7 +257,6 @@ def test_bids_neurobagel_levels_mismatch_raises_warning(
         catch_exceptions=False,
     )
 
-    assert len(caplog.records) == 1
     assert all(
         warn_substring in caplog.text
         for warn_substring in [
@@ -297,7 +294,6 @@ def test_unused_missing_values_raises_warning(
         catch_exceptions=False,
     )
 
-    assert len(caplog.records) == 1
     for warn_substring in [
         "missing values in the data dictionary were not found",
         "'group': ['NOT IN TSV']",

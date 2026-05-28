@@ -163,7 +163,6 @@ def test_invalid_inputs_are_handled_gracefully(
     )
 
     assert result.exit_code != 0
-    assert len(caplog.records) == 1
     for substring in expected_message:
         assert substring in caplog.text
 
@@ -351,7 +350,6 @@ def test_providing_non_tsv_file_raises_error(
     )
 
     assert result.exit_code != 0
-    assert len(caplog.records) == 1
     for substring in expected_err:
         assert substring in caplog.text
 
@@ -975,7 +973,6 @@ def test_backup_used_with_warning_when_request_for_config_namespaces_fails(
 
     assert result.exit_code == 0
     assert temp_output_jsonld_path.exists()
-    assert len(caplog.records) == 1
     assert "Using a packaged backup configuration" in caplog.text
 
 

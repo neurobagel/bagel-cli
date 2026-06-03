@@ -30,7 +30,7 @@
 | iso88591 | invalid, ISO-8859-1 encoded and contains French characters in the age column | invalid, ISO-8859-1 encoded and contains French characters in the age column | fail |
 | invalid_json | - | not valid JSON, contains trailing comma after `group` key-value pair | fail |
 | 23 | Valid, contains multiple diagnosis, age, and sex columns | Valid | pass
-| 24 | Valid | Valid, contains ValueRange for age | pass
+| 24 | Valid | Valid, contains `ValueRange` for age and a dataset description containing `ParticipantCount` | pass
 
 `* this is expected to fail until we enable multiple participant_ID handling`.
 

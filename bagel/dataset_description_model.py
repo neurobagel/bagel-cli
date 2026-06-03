@@ -111,14 +111,6 @@ class DatasetDescription(BaseModel):
         ),
         BeforeValidator(whitespace_string_to_default_none),
     ]
-    participant_count: Annotated[
-        int | None,
-        Field(
-            default=None,
-            description="The number of participants in the dataset",
-            alias="ParticipantCount",
-        ),
-    ]
 
     # NOTE: url_preserve_empty_path (>=2.12) is needed to prevent HttpUrl from auto-appending trailing slashes to URLs
     # when the path portion of the URL is empty

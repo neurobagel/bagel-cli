@@ -1021,7 +1021,6 @@ def test_get_transformed_row_for_table():
                 "RepositoryURL",
                 "AccessInstructions",
                 "AccessType",
-                "ParticipantCount",
                 "AccessEmail",
                 "AccessLink",
             },
@@ -1040,7 +1039,6 @@ def test_get_transformed_row_for_table():
                 "RepositoryURL",
                 "AccessInstructions",
                 "AccessType",
-                "ParticipantCount",
                 "AccessEmail",
                 "AccessLink",
             },
@@ -1057,7 +1055,7 @@ def test_get_transformed_row_for_table():
                 "AccessEmail": "first.author@gmail.com",
                 "AccessLink": "https://datasets.datalad.org/access",
             },
-            {"Authors", "ReferencesAndLinks", "ParticipantCount", "Keywords"},
+            {"Authors", "ReferencesAndLinks", "Keywords"},
         ),
     ],
 )
@@ -1096,7 +1094,6 @@ def test_whitespace_optional_dataset_desc_fields_treated_as_unset():
         "Keywords",
         "RepositoryURL",
         "AccessInstructions",
-        "ParticipantCount",
         "AccessEmail",
         "AccessLink",
     }
@@ -1107,7 +1104,6 @@ def test_whitespace_optional_dataset_desc_fields_treated_as_unset():
         "Keywords": [],
         "RepositoryURL": None,
         "AccessInstructions": None,
-        "ParticipantCount": None,
         "AccessType": "restricted",
         "AccessEmail": None,
         "AccessLink": None,
@@ -1143,7 +1139,6 @@ def test_valid_complete_dataset_description_passes_validation(
         "RepositoryURL": "https://datasets.datalad.org/mydataset",
         "AccessInstructions": "Submit a data access request at https://mydataset.org/access",
         "AccessType": "restricted",
-        "ParticipantCount": 10,
         "AccessEmail": "first.author@gmail.com",
         "AccessLink": "https://mydataset.org/access",
     }

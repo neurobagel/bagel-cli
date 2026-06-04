@@ -73,12 +73,12 @@
       },
       "VariableType": "Continuous",
       "ValueRange": {
-        "Minimum": "P20Y6M",
-        "Maximum": "P26Y4M"
+        "Min": 20.5,
+        "Max": 26.4
       },
       "Format": {
-        "TermURL": "nb:FromISO8601",
-        "Label": "A period of time defined according to the ISO8601 standard"
+        "TermURL": "nb:FromFloat",
+        "Label": "A period of time defined according as a Float"
       }
     }
   }

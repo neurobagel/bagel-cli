@@ -116,15 +116,15 @@ class CategoricalNeurobagel(Neurobagel):
 class ValueRange(BaseModel):
     """A range of values for a continuous column, expressed as strings to preserve original formatting."""
 
-    # min and max age values are string because we store the raw age value here
-    # and this is not guaranteed to be a number (e.g. "P20Y6M")
-    minimum: Annotated[
-        str,
-        Field(..., alias="Minimum"),
+    # TODO: Need to rename these keys to minimum and maximum
+    # TODO: need to expect string here once we update the keys to Minimum and Maximum because we expect raw age values
+    min: Annotated[
+        float,
+        Field(..., alias="Min"),
     ]
-    maximum: Annotated[
-        str,
-        Field(..., alias="Maximum"),
+    max: Annotated[
+        float,
+        Field(..., alias="Max"),
     ]
 
     model_config = ConfigDict(populate_by_name=True)

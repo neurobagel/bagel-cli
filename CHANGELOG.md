@@ -1,3 +1,17 @@
+# v0.11.5 (Fri Jun 05 2026)
+
+#### 🏠 Internal
+
+- [ENH] Support catalog-mode data dictionaries [#694](https://github.com/neurobagel/bagel-cli/pull/694) ([@surchs](https://github.com/surchs) [@alyssadai](https://github.com/alyssadai))
+- [MNT] Implement uv for dependency management [#669](https://github.com/neurobagel/bagel-cli/pull/669) ([@surchs](https://github.com/surchs))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
 # v0.11.4 (Wed Feb 18 2026)
 
 #### 🚀 Enhancements

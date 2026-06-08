@@ -225,30 +225,43 @@ def get_age_format(column: str, data_dict: dict) -> str:
 
 def transform_age(value: str, value_format: str) -> float:
     try:
+        calculated_age = None
+
         if value_format in [
             AGE_FORMATS["float"],
             AGE_FORMATS["int"],
         ]:
-            return float(value)
-        if value_format == AGE_FORMATS["euro"]:
-            return float(value.replace(",", "."))
-        if value_format == AGE_FORMATS["bounded"]:
-            return float(value.strip("+"))
-        if value_format == AGE_FORMATS["iso8601"]:
+            calculated_age = float(value)
+        elif value_format == AGE_FORMATS["euro"]:
+            calculated_age = float(value.replace(",", "."))
+        elif value_format == AGE_FORMATS["bounded"]:
+            calculated_age = float(value.strip("+"))
+        elif value_format == AGE_FORMATS["iso8601"]:
             if not value.startswith("P"):
                 pvalue = "P" + value
             else:
                 pvalue = value
             duration = isodate.parse_duration(pvalue)
-            return float(duration.years + duration.months / 12)
-        if value_format == AGE_FORMATS["range"]:
+            calculated_age = float(duration.years + duration.months / 12)
+        elif value_format == AGE_FORMATS["range"]:
             a_min, a_max = value.split("-")
-            return sum(map(float, [a_min, a_max])) / 2
-        log_error(
-            logger,
-            f"The data dictionary contains an unrecognized age format: {value_format}. "
-            f"Ensure that the format TermURL is one of {list(AGE_FORMATS.values())}.",
-        )
+            calculated_age = sum(map(float, [a_min, a_max])) / 2
+        else:
+            log_error(
+                logger,
+                f"The data dictionary contains an unrecognized age format: {value_format}. "
+                f"Ensure that the format TermURL is one of {list(AGE_FORMATS.values())}.",
+            )
+
+        # Validation: Check for negative age
+        if calculated_age is not None and calculated_age < 0:
+            log_error(
+                logger,
+                f"The age value '{value}' is negative. Age values must be non-negative.",
+            )
+
+        return calculated_age
+
     except (ValueError, isodate.isoerror.ISO8601Error) as e:
         log_error(
             logger,

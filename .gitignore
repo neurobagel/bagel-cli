@@ -157,3 +157,6 @@ cython_debug/
 
 # Keep jetbrains config files out of the repo
 .idea/
+
+# Allow user to locally specify python version
+.python-version

@@ -225,34 +225,48 @@ def get_age_format(column: str, data_dict: dict) -> str:
 
 def transform_age(value: str, value_format: str) -> float:
     try:
+        transformed_age = None
+
         if value_format in [
             AGE_FORMATS["float"],
             AGE_FORMATS["int"],
         ]:
-            return float(value)
-        if value_format == AGE_FORMATS["euro"]:
-            return float(value.replace(",", "."))
-        if value_format == AGE_FORMATS["bounded"]:
-            return float(value.strip("+"))
-        if value_format == AGE_FORMATS["iso8601"]:
+            transformed_age = float(value)
+        elif value_format == AGE_FORMATS["euro"]:
+            transformed_age = float(value.replace(",", "."))
+        elif value_format == AGE_FORMATS["bounded"]:
+            transformed_age = float(value.strip("+"))
+        elif value_format == AGE_FORMATS["iso8601"]:
             if not value.startswith("P"):
                 pvalue = "P" + value
             else:
                 pvalue = value
             duration = isodate.parse_duration(pvalue)
-            return float(duration.years + duration.months / 12)
-        if value_format == AGE_FORMATS["range"]:
+            transformed_age = float(duration.years + duration.months / 12)
+        elif value_format == AGE_FORMATS["range"]:
             a_min, a_max = value.split("-")
-            return sum(map(float, [a_min, a_max])) / 2
-        log_error(
-            logger,
-            f"The data dictionary contains an unrecognized age format: {value_format}. "
-            f"Ensure that the format TermURL is one of {list(AGE_FORMATS.values())}.",
-        )
+            transformed_age = sum(map(float, [a_min, a_max])) / 2
+        else:
+            log_error(
+                logger,
+                f"The data dictionary contains an unrecognized age format: {value_format}. "
+                f"Ensure that the format TermURL is one of {list(AGE_FORMATS.values())}.",
+            )
+
+        if transformed_age < 0:
+            log_error(
+                logger,
+                f"Error applying the format {value_format} to the age value '{value}': "
+                f"the resulting age {transformed_age} is negative. Age values must be non-negative. "
+                "Please check your age column.",
+            )
+
+        return transformed_age
+
     except (ValueError, isodate.isoerror.ISO8601Error) as e:
         log_error(
             logger,
-            f"Error applying the format {value_format} to the age value: {value}. Error: {e}\n"
+            f"Error applying the format {value_format} to the age value '{value}'. Error: {e}\n"
             f"Check your data dictionary to ensure that the annotated age format matches the age values in your phenotypic table, "
             "and that any missing values in your age column have been correctly annotated. "
             "For examples of acceptable values for specific age formats, see https://neurobagel.org/data_models/dictionaries/#age.",

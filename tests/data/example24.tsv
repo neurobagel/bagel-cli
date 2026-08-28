@@ -1,0 +1,5 @@
+participant_id	session_id	group	sex	participant_age
+sub-01	ses-01	PAT	M	20.4
+sub-01	ses-02	PAT	M	21.3
+sub-02	ses-01	CTRL	F	26.5
+sub-02	ses-02	CTRL	F	28.9

@@ -880,3 +880,7 @@ def harmonize_pheno(
 
     harmonized_pheno_df.to_csv(output, sep="\t", index=False)
     logger.info(f"Saved harmonized table to:  {output}")
+
+
+if __name__ == "__main__":  # pragma: no cover
+    bagel()

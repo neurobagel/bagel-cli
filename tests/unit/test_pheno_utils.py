@@ -438,6 +438,7 @@ def test_missing_ids_in_columns(test_data, columns, expected_indices):
         ("20Y9M", 20.75, "nb:FromISO8601"),
         ("20-25", 22.5, "nb:FromRange"),
         ("20.00-25.00", 22.5, "nb:FromRange"),
+        ("0", 0.0, "nb:FromInt"),  # e.g., newborns
     ],
 )
 def test_age_gets_converted(raw_age, expected_age, value_format):
@@ -464,7 +465,7 @@ def test_incorrect_age_format(
         pheno_utils.transform_age(raw_age, incorrect_format)
 
     assert (
-        f"Error applying the format {incorrect_format} to the age value: {raw_age}"
+        f"Error applying the format {incorrect_format} to the age value '{raw_age}'"
         in caplog.text
     )
 
@@ -475,6 +476,23 @@ def test_invalid_age_format(caplog, propagate_errors):
         pheno_utils.transform_age("11,0", "nb:birthyear")
 
     assert "unrecognized age format: nb:birthyear" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "raw_age,value_format",
+    [
+        ("-5.0", "nb:FromFloat"),
+        ("-10", "nb:FromInt"),
+    ],
+)
+def test_negative_age_raises_error(
+    caplog, propagate_errors, raw_age, value_format
+):
+    """Test that negative ages trigger an informative error/exit."""
+    with pytest.raises(typer.Exit):
+        pheno_utils.transform_age(raw_age, value_format)
+
+    assert "Age values must be non-negative" in caplog.text
 
 
 @pytest.mark.parametrize(

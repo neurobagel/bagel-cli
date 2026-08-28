@@ -21,6 +21,7 @@ from bagel.cli import bagel
         "example19",
         "example20",
         "example21",
+        "example24",
     ],
 )
 def test_pheno_valid_inputs_run_successfully(
@@ -980,3 +981,31 @@ def test_backup_used_with_warning_when_request_for_config_namespaces_fails(
     assert temp_output_jsonld_path.exists()
     assert len(caplog.records) == 1
     assert "Using a packaged backup configuration" in caplog.text
+
+
+def test_catalog_pheno_input_is_parsed(
+    runner, test_data, test_data_upload_path, temp_output_jsonld_path
+):
+    """
+    Ensure that the expanded data dictionary and dataset description fields
+    are accepted by the CLI.
+    """
+
+    result = runner.invoke(
+        bagel,
+        [
+            "pheno",
+            "--pheno",
+            test_data / "example24.tsv",
+            "--dictionary",
+            test_data / "example24.json",
+            "--output",
+            temp_output_jsonld_path,
+            "--dataset-description",
+            test_data / "example24_dataset_description.json",
+        ],
+    )
+    assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
+    assert (
+        temp_output_jsonld_path
+    ).exists(), "The pheno.jsonld output was not created."

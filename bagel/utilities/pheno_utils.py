@@ -494,23 +494,37 @@ def construct_dictionary_schema_for_validation() -> dict:
 
 
 def validate_data_dict(data_dict: dict, config: str | None) -> None:
-    validator = jsonschema.Draft7Validator(
-        construct_dictionary_schema_for_validation()
-    )
-    errors = list(validator.iter_errors(data_dict))
+    """
+    Validate an input data dictionary against the jsonschema for the Neurobagel data dictionary
+    and perform basic checks for numbers of columns mapped to specific standardized variables.
+    """
 
-    if errors:
-        err_messages = "\n".join(
-            f"- {e.path[-1] if e.path else 'Entire document'}: {e.message}"
-            for e in errors
-        )
-        # Escape Rich markup brackets in the messages
-        err_messages = err_messages.replace("[", "\\[").replace("]", "\\]")
+    # Basic data dictionary schema validation
+    data_dict_schema = construct_dictionary_schema_for_validation()
+    # Resolve the correct validator based on the schema's declared $schema draft, rather than hardcoding one.
+    # Since this schema is generated from a Pydantic model, this keeps validation correct even if a
+    # future Pydantic version changes which JSON Schema draft it emits
+    validator_class = jsonschema.validators.validator_for(data_dict_schema)
+    validator = validator_class(data_dict_schema)
+
+    if errors := list(validator.iter_errors(data_dict)):
+        error_messages = ""
+        for error in errors:
+            # NOTE: If the validation error occurs at the root level (i.e., the entire JSON object fails),
+            # e.path may be empty. We have a backup descriptor "Entire document" for the offending item in this case.
+            if error.path:
+                error_messages += f"- '{error.path[-1]}': {error.message}\n"
+            else:
+                error_messages += f"- Entire document: {error.message}\n"
+
+        # Escape leading square brackets so Rich doesn't parse them as the start of markup tags
+        error_messages = error_messages.replace("[", "\\[")
 
         log_error(
             logger,
-            f"The data dictionary is not a valid Neurobagel data dictionary. Found {len(errors)} error(s):\n"
-            f"{err_messages}\n"
+            f"The data dictionary is not a valid Neurobagel data dictionary. "
+            f"{len(errors)} entries failed validation:\n"
+            f"{error_messages}"
             "[italic]TIP: Ensure each annotated column contains an 'Annotations' key.[/italic]",
         )
 

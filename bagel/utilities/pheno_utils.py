@@ -500,6 +500,7 @@ def validate_data_dict(data_dict: dict, config: str | None) -> None:
     """
 
     # Basic data dictionary schema validation
+    # TODO: Consider using the Pydantic model itself for validation instead of the JSON Schema
     data_dict_schema = construct_dictionary_schema_for_validation()
     # Resolve the correct validator based on the schema's declared $schema draft, rather than hardcoding one.
     # Since this schema is generated from a Pydantic model, this keeps validation correct even if a
@@ -513,16 +514,16 @@ def validate_data_dict(data_dict: dict, config: str | None) -> None:
             # NOTE: If the validation error occurs at the root level (i.e., the entire JSON object fails),
             # e.path may be empty. We have a backup descriptor "Entire document" for the offending item in this case.
             if error.path:
+                # error.path[-1] is a shortcut to the name of the offending column (key)
                 error_messages += f"- '{error.path[-1]}': {error.message}\n"
             else:
                 error_messages += f"- Entire document: {error.message}\n"
-
         # Escape leading square brackets so Rich doesn't parse them as the start of markup tags
         error_messages = error_messages.replace("[", "\\[")
 
         log_error(
             logger,
-            f"The data dictionary is not a valid Neurobagel data dictionary. "
+            "The data dictionary is not a valid Neurobagel data dictionary. "
             f"{len(errors)} entries failed validation:\n"
             f"{error_messages}"
             "[italic]TIP: Ensure each annotated column contains an 'Annotations' key.[/italic]",

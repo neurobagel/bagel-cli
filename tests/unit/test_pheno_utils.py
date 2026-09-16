@@ -56,7 +56,7 @@ def mock_config_namespaces_mapping():
 
 
 @pytest.mark.parametrize(
-    "partial_data_dict, invalid_column_name",
+    "partial_data_dict, invalid_column_names",
     [
         # sex column missing Levels
         (
@@ -79,7 +79,7 @@ def mock_config_namespaces_mapping():
                     },
                 },
             },
-            "sex",
+            ["sex"],
         ),
         # age column missing Format
         (
@@ -105,7 +105,7 @@ def mock_config_namespaces_mapping():
                     },
                 },
             },
-            "age",
+            ["age"],
         ),
         # age column containing both Format and Transformation (invalid)
         (
@@ -136,31 +136,57 @@ def mock_config_namespaces_mapping():
                     },
                 },
             },
-            "age",
+            ["age"],
+        ),
+        # column annotations missing TermURL
+        (
+            {
+                "participant_id": {
+                    "Description": "A participant ID",
+                    "Annotations": {
+                        "IsAbout": {
+                            "Label": "Unique participant identifier",
+                        },
+                        "VariableType": "Identifier",
+                    },
+                },
+                "sex": {
+                    "Description": "Participant sex",
+                    "Annotations": {
+                        "IsAbout": {"Label": "Participant sex"},
+                        "VariableType": "Categorical",
+                    },
+                },
+            },
+            ["participant_id", "sex"],
+        ),
+        (
+            # Root object is not a dictionary
+            [],
+            ["Entire document"],
         ),
     ],
 )
-def test_schema_invalid_column_raises_error(
+def test_schema_invalid_data_dict_raises_error(
     partial_data_dict,
-    invalid_column_name,
+    invalid_column_names,
     caplog,
     propagate_errors,
     neurobagel_test_config,
 ):
     """
-    Test that when an input data dictionary contains a schema invalid column annotation,
-    an informative error is raised which includes the name of the offending column.
+    Test that when an input data dictionary contains schema-invalid column annotations,
+    an informative error is raised which includes the name(s) of the offending column.
     """
     with pytest.raises(typer.Exit):
         pheno_utils.validate_data_dict(
             partial_data_dict, neurobagel_test_config
         )
 
-    for substring in [
-        "not a valid Neurobagel data dictionary",
-        invalid_column_name,
-    ]:
-        assert substring in caplog.text
+    assert "not a valid Neurobagel data dictionary" in caplog.text
+    assert str(len(invalid_column_names)) in caplog.text
+    for invalid_column_name in invalid_column_names:
+        assert invalid_column_name in caplog.text
 
 
 def test_get_columns_that_are_about_concept(test_data, load_test_json):

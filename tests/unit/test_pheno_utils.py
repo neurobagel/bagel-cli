@@ -160,9 +160,14 @@ def mock_config_namespaces_mapping():
             },
             ["participant_id", "sex"],
         ),
+        (
+            # Root object is not a dictionary
+            [],
+            ["Entire document"],
+        ),
     ],
 )
-def test_schema_invalid_column_raises_error(
+def test_schema_invalid_data_dict_raises_error(
     partial_data_dict,
     invalid_column_names,
     caplog,

@@ -37,7 +37,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest",
-    "coverage",
+    "pytest-cov",
     "pre-commit"
 ]
 

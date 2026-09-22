@@ -1,3 +1,30 @@
+# v0.11.6 (Wed Sep 16 2026)
+
+:tada: This release contains work from new contributors! :tada:
+
+Thanks for all your work!
+
+:heart: Pachabhatla Dhanush ([@dhanushpachabhatla](https://github.com/dhanushpachabhatla))
+
+:heart: Guttula Charan Sai ([@BitForge95](https://github.com/BitForge95))
+
+#### 🚀 Enhancements
+
+- [FIX] Report all JSON Schema validation errors at once in pheno_utils [#657](https://github.com/neurobagel/bagel-cli/pull/657) ([@dhanushpachabhatla](https://github.com/dhanushpachabhatla) [@alyssadai](https://github.com/alyssadai))
+- [ENH] Disallow negative age values [#656](https://github.com/neurobagel/bagel-cli/pull/656) ([@BitForge95](https://github.com/BitForge95) [@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [MNT] Switch to using `pytest-cov` for code coverage reports [#712](https://github.com/neurobagel/bagel-cli/pull/712) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 3
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Guttula Charan Sai ([@BitForge95](https://github.com/BitForge95))
+- Pachabhatla Dhanush ([@dhanushpachabhatla](https://github.com/dhanushpachabhatla))
+
+---
+
 # v0.11.5 (Fri Jun 05 2026)
 
 #### 🏠 Internal

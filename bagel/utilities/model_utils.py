@@ -19,7 +19,8 @@ def generate_context(config: str) -> dict:
     for klass_name, klass in inspect.getmembers(models):
         if inspect.isclass(klass) and issubclass(klass, pydantic.BaseModel):
             fields[klass_name] = f"{NB.pf}:{klass_name}"
-            for name, field in klass.model_fields.items():
+            # `issubclass` ensures `klass` is a BaseModel at runtime, but mypy cannot infer this here
+            for name, field in klass.model_fields.items():  # type: ignore[attr-defined]
                 if name == "schemaKey":
                     fields[name] = "@type"
                 elif name == "identifier":

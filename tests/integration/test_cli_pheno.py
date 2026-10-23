@@ -32,7 +32,7 @@ def test_pheno_valid_inputs_run_successfully(
     temp_output_jsonld_path,
     example,
 ):
-    """Basic smoke test for the "pheno" subcommand"""
+    """Basic smoke test for the "create" command using only phenotypic inputs."""
     if example == "example_synthetic":
         result = runner.invoke(
             bagel,
@@ -919,7 +919,7 @@ def test_pheno_command_succeeds_with_short_option_names(
     example_dataset_description,
     temp_output_jsonld_path,
 ):
-    """Test that the pheno command does not error when invoked with short option names."""
+    """Test that thecreate command does not error when invoked with short option names."""
     example = "example2"
     result = runner.invoke(
         bagel,
@@ -953,7 +953,7 @@ def test_backup_used_with_warning_when_request_for_config_namespaces_fails(
 ):
     """
     Test that when config namespaces cannot be fetched from the remote source,
-    the pheno command raises a warning and uses the backup configuration.
+    the create command raises a warning and uses the backup configuration.
     """
     monkeypatch.setattr(
         mappings, "CONFIG_NAMESPACES_FETCHING_ERR", "Network unreachable"

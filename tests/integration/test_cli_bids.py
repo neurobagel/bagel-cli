@@ -15,7 +15,7 @@ def synthetic_dataset_bids_tsv(test_data):
 def synthetic_dataset_phenotypic_inputs(
     test_data_upload_path, example_dataset_description
 ):
-    """Return paths to the example phenotypic input files corresponding to the synthetic dataset."""
+    """Return option values for the example phenotypic input files corresponding to the synthetic dataset."""
     return [
         "--pheno",
         test_data_upload_path / "example_synthetic.tsv",

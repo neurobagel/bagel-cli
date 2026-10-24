@@ -686,7 +686,8 @@ def process_derivatives(
     ):
         existing_subject = existing_subs_dict[subject]
 
-        # Note: Dictionary of existing imaging sessions can be empty if only bagel pheno was run
+        # Note: Dictionary of existing imaging sessions can be empty if
+        # only phenotypic and derivative inputs were provided
         existing_sessions_dict = model_utils.get_imaging_session_instances(
             existing_subject
         )

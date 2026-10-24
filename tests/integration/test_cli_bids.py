@@ -6,20 +6,35 @@ from tests import utils
 
 
 @pytest.fixture(scope="function")
-def synthetic_dataset_tsv_path(test_data):
+def synthetic_dataset_bids_tsv(test_data):
     """Return the path to the BIDS TSV file for the bids-examples synthetic dataset."""
     return test_data / "bids_metadata_synthetic.tsv"
 
 
+@pytest.fixture(scope="function")
+def synthetic_dataset_phenotypic_inputs(
+    test_data_upload_path, example_dataset_description
+):
+    """Return paths to the example phenotypic input files corresponding to the synthetic dataset."""
+    return [
+        "--pheno",
+        test_data_upload_path / "example_synthetic.tsv",
+        "--dictionary",
+        test_data_upload_path / "example_synthetic.json",
+        "--dataset-description",
+        example_dataset_description,
+    ]
+
+
 def test_bids_valid_inputs_run_successfully(
     runner,
-    test_data_upload_path,
-    synthetic_dataset_tsv_path,
+    synthetic_dataset_phenotypic_inputs,
+    synthetic_dataset_bids_tsv,
     temp_output_jsonld_path,
     load_test_json,
 ):
     """
-    Basic smoke test for the "bids" command.
+    Basic smoke test for the "create" command using only phenotypic and BIDS inputs.
 
     Also performs a sanity check that an @context is present in the output JSONLD
     (which should have been inherited from the input JSONLD).
@@ -27,11 +42,10 @@ def test_bids_valid_inputs_run_successfully(
     result = runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
-            synthetic_dataset_tsv_path,
+            synthetic_dataset_bids_tsv,
             "--output",
             temp_output_jsonld_path,
         ],
@@ -49,8 +63,8 @@ def test_bids_valid_inputs_run_successfully(
 
 def test_imaging_sessions_have_expected_labels(
     runner,
-    test_data_upload_path,
-    synthetic_dataset_tsv_path,
+    synthetic_dataset_phenotypic_inputs,
+    synthetic_dataset_bids_tsv,
     temp_output_jsonld_path,
     load_test_json,
 ):
@@ -58,11 +72,10 @@ def test_imaging_sessions_have_expected_labels(
     runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
-            synthetic_dataset_tsv_path,
+            synthetic_dataset_bids_tsv,
             "--output",
             temp_output_jsonld_path,
         ],
@@ -95,8 +108,8 @@ def test_imaging_sessions_have_expected_labels(
 )
 def test_imaging_sessions_have_expected_metadata(
     runner,
-    test_data_upload_path,
-    synthetic_dataset_tsv_path,
+    synthetic_dataset_phenotypic_inputs,
+    synthetic_dataset_bids_tsv,
     temp_output_jsonld_path,
     load_test_json,
     jsonld_path,
@@ -110,11 +123,10 @@ def test_imaging_sessions_have_expected_metadata(
     runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / jsonld_path,
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
-            synthetic_dataset_tsv_path,
+            synthetic_dataset_bids_tsv,
             "--output",
             temp_output_jsonld_path,
         ],
@@ -143,8 +155,8 @@ def test_imaging_sessions_have_expected_metadata(
 
 def test_imaging_sessions_have_correct_paths(
     runner,
-    test_data_upload_path,
-    synthetic_dataset_tsv_path,
+    synthetic_dataset_phenotypic_inputs,
+    synthetic_dataset_bids_tsv,
     temp_output_jsonld_path,
     load_test_json,
 ):
@@ -155,12 +167,11 @@ def test_imaging_sessions_have_correct_paths(
     runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
-            synthetic_dataset_tsv_path,
-            "--dataset-source-dir",
+            synthetic_dataset_bids_tsv,
+            "--bids-source-dir",
             "/public_datasets/dataset01",
             "--output",
             temp_output_jsonld_path,
@@ -181,7 +192,7 @@ def test_imaging_sessions_have_correct_paths(
 
 def test_relative_source_dir_path_raises_error(
     runner,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     disable_rich_markup,
 ):
@@ -189,10 +200,9 @@ def test_relative_source_dir_path_raises_error(
     result = runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
-            "--dataset-source-dir",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "--bids-source-dir",
             "data/bids",
             "--output",
             temp_output_jsonld_path,
@@ -206,7 +216,7 @@ def test_relative_source_dir_path_raises_error(
 def test_some_unsupported_suffixes_in_bids_table_raises_warning(
     runner,
     tmp_path,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     load_test_json,
     disable_rich_markup,
@@ -253,9 +263,8 @@ def test_some_unsupported_suffixes_in_bids_table_raises_warning(
     runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
             tmp_path / "bids.tsv",
             "--output",
@@ -291,7 +300,7 @@ def test_some_unsupported_suffixes_in_bids_table_raises_warning(
 def test_all_unsupported_suffixes_in_bids_table_raises_error(
     runner,
     tmp_path,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     disable_rich_markup,
     propagate_warnings,
@@ -335,9 +344,8 @@ def test_all_unsupported_suffixes_in_bids_table_raises_error(
     result = runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
             tmp_path / "bids.tsv",
             "--output",
@@ -355,7 +363,7 @@ def test_all_unsupported_suffixes_in_bids_table_raises_error(
 def test_bids_table_missing_required_columns_exits_gracefully(
     runner,
     tmp_path,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     disable_rich_markup,
     propagate_errors,
@@ -392,9 +400,8 @@ def test_bids_table_missing_required_columns_exits_gracefully(
     result = runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
             tmp_path / "bids.tsv",
             "--output",
@@ -451,7 +458,7 @@ def test_no_error_when_bids_table_id_columns_have_no_prefixes(
     result = runner.invoke(
         bagel,
         [
-            "bids",
+            "create",
             "--jsonld-path",
             test_data / "example_synthetic_no_id_prefixes.jsonld",
             "--bids-table",

@@ -36,8 +36,7 @@ def test_bids_valid_inputs_run_successfully(
     """
     Basic smoke test for the "create" command using only phenotypic and BIDS inputs.
 
-    Also performs a sanity check that an @context is present in the output JSONLD
-    (which should have been inherited from the input JSONLD).
+    Also performs a sanity check that an @context is present in the output JSONLD.
     """
     result = runner.invoke(
         bagel,
@@ -96,35 +95,65 @@ def test_imaging_sessions_have_expected_labels(
         assert sorted(imaging_ses_labels) == ["ses-01", "ses-02"]
 
 
-@pytest.mark.parametrize(
-    "jsonld_path,expected_sessions_with_acq_and_pipe_metadata",
-    [
-        ("example_synthetic.jsonld", 0),
-        (
-            "pheno-derivatives-output/example_synthetic_pheno-derivatives.jsonld",
-            3,
-        ),
-    ],
-)
-def test_imaging_sessions_have_expected_metadata(
+def test_imaging_sessions_created_for_bids_metadata(
     runner,
     synthetic_dataset_phenotypic_inputs,
     synthetic_dataset_bids_tsv,
     temp_output_jsonld_path,
     load_test_json,
-    jsonld_path,
-    expected_sessions_with_acq_and_pipe_metadata,
 ):
     """
     Check that the JSONLD output contains the expected total number of imaging sessions with
-    acquisition and completed pipeline metadata, based on whether a phenotypic-only JSONLD or
-    JSONLD with both phenotypic and processing pipeline metadata is provided as input.
+    acquisition metadata.
     """
+
     runner.invoke(
         bagel,
         [
             "create",
             *synthetic_dataset_phenotypic_inputs,
+            "--bids-table",
+            synthetic_dataset_bids_tsv,
+            "--output",
+            temp_output_jsonld_path,
+        ],
+    )
+
+    output = load_test_json(temp_output_jsonld_path)
+
+    sessions_with_acq_metadata = []
+    for sub in output["hasSamples"]:
+        for ses in sub["hasSession"]:
+            if (
+                ses["schemaKey"] == "ImagingSession"
+                and ses.get("hasAcquisition") is not None
+            ):
+                sessions_with_acq_metadata.append(ses)
+
+    assert len(sessions_with_acq_metadata) == 10
+
+
+def test_bids_metadata_added_to_existing_imaging_sessions(
+    runner,
+    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
+    synthetic_dataset_bids_tsv,
+    temp_output_jsonld_path,
+    load_test_json,
+):
+    """
+    Check that the JSONLD output contains the expected total number of imaging sessions with
+    acquisition and completed pipeline metadata when both BIDS and processing pipeline metadata
+    are provided as input.
+    """
+
+    runner.invoke(
+        bagel,
+        [
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "--processing-status",
+            test_data_upload_path / "nipoppy_proc_status_synthetic.tsv",
             "--bids-table",
             synthetic_dataset_bids_tsv,
             "--output",
@@ -147,10 +176,7 @@ def test_imaging_sessions_have_expected_metadata(
                     sessions_with_acq_and_pipe_metadata.append(ses)
 
     assert len(sessions_with_acq_metadata) == 10
-    assert (
-        len(sessions_with_acq_and_pipe_metadata)
-        == expected_sessions_with_acq_and_pipe_metadata
-    )
+    assert len(sessions_with_acq_and_pipe_metadata) == 3
 
 
 def test_imaging_sessions_have_correct_paths(
@@ -369,7 +395,7 @@ def test_bids_table_missing_required_columns_exits_gracefully(
     propagate_errors,
     caplog,
 ):
-    """Test that the bids command exits gracefully when provided a BIDS table missing a required column."""
+    """Test that the command exits gracefully when provided a BIDS table missing a required column."""
     bids_table = pd.DataFrame(
         [
             [
@@ -418,11 +444,16 @@ def test_bids_table_missing_required_columns_exits_gracefully(
 
 
 def test_no_error_when_bids_table_id_columns_have_no_prefixes(
-    runner, tmp_path, test_data, temp_output_jsonld_path, load_test_json
+    runner,
+    tmp_path,
+    test_data,
+    test_data_upload_path,
+    temp_output_jsonld_path,
+    load_test_json,
 ):
     """
     Test that when BIDS table 'sub' and 'ses' columns do not include "sub-" and "ses-" prefixes, respectively,
-    the bids command runs successfully and IDs in the output JSONLD also do not include these prefixes.
+    the command runs successfully and IDs in the output JSONLD also do not include these prefixes.
     """
     bids_table = pd.DataFrame(
         [
@@ -459,8 +490,12 @@ def test_no_error_when_bids_table_id_columns_have_no_prefixes(
         bagel,
         [
             "create",
-            "--jsonld-path",
-            test_data / "example_synthetic_no_id_prefixes.jsonld",
+            "--pheno",
+            test_data / "example_synthetic_no_id_prefixes.tsv",
+            "--dictionary",
+            test_data_upload_path / "example_synthetic.json",
+            "--dataset-description",
+            test_data_upload_path / "synthetic_dataset_description.json",
             "--bids-table",
             tmp_path / "bids.tsv",
             "--output",

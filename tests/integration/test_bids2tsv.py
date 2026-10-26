@@ -158,6 +158,7 @@ def test_tsv_from_bids_dir_with_unsupported_suffixes_passes_bids_cmd(
     runner,
     bids_synthetic_with_fake_suffix_file,
     default_bids2tsv_output_path,
+    example_dataset_description,
     test_data_upload_path,
     tmp_path,
 ):
@@ -178,9 +179,13 @@ def test_tsv_from_bids_dir_with_unsupported_suffixes_passes_bids_cmd(
     result = runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            "--pheno",
+            test_data_upload_path / "example_synthetic.tsv",
+            "--dictionary",
+            test_data_upload_path / "example_synthetic.json",
+            "--dataset-description",
+            example_dataset_description,
             "--bids-table",
             default_bids2tsv_output_path,
             "--output",

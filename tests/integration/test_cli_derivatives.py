@@ -28,7 +28,7 @@ def synthetic_dataset_phenotypic_inputs(
         ("proc_status_unique_sessions.tsv", {"sub-01": 2, "sub-02": 2}),
     ],
 )
-def test_derivatives_cmd_with_valid_TSV_and_pheno_jsonlds_is_successful(
+def test_valid_derivatives_input_is_successful(
     runner,
     synthetic_dataset_phenotypic_inputs,
     test_data,
@@ -38,12 +38,11 @@ def test_derivatives_cmd_with_valid_TSV_and_pheno_jsonlds_is_successful(
     num_expected_imaging_sessions,
 ):
     """
-    Test that when a valid processing status TSV and bagel pheno-created JSONLD are supplied as inputs,
-    the bagel derivatives command successfully creates an output JSONLD where subjects have the expected number
+    Test that when a valid processing status TSV is included as an input,
+    the "create" command successfully creates an output JSONLD where subjects have the expected number
     of imaging sessions created based on pipeline completion data.
 
-    Also performs a sanity check that an @context is present in the output JSONLD
-    (which should have been inherited from the input JSONLD).
+    Also performs a sanity check that an @context is present in the output JSONLD.
     """
     result = runner.invoke(
         bagel,
@@ -80,9 +79,9 @@ def test_pipeline_info_added_to_existing_imaging_sessions(
     load_test_json,
 ):
     """
-    Test that when a valid processing status TSV and bagel pheno- and bagel bids-created JSONLD
+    Test that when both a valid processing status TSV and BIDS metadata TSV
     are supplied as inputs, the bagel derivatives command successfully creates an output JSONLD
-    where pipeline completion info is correctly added to existing or newly created imaging sessions.
+    where pipeline completion info is correctly matched to BIDS imaging sessions.
     """
     result = runner.invoke(
         bagel,
@@ -91,8 +90,6 @@ def test_pipeline_info_added_to_existing_imaging_sessions(
             *synthetic_dataset_phenotypic_inputs,
             "-b",
             test_data / "bids_metadata_synthetic.tsv",
-            # "-s",
-            # "/data/neurobagel/synthetic",
             "-n",
             test_data / "proc_status_unique_sessions.tsv",
             "-o",
@@ -144,7 +141,7 @@ def test_derivatives_invalid_inputs_fail(
     caplog,
     propagate_errors,
 ):
-    """Assure that we handle expected user errors in the input files for the bagel derivatives command gracefully."""
+    """Assure that we handle expected user errors from the processing status file gracefully."""
     result = runner.invoke(
         bagel,
         [
@@ -231,7 +228,7 @@ def test_unrecognized_pipelines_and_versions_excluded_from_output(
 ):
     """
     Test that when a subset of pipelines or versions from a processing status file are unrecognized,
-    they are excluded from the output JSONLD with informative warnings, without causing the derivatives command to fail.
+    they are excluded from the output JSONLD with informative warnings, without causing the command to fail.
     """
     result = runner.invoke(
         bagel,
@@ -319,7 +316,7 @@ def test_failed_pipeline_catalog_fetching_does_not_raise_error_for_help(
     runner, caplog, propagate_warnings, monkeypatch, disable_rich_markup
 ):
     """
-    Test that if the pipeline catalog fetching fails when a derivatives command has not been called,
+    Test that if the pipeline catalog fetching fails when a processing status file has not been provided,
     this happens silently and the CLI does not raise an error.
     """
     monkeypatch.setattr(mappings, "PIPELINE_CATALOG", [])
@@ -360,7 +357,7 @@ def test_failed_pipeline_catalog_fetching_does_not_raise_error_for_help(
         ([], 1, "Failed to load the pipeline catalog", False),
     ],
 )
-def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_command(
+def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_input(
     runner,
     test_data,
     synthetic_dataset_phenotypic_inputs,
@@ -374,8 +371,8 @@ def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_command(
     output_created_expectation,
 ):
     """
-    Test that when the pipeline catalog fetching fails, the derivatives command raises an appropriate warning
-    or error depending on if the backup catalog could be loaded.
+    Test that when a processing status file is provided and the pipeline catalog fetching fails,
+    the command raises an appropriate warning or error depending on if the backup catalog could be loaded.
     """
     monkeypatch.setattr(
         mappings, "PIPELINE_CATALOG", mock_pipeline_catalog_fetching_result

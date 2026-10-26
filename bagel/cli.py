@@ -529,6 +529,8 @@ def process_bids(
 
     bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
 
+    # NOTE: This check requires fetching a remote vocabulary, and so is only performed
+    # if a BIDS table is provided
     bids_suffix_to_std_term_map = (
         bids_utils.get_bids_suffix_to_std_term_mapping()
     )
@@ -642,7 +644,7 @@ def process_derivatives(
     processing_status_table: Path, graph_dataset: models.Dataset
 ):
     """
-    Extract subject processing pipeline and derivative metadata from a tabular processing status file and integrate them with harmonized subject graph data.
+    Extract subject processing pipeline and derivative metadata from a tabular processing status file and integrate it with harmonized subject graph data.
     """
 
     derivative_utils.check_if_pipeline_catalog_available()

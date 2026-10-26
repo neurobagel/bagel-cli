@@ -145,7 +145,7 @@ def test_invalid_inputs_are_handled_gracefully(
     caplog,
     propagate_errors,
 ):
-    """Assures that we handle expected user errors in the input files gracefully"""
+    """Assures that we handle expected user errors in phenotypic input files gracefully"""
     result = runner.invoke(
         bagel,
         [
@@ -767,7 +767,7 @@ def test_pheno_sessions_have_correct_labels(
     tmp_path,
     load_test_json,
 ):
-    """Check that sessions added to pheno_bids.jsonld have the expected labels."""
+    """Check that sessions added to the output jsonld have the expected labels."""
     runner.invoke(
         bagel,
         [
@@ -919,7 +919,7 @@ def test_pheno_command_succeeds_with_short_option_names(
     example_dataset_description,
     temp_output_jsonld_path,
 ):
-    """Test that thecreate command does not error when invoked with short option names."""
+    """Test that the create command does not error when invoked with short option names."""
     example = "example2"
     result = runner.invoke(
         bagel,

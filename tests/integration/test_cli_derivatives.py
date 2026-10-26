@@ -6,6 +6,21 @@ from bagel import mappings
 from bagel.cli import bagel
 
 
+@pytest.fixture(scope="function")
+def synthetic_dataset_phenotypic_inputs(
+    test_data_upload_path, example_dataset_description
+):
+    """Return option values for the example phenotypic input files corresponding to the synthetic dataset."""
+    return [
+        "--pheno",
+        test_data_upload_path / "example_synthetic.tsv",
+        "--dictionary",
+        test_data_upload_path / "example_synthetic.json",
+        "--dataset-description",
+        example_dataset_description,
+    ]
+
+
 @pytest.mark.parametrize(
     "valid_proc_status_file,num_expected_imaging_sessions",
     [
@@ -15,8 +30,8 @@ from bagel.cli import bagel
 )
 def test_derivatives_cmd_with_valid_TSV_and_pheno_jsonlds_is_successful(
     runner,
+    synthetic_dataset_phenotypic_inputs,
     test_data,
-    test_data_upload_path,
     temp_output_jsonld_path,
     load_test_json,
     valid_proc_status_file,
@@ -33,11 +48,10 @@ def test_derivatives_cmd_with_valid_TSV_and_pheno_jsonlds_is_successful(
     result = runner.invoke(
         bagel,
         [
-            "derivatives",
-            "-t",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "-n",
             test_data / valid_proc_status_file,
-            "-p",
-            test_data_upload_path / "example_synthetic.jsonld",
             "-o",
             temp_output_jsonld_path,
         ],
@@ -61,7 +75,7 @@ def test_derivatives_cmd_with_valid_TSV_and_pheno_jsonlds_is_successful(
 def test_pipeline_info_added_to_existing_imaging_sessions(
     runner,
     test_data,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     load_test_json,
 ):
@@ -73,13 +87,14 @@ def test_pipeline_info_added_to_existing_imaging_sessions(
     result = runner.invoke(
         bagel,
         [
-            "derivatives",
-            "-t",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "-b",
+            test_data / "bids_metadata_synthetic.tsv",
+            # "-s",
+            # "/data/neurobagel/synthetic",
+            "-n",
             test_data / "proc_status_unique_sessions.tsv",
-            "-p",
-            test_data_upload_path
-            / "pheno-bids-output"
-            / "example_synthetic_pheno-bids.jsonld",
             "-o",
             temp_output_jsonld_path,
         ],
@@ -122,7 +137,7 @@ def test_pipeline_info_added_to_existing_imaging_sessions(
 def test_derivatives_invalid_inputs_fail(
     runner,
     test_data,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     example,
     expected_message,
@@ -133,11 +148,10 @@ def test_derivatives_invalid_inputs_fail(
     result = runner.invoke(
         bagel,
         [
-            "derivatives",
-            "-t",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "-n",
             test_data / example,
-            "-p",
-            test_data_upload_path / "example_synthetic.jsonld",
             "-o",
             temp_output_jsonld_path,
         ],
@@ -169,7 +183,7 @@ def test_derivatives_invalid_inputs_fail(
 def test_custom_imaging_sessions_created_for_missing_session_labels(
     runner,
     test_data,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     load_test_json,
     proc_status_file,
@@ -179,11 +193,10 @@ def test_custom_imaging_sessions_created_for_missing_session_labels(
     result = runner.invoke(
         bagel,
         [
-            "derivatives",
-            "-t",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "-n",
             test_data / proc_status_file,
-            "-p",
-            test_data_upload_path / "example_synthetic.jsonld",
             "-o",
             temp_output_jsonld_path,
         ],
@@ -210,7 +223,7 @@ def test_custom_imaging_sessions_created_for_missing_session_labels(
 def test_unrecognized_pipelines_and_versions_excluded_from_output(
     runner,
     test_data,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     load_test_json,
     caplog,
@@ -223,11 +236,10 @@ def test_unrecognized_pipelines_and_versions_excluded_from_output(
     result = runner.invoke(
         bagel,
         [
-            "derivatives",
-            "-t",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "-n",
             test_data / "proc_status_unrecognized_pipelines.tsv",
-            "-p",
-            test_data_upload_path / "example_synthetic.jsonld",
             "-o",
             temp_output_jsonld_path,
         ],
@@ -273,7 +285,7 @@ def test_unrecognized_pipelines_and_versions_excluded_from_output(
 def test_error_when_no_pipeline_version_combos_recognized(
     runner,
     test_data,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     caplog,
     propagate_errors,
@@ -285,11 +297,10 @@ def test_error_when_no_pipeline_version_combos_recognized(
     result = runner.invoke(
         bagel,
         [
-            "derivatives",
-            "-t",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "-n",
             test_data / "proc_status_no_recognized_pipelines.tsv",
-            "-p",
-            test_data_upload_path / "example_synthetic.jsonld",
             "-o",
             temp_output_jsonld_path,
         ],
@@ -352,7 +363,7 @@ def test_failed_pipeline_catalog_fetching_does_not_raise_error_for_help(
 def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_command(
     runner,
     test_data,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     caplog,
     propagate_warnings,
@@ -376,11 +387,10 @@ def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_command(
     result = runner.invoke(
         bagel,
         [
-            "derivatives",
-            "-t",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "-n",
             test_data / "proc_status_synthetic.tsv",
-            "-p",
-            test_data_upload_path / "example_synthetic.jsonld",
             "-o",
             temp_output_jsonld_path,
         ],

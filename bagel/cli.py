@@ -143,7 +143,7 @@ def bids2tsv(
         help="Strip 'sub-' and 'ses-' prefixes from subject and session IDs in the output BIDS table. "
         "Useful if your phenotypic data table does not contain a BIDS subject ID column, "
         "and you want to ensure that your BIDS subject IDs match those in your phenotypic data "
-        "(as required for the 'bagel bids' command).",
+        "(as required if you want to harmonize subjects' BIDS metadata using the 'bagel create' command).",
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
@@ -589,9 +589,6 @@ def process_bids(
     ):
         _bids_sub = bids_dataset[bids_dataset["sub"] == bids_sub_id]
         existing_subject = existing_subs_dict[bids_sub_id]
-        existing_sessions_dict = model_utils.get_imaging_session_instances(
-            existing_subject
-        )
 
         bids_sessions = list(_bids_sub["ses"].unique())
         # TODO: Do we need to explicitly preprocess cases where ses values are other types of whitespace?
@@ -623,19 +620,12 @@ def process_bids(
                 session_id=session_id,
             )
 
-            # If a custom Neurobagel-created session already exists (if `bagel derivatives` was run first),
-            # we add to that session when there is no session layer in the BIDS directory
-            if session_label in existing_sessions_dict:
-                existing_img_session = existing_sessions_dict[session_label]
-                existing_img_session.hasAcquisition = image_list
-                existing_img_session.hasFilePath = session_path
-            else:
-                new_imaging_session = models.ImagingSession(
-                    hasLabel=session_label,
-                    hasFilePath=session_path,
-                    hasAcquisition=image_list,
-                )
-                existing_subject.hasSession.append(new_imaging_session)
+            new_imaging_session = models.ImagingSession(
+                hasLabel=session_label,
+                hasFilePath=session_path,
+                hasAcquisition=image_list,
+            )
+            existing_subject.hasSession.append(new_imaging_session)
 
     return graph_dataset
 

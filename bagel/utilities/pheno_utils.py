@@ -36,7 +36,7 @@ def additional_config_help_text() -> str:
     Construct a warning to be added in the help text for the --config option when no configurations are available.
     This is to inform the user explicitly in the rare case when no configurations are available, i.e. when fetching the remote file fails and there is no local backup found
     (if submodules were not properly initialized). In this case, allowed choices for --config would be shown as an empty list [],
-    meaning even the default "Neurobagel" option would result in an invalid parameter error (and the `pheno` command cannot run).
+    meaning even the default "Neurobagel" option would result in an invalid parameter error.
     """
     if mappings.CONFIG_NAMESPACES_MAPPING == []:
         return (

@@ -379,9 +379,9 @@ def create(
                 bids_source_dir,
             )
     elif bids_source_dir:
-        # TODO: Make option names bolded in warning
+        # TODO: Make option names bolded in warning?
         logger.warning(
-            "A BIDS source directory path (--bids-source-dir) was provided without a corresponding BIDS metadata table (--bids-table). "
+            "A BIDS source directory path was provided without a corresponding BIDS metadata table. "
             "--bids-source-dir will be ignored. "
             "To include BIDS metadata, please specify a BIDS table using --bids-table."
         )
@@ -714,10 +714,10 @@ def process_derivatives(
 
 @bagel.command()
 def harmonize_pheno(
-    pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
+    pheno: Path = typer.Option(
         ...,
         "--pheno",
-        "-t",  # for tabular
+        "-t",  # for tabular #TODO: Change to -p to match the 'create' command
         help="Path to a phenotypic .tsv file",
         exists=True,
         file_okay=True,

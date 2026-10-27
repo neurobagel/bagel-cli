@@ -526,3 +526,36 @@ def test_no_error_when_bids_table_id_columns_have_no_prefixes(
     assert all(not item.startswith("sub-") for item in output_sub_ids)
     assert all(not item.startswith("ses-") for item in output_ses_ids)
     assert sub01_imaging_ses01["hasFilePath"] == "01/01"
+
+
+def test_warning_when_bids_source_dir_provided_without_bids_table(
+    runner,
+    synthetic_dataset_phenotypic_inputs,
+    temp_output_jsonld_path,
+    caplog,
+    propagate_warnings,
+):
+    """
+    Test that when a BIDS source directory is provided to 'bagel create' without corresponding a BIDS table input,
+    the create command raises a warning but continues processing.
+    """
+    result = runner.invoke(
+        bagel,
+        [
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "--bids-source-dir",
+            "/data/neurobagel/synthetic",
+            "--output",
+            temp_output_jsonld_path,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0
+    assert temp_output_jsonld_path.exists()
+    assert len(caplog.records) == 1
+    assert (
+        "BIDS source directory was provided without a corresponding BIDS metadata table"
+        in caplog.text
+    )

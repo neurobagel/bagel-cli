@@ -197,7 +197,7 @@ def test_imaging_sessions_have_correct_paths(
             *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
             synthetic_dataset_bids_tsv,
-            "--bids-source-dir",
+            "--imaging-source-dir",
             "/public_datasets/dataset01",
             "--output",
             temp_output_jsonld_path,
@@ -228,7 +228,7 @@ def test_relative_source_dir_path_raises_error(
         [
             "create",
             *synthetic_dataset_phenotypic_inputs,
-            "--bids-source-dir",
+            "--imaging-source-dir",
             "data/bids",
             "--output",
             temp_output_jsonld_path,
@@ -544,7 +544,7 @@ def test_warning_when_bids_source_dir_provided_without_bids_table(
         [
             "create",
             *synthetic_dataset_phenotypic_inputs,
-            "--bids-source-dir",
+            "--imaging-source-dir",
             "/data/neurobagel/synthetic",
             "--output",
             temp_output_jsonld_path,

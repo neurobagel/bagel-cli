@@ -286,9 +286,9 @@ def create(
         resolve_path=True,
     ),
     # TODO: Should we include a tip in the help text for using the repository root for DataLad datasets?
-    bids_source_dir: Path = typer.Option(
+    imaging_source_dir: Path = typer.Option(
         None,
-        "--bids-source-dir",
+        "--imaging-source-dir",
         "-s",
         callback=bids_utils.check_absolute_path,  # TODO: Move absolute path validation out of callback - this doesn't need to be checked unless a BIDS table is provided
         help="Absolute path to the root directory of the BIDS dataset at the source location/file server. "
@@ -359,7 +359,7 @@ def create(
 
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
     # It is arbitrarily calculated as = length of the longest string + 2 extra spaces
-    width = 30
+    width = 60
     logger.info("%-*s%s", width, "Phenotypic table (.tsv):", pheno)
     logger.info(
         "%-*s%s", width, "Phenotypic data dictionary (.json):", dictionary
@@ -371,19 +371,19 @@ def create(
         logger.info("%-*s%s", width, "Vocabulary configuration:", config)
     if bids_table:
         logger.info("%-*s%s", width, "BIDS metadata table (.tsv):", bids_table)
-        if bids_source_dir:
+        if imaging_source_dir:
             logger.info(
                 "%-*s%s",
                 width,
-                "BIDS dataset root directory at the data source location (used to construct imaging data paths):",
-                bids_source_dir,
+                "Imaging data root directory at its source storage location:",
+                imaging_source_dir,
             )
-    elif bids_source_dir:
+    elif imaging_source_dir:
         # TODO: Make option names bolded in warning?
         logger.warning(
-            "A BIDS source directory path was provided without a corresponding BIDS metadata table. "
-            "--bids-source-dir will be ignored. "
-            "To include BIDS metadata, please specify a BIDS table using --bids-table."
+            "An imaging source directory path was provided without a corresponding BIDS metadata table. "
+            "--imaging-source-dir will be ignored. "
+            "To include imaging metadata, please specify a BIDS table using --bids-table."
         )
     if processing_status:
         logger.info(
@@ -501,7 +501,7 @@ def create(
     if bids_table:
         logger.info("Adding BIDS metadata to subjects...")
         graph_dataset = process_bids(
-            bids_table, bids_source_dir, graph_dataset, verbosity
+            bids_table, imaging_source_dir, graph_dataset, verbosity
         )
 
     if processing_status:

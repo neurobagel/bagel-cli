@@ -556,6 +556,6 @@ def test_warning_when_bids_source_dir_provided_without_bids_table(
     assert temp_output_jsonld_path.exists()
     assert len(caplog.records) == 1
     assert (
-        "BIDS source directory path was provided without a corresponding BIDS metadata table"
+        "imaging source directory path was provided without a corresponding BIDS metadata table"
         in caplog.text
     )

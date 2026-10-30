@@ -6,7 +6,7 @@ from bagel.cli import bagel
 
 @pytest.mark.parametrize(
     "command",
-    ["bids2tsv", "pheno", "derivatives", "bids"],
+    ["bids2tsv", "create"],
 )
 @pytest.mark.parametrize(
     "help_flag",
@@ -24,7 +24,7 @@ def test_help_option_override_printed_in_command_help(
 
 @pytest.mark.parametrize(
     "command",
-    ["bids2tsv", "pheno", "derivatives", "bids"],
+    ["bids2tsv", "create"],
 )
 def test_help_printed_if_no_args(runner, command, caplog, disable_rich_markup):
     """Test that the command help is printed if no arguments are provided."""

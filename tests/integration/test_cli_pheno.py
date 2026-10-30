@@ -32,12 +32,12 @@ def test_pheno_valid_inputs_run_successfully(
     temp_output_jsonld_path,
     example,
 ):
-    """Basic smoke test for the "pheno" subcommand"""
+    """Basic smoke test for the "create" command using only phenotypic inputs."""
     if example == "example_synthetic":
         result = runner.invoke(
             bagel,
             [
-                "pheno",
+                "create",
                 "--pheno",
                 test_data_upload_path / f"{example}.tsv",
                 "--dictionary",
@@ -52,7 +52,7 @@ def test_pheno_valid_inputs_run_successfully(
         result = runner.invoke(
             bagel,
             [
-                "pheno",
+                "create",
                 "--pheno",
                 test_data / f"{example}.tsv",
                 "--dictionary",
@@ -66,7 +66,7 @@ def test_pheno_valid_inputs_run_successfully(
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
     assert (
         temp_output_jsonld_path
-    ).exists(), "The pheno.jsonld output was not created."
+    ).exists(), "The JSONLD output was not created."
 
 
 @pytest.mark.parametrize(
@@ -145,11 +145,11 @@ def test_invalid_inputs_are_handled_gracefully(
     caplog,
     propagate_errors,
 ):
-    """Assures that we handle expected user errors in the input files gracefully"""
+    """Assures that we handle expected user errors in phenotypic input files gracefully"""
     result = runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / f"{example}.tsv",
             "--dictionary",
@@ -183,7 +183,7 @@ def test_multiple_columns_about_single_column_variable_raises_warning(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example20.tsv",
             "--dictionary",
@@ -216,7 +216,7 @@ def test_missing_bids_levels_raises_warning(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example12.tsv",
             "--dictionary",
@@ -246,7 +246,7 @@ def test_bids_neurobagel_levels_mismatch_raises_warning(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example13.tsv",
             "--dictionary",
@@ -284,7 +284,7 @@ def test_unused_missing_values_raises_warning(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example10.tsv",
             "--dictionary",
@@ -341,7 +341,7 @@ def test_providing_non_tsv_file_raises_error(
     result = runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / pheno_file,
             "--dictionary",
@@ -382,7 +382,7 @@ def test_output_file_contains_dataset_level_attributes(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example2.tsv",
             "--dictionary",
@@ -414,7 +414,7 @@ def test_diagnosis_and_control_status_handled(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example6.tsv",
             "--dictionary",
@@ -456,7 +456,7 @@ def test_controlled_terms_have_identifiers(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
@@ -492,7 +492,7 @@ def test_controlled_term_classes_have_uri_type(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
@@ -547,7 +547,7 @@ def test_assessment_data_are_parsed_correctly(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example6.tsv",
             "--dictionary",
@@ -582,7 +582,7 @@ def test_cli_age_is_processed(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example2.tsv",
             "--dictionary",
@@ -611,7 +611,7 @@ def test_output_includes_context(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example2.tsv",
             "--dictionary",
@@ -656,7 +656,7 @@ def test_output_excludes_properties_for_missing_vals(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
@@ -686,7 +686,7 @@ def test_default_output_filename(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
@@ -696,7 +696,7 @@ def test_default_output_filename(
         ],
     )
 
-    assert (tmp_path / "pheno.jsonld").exists()
+    assert (tmp_path / "dataset.jsonld").exists()
 
 
 @pytest.mark.parametrize(
@@ -721,7 +721,7 @@ def test_overwrite_flag_behaviour(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
@@ -738,7 +738,7 @@ def test_overwrite_flag_behaviour(
     overwrite_result = runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
@@ -767,11 +767,11 @@ def test_pheno_sessions_have_correct_labels(
     tmp_path,
     load_test_json,
 ):
-    """Check that sessions added to pheno_bids.jsonld have the expected labels."""
+    """Check that sessions added to the output jsonld have the expected labels."""
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
@@ -814,7 +814,7 @@ def test_pheno_session_created_for_missing_session_column(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example17.tsv",
             "--dictionary",
@@ -844,7 +844,7 @@ def test_multicolumn_diagnosis_annot_is_handled(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example19.tsv",
             "--dictionary",
@@ -881,7 +881,7 @@ def test_healthy_control_subject_with_diagnosis_is_handled(
     runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example19.tsv",
             "--dictionary",
@@ -919,13 +919,13 @@ def test_pheno_command_succeeds_with_short_option_names(
     example_dataset_description,
     temp_output_jsonld_path,
 ):
-    """Test that the pheno command does not error when invoked with short option names."""
+    """Test that the create command does not error when invoked with short option names."""
     example = "example2"
     result = runner.invoke(
         bagel,
         [
-            "pheno",
-            "-t",
+            "create",
+            "-p",
             test_data / f"{example}.tsv",
             "-d",
             test_data / f"{example}.json",
@@ -938,7 +938,7 @@ def test_pheno_command_succeeds_with_short_option_names(
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
     assert (
         temp_output_jsonld_path
-    ).exists(), "The pheno.jsonld output was not created."
+    ).exists(), "The JSONLD output was not created."
 
 
 def test_backup_used_with_warning_when_request_for_config_namespaces_fails(
@@ -953,7 +953,7 @@ def test_backup_used_with_warning_when_request_for_config_namespaces_fails(
 ):
     """
     Test that when config namespaces cannot be fetched from the remote source,
-    the pheno command raises a warning and uses the backup configuration.
+    the create command raises a warning and uses the backup configuration.
     """
     monkeypatch.setattr(
         mappings, "CONFIG_NAMESPACES_FETCHING_ERR", "Network unreachable"
@@ -962,7 +962,7 @@ def test_backup_used_with_warning_when_request_for_config_namespaces_fails(
     result = runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data_upload_path / "example_synthetic.tsv",
             "--dictionary",
@@ -994,7 +994,7 @@ def test_catalog_pheno_input_is_parsed(
     result = runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example24.tsv",
             "--dictionary",
@@ -1008,4 +1008,4 @@ def test_catalog_pheno_input_is_parsed(
     assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
     assert (
         temp_output_jsonld_path
-    ).exists(), "The pheno.jsonld output was not created."
+    ).exists(), "The JSONLD output was not created."

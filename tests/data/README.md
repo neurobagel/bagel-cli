@@ -1,6 +1,6 @@
 # Test data
 
-## Example inputs to the `bagel pheno` CLI command
+## Example phenotypic-only inputs to the `bagel create` CLI command
 
 | Example name | `.tsv` | `.json` | Expect |
 | ----- | ----- | ----- | ----- |
@@ -34,8 +34,8 @@
 
 `* this is expected to fail until we enable multiple participant_ID handling`.
 
-## Example inputs to the `bagel derivatives` command
-Designed to work with `.jsonld` files from the [Neurobagel reference example dataset](https://github.com/neurobagel/neurobagel_examples).
+## Example derivative inputs to the `bagel create` command
+Designed to work with phenotypic input files from the [Neurobagel reference example dataset](https://github.com/neurobagel/neurobagel_examples).
 
 Example file `proc_status`... | Description | Expected result
 ----- | ----- | -----
@@ -48,7 +48,6 @@ _missing_sessions.tsv | One subject (`sub-02`) is missing all session labels | P
 _no_bids_sessions.tsv | Has session labels in all rows for `session_id`, but no values in `bids_session_id` column | Pass
 _unrecognized_pipelines.tsv | Includes some pipeline names and versions not found in the pipeline catalog | Pass
 _no_recognized_pipelines.tsv | Includes pipeline names found in the pipeline catalog, but no recognized versions | Fail 
-
 
 
 ## Example expected CLI outputs

@@ -6,32 +6,45 @@ from tests import utils
 
 
 @pytest.fixture(scope="function")
-def synthetic_dataset_tsv_path(test_data):
+def synthetic_dataset_bids_tsv(test_data):
     """Return the path to the BIDS TSV file for the bids-examples synthetic dataset."""
     return test_data / "bids_metadata_synthetic.tsv"
 
 
+@pytest.fixture(scope="function")
+def synthetic_dataset_phenotypic_inputs(
+    test_data_upload_path, example_dataset_description
+):
+    """Return option values for the example phenotypic input files corresponding to the synthetic dataset."""
+    return [
+        "--pheno",
+        test_data_upload_path / "example_synthetic.tsv",
+        "--dictionary",
+        test_data_upload_path / "example_synthetic.json",
+        "--dataset-description",
+        example_dataset_description,
+    ]
+
+
 def test_bids_valid_inputs_run_successfully(
     runner,
-    test_data_upload_path,
-    synthetic_dataset_tsv_path,
+    synthetic_dataset_phenotypic_inputs,
+    synthetic_dataset_bids_tsv,
     temp_output_jsonld_path,
     load_test_json,
 ):
     """
-    Basic smoke test for the "bids" command.
+    Basic smoke test for the "create" command using only phenotypic and BIDS inputs.
 
-    Also performs a sanity check that an @context is present in the output JSONLD
-    (which should have been inherited from the input JSONLD).
+    Also performs a sanity check that an @context is present in the output JSONLD.
     """
     result = runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
-            synthetic_dataset_tsv_path,
+            synthetic_dataset_bids_tsv,
             "--output",
             temp_output_jsonld_path,
         ],
@@ -49,8 +62,8 @@ def test_bids_valid_inputs_run_successfully(
 
 def test_imaging_sessions_have_expected_labels(
     runner,
-    test_data_upload_path,
-    synthetic_dataset_tsv_path,
+    synthetic_dataset_phenotypic_inputs,
+    synthetic_dataset_bids_tsv,
     temp_output_jsonld_path,
     load_test_json,
 ):
@@ -58,11 +71,10 @@ def test_imaging_sessions_have_expected_labels(
     runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
-            synthetic_dataset_tsv_path,
+            synthetic_dataset_bids_tsv,
             "--output",
             temp_output_jsonld_path,
         ],
@@ -83,38 +95,67 @@ def test_imaging_sessions_have_expected_labels(
         assert sorted(imaging_ses_labels) == ["ses-01", "ses-02"]
 
 
-@pytest.mark.parametrize(
-    "jsonld_path,expected_sessions_with_acq_and_pipe_metadata",
-    [
-        ("example_synthetic.jsonld", 0),
-        (
-            "pheno-derivatives-output/example_synthetic_pheno-derivatives.jsonld",
-            3,
-        ),
-    ],
-)
-def test_imaging_sessions_have_expected_metadata(
+def test_imaging_sessions_created_for_bids_metadata(
     runner,
-    test_data_upload_path,
-    synthetic_dataset_tsv_path,
+    synthetic_dataset_phenotypic_inputs,
+    synthetic_dataset_bids_tsv,
     temp_output_jsonld_path,
     load_test_json,
-    jsonld_path,
-    expected_sessions_with_acq_and_pipe_metadata,
 ):
     """
     Check that the JSONLD output contains the expected total number of imaging sessions with
-    acquisition and completed pipeline metadata, based on whether a phenotypic-only JSONLD or
-    JSONLD with both phenotypic and processing pipeline metadata is provided as input.
+    acquisition metadata.
     """
+
     runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / jsonld_path,
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
-            synthetic_dataset_tsv_path,
+            synthetic_dataset_bids_tsv,
+            "--output",
+            temp_output_jsonld_path,
+        ],
+    )
+
+    output = load_test_json(temp_output_jsonld_path)
+
+    sessions_with_acq_metadata = []
+    for sub in output["hasSamples"]:
+        for ses in sub["hasSession"]:
+            if (
+                ses["schemaKey"] == "ImagingSession"
+                and ses.get("hasAcquisition") is not None
+            ):
+                sessions_with_acq_metadata.append(ses)
+
+    assert len(sessions_with_acq_metadata) == 10
+
+
+def test_bids_metadata_added_to_existing_imaging_sessions(
+    runner,
+    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
+    synthetic_dataset_bids_tsv,
+    temp_output_jsonld_path,
+    load_test_json,
+):
+    """
+    Check that the JSONLD output contains the expected total number of imaging sessions with
+    acquisition and completed pipeline metadata when both BIDS and processing pipeline metadata
+    are provided as input.
+    """
+
+    runner.invoke(
+        bagel,
+        [
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "--processing-status",
+            test_data_upload_path / "nipoppy_proc_status_synthetic.tsv",
+            "--bids-table",
+            synthetic_dataset_bids_tsv,
             "--output",
             temp_output_jsonld_path,
         ],
@@ -135,16 +176,13 @@ def test_imaging_sessions_have_expected_metadata(
                     sessions_with_acq_and_pipe_metadata.append(ses)
 
     assert len(sessions_with_acq_metadata) == 10
-    assert (
-        len(sessions_with_acq_and_pipe_metadata)
-        == expected_sessions_with_acq_and_pipe_metadata
-    )
+    assert len(sessions_with_acq_and_pipe_metadata) == 3
 
 
 def test_imaging_sessions_have_correct_paths(
     runner,
-    test_data_upload_path,
-    synthetic_dataset_tsv_path,
+    synthetic_dataset_phenotypic_inputs,
+    synthetic_dataset_bids_tsv,
     temp_output_jsonld_path,
     load_test_json,
 ):
@@ -155,12 +193,11 @@ def test_imaging_sessions_have_correct_paths(
     runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
-            synthetic_dataset_tsv_path,
-            "--dataset-source-dir",
+            synthetic_dataset_bids_tsv,
+            "--imaging-source-dir",
             "/public_datasets/dataset01",
             "--output",
             temp_output_jsonld_path,
@@ -181,7 +218,7 @@ def test_imaging_sessions_have_correct_paths(
 
 def test_relative_source_dir_path_raises_error(
     runner,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     disable_rich_markup,
 ):
@@ -189,10 +226,9 @@ def test_relative_source_dir_path_raises_error(
     result = runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
-            "--dataset-source-dir",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "--imaging-source-dir",
             "data/bids",
             "--output",
             temp_output_jsonld_path,
@@ -206,7 +242,7 @@ def test_relative_source_dir_path_raises_error(
 def test_some_unsupported_suffixes_in_bids_table_raises_warning(
     runner,
     tmp_path,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     load_test_json,
     disable_rich_markup,
@@ -253,9 +289,8 @@ def test_some_unsupported_suffixes_in_bids_table_raises_warning(
     runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
             tmp_path / "bids.tsv",
             "--output",
@@ -291,7 +326,7 @@ def test_some_unsupported_suffixes_in_bids_table_raises_warning(
 def test_all_unsupported_suffixes_in_bids_table_raises_error(
     runner,
     tmp_path,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     disable_rich_markup,
     propagate_warnings,
@@ -335,9 +370,8 @@ def test_all_unsupported_suffixes_in_bids_table_raises_error(
     result = runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
             tmp_path / "bids.tsv",
             "--output",
@@ -355,13 +389,13 @@ def test_all_unsupported_suffixes_in_bids_table_raises_error(
 def test_bids_table_missing_required_columns_exits_gracefully(
     runner,
     tmp_path,
-    test_data_upload_path,
+    synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     disable_rich_markup,
     propagate_errors,
     caplog,
 ):
-    """Test that the bids command exits gracefully when provided a BIDS table missing a required column."""
+    """Test that the command exits gracefully when provided a BIDS table missing a required column."""
     bids_table = pd.DataFrame(
         [
             [
@@ -392,9 +426,8 @@ def test_bids_table_missing_required_columns_exits_gracefully(
     result = runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
             "--bids-table",
             tmp_path / "bids.tsv",
             "--output",
@@ -411,11 +444,16 @@ def test_bids_table_missing_required_columns_exits_gracefully(
 
 
 def test_no_error_when_bids_table_id_columns_have_no_prefixes(
-    runner, tmp_path, test_data, temp_output_jsonld_path, load_test_json
+    runner,
+    tmp_path,
+    test_data,
+    test_data_upload_path,
+    temp_output_jsonld_path,
+    load_test_json,
 ):
     """
     Test that when BIDS table 'sub' and 'ses' columns do not include "sub-" and "ses-" prefixes, respectively,
-    the bids command runs successfully and IDs in the output JSONLD also do not include these prefixes.
+    the command runs successfully and IDs in the output JSONLD also do not include these prefixes.
     """
     bids_table = pd.DataFrame(
         [
@@ -451,9 +489,13 @@ def test_no_error_when_bids_table_id_columns_have_no_prefixes(
     result = runner.invoke(
         bagel,
         [
-            "bids",
-            "--jsonld-path",
-            test_data / "example_synthetic_no_id_prefixes.jsonld",
+            "create",
+            "--pheno",
+            test_data / "example_synthetic_no_id_prefixes.tsv",
+            "--dictionary",
+            test_data_upload_path / "example_synthetic.json",
+            "--dataset-description",
+            test_data_upload_path / "synthetic_dataset_description.json",
             "--bids-table",
             tmp_path / "bids.tsv",
             "--output",
@@ -484,3 +526,36 @@ def test_no_error_when_bids_table_id_columns_have_no_prefixes(
     assert all(not item.startswith("sub-") for item in output_sub_ids)
     assert all(not item.startswith("ses-") for item in output_ses_ids)
     assert sub01_imaging_ses01["hasFilePath"] == "01/01"
+
+
+def test_warning_when_bids_source_dir_provided_without_bids_table(
+    runner,
+    synthetic_dataset_phenotypic_inputs,
+    temp_output_jsonld_path,
+    caplog,
+    propagate_warnings,
+):
+    """
+    Test that when a BIDS source directory is provided to 'bagel create' without corresponding a BIDS table input,
+    the create command raises a warning but continues processing.
+    """
+    result = runner.invoke(
+        bagel,
+        [
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "--imaging-source-dir",
+            "/data/neurobagel/synthetic",
+            "--output",
+            temp_output_jsonld_path,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0
+    assert temp_output_jsonld_path.exists()
+    assert len(caplog.records) == 1
+    assert (
+        "imaging source directory path was provided without a corresponding BIDS metadata table"
+        in caplog.text
+    )

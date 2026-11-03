@@ -19,6 +19,7 @@ from .utilities import (
     pheno_utils,
 )
 from .utilities.derivative_utils import PROC_STATUS_COLS
+from .utilities.exceptions import BagelValidationError
 
 OPTION_GROUP_NAMES = {
     "troubleshooting": "Troubleshooting",
@@ -391,10 +392,28 @@ def create(
         )
 
     logger.info("Processing phenotypic annotations...")
-    pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
-    dataset_metadata = pheno_utils.validate_dataset_description(
-        dataset_metadata
-    )
+
+    phenotypic_input_errors = []
+    try:
+        pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
+    except BagelValidationError as e:
+        phenotypic_input_errors.append(
+            f"Issue detected in phenotypic TSV and/or data dictionary: {e}"
+        )
+
+    try:
+        dataset_metadata = pheno_utils.validate_dataset_description(
+            dataset_metadata
+        )
+    except BagelValidationError as e:
+        phenotypic_input_errors.append(
+            f"Issue detected in dataset description: {e}"
+        )
+
+    for error in phenotypic_input_errors:
+        logger.error(error)
+    if phenotypic_input_errors:
+        raise typer.Exit(code=1)
 
     # TODO: Remove once we no longer support annotation tool v1 data dictionaries
     data_dictionary = pheno_utils.convert_transformation_to_format(

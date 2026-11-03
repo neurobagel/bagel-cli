@@ -13,6 +13,8 @@ from bagel import dataset_description_model, dictionary_models, mappings
 from bagel.logger import log_error, logger
 from bagel.mappings import DEPRECATED_NAMESPACE_PREFIXES, NB
 
+from .exceptions import BagelValidationError
+
 # TODO: Once we remove support for v1 annotation tool data dictionaries, revert to using this version for data dictionary schema validation
 # DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()
 
@@ -521,18 +523,16 @@ def validate_data_dict(data_dict: dict, config: str | None) -> None:
         # Escape leading square brackets so Rich doesn't parse them as the start of markup tags
         error_messages = error_messages.replace("[", "\\[")
 
-        log_error(
-            logger,
+        raise BagelValidationError(
             "The data dictionary is not a valid Neurobagel data dictionary. "
             f"{len(errors)} entries failed validation:\n"
             f"{error_messages}"
-            "[italic]TIP: Ensure each annotated column contains an 'Annotations' key.[/italic]",
+            "[italic]TIP: Ensure each annotated column contains an 'Annotations' key.[/italic]"
         )
 
     if get_annotated_columns(data_dict) == []:
-        log_error(
-            logger,
-            "The data dictionary must contain at least one column with Neurobagel annotations.",
+        raise BagelValidationError(
+            "The data dictionary must contain at least one column with Neurobagel annotations."
         )
 
     if config is not None:
@@ -540,21 +540,21 @@ def validate_data_dict(data_dict: dict, config: str | None) -> None:
             find_unsupported_namespaces_and_term_urls(data_dict, config)
         )
         if unsupported_namespaces:
-            namespace_deprecation_msg = ""
-            if config == mappings.DEFAULT_CONFIG:
-                if deprecated_namespaces := find_deprecated_namespaces(
+            namespace_deprecation_note = ""
+            if config == mappings.DEFAULT_CONFIG and (
+                deprecated_namespaces := find_deprecated_namespaces(
                     unsupported_namespaces
-                ):
-                    namespace_deprecation_msg = (
-                        f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
-                        "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
-                    )
-            log_error(
-                logger,
+                )
+            ):
+                namespace_deprecation_note = (
+                    f"\n\nMore info: The following vocabularies have been deprecated by Neurobagel: {deprecated_namespaces}. "
+                    "Please update your data dictionary using the latest version of the annotation tool at https://annotate.neurobagel.org."
+                )
+            raise BagelValidationError(
                 f"The data dictionary contains unsupported vocabulary namespace prefixes: {unsupported_namespaces}\n"
                 f"Unsupported vocabularies are used for terms in the following columns' annotations: {unrecognized_term_urls}\n"
                 f"Please ensure the data dictionary only includes terms from vocabularies recognized by {config}. "
-                f"{namespace_deprecation_msg}",
+                f"{namespace_deprecation_note}"
             )
 
     if (
@@ -565,8 +565,7 @@ def validate_data_dict(data_dict: dict, config: str | None) -> None:
         )
         == 0
     ):
-        log_error(
-            logger,
+        raise BagelValidationError(
             "The data dictionary must contain at least one column annotated as being about participant ID.",
         )
 
@@ -586,8 +585,7 @@ def validate_data_dict(data_dict: dict, config: str | None) -> None:
         )
         > 1
     ):
-        log_error(
-            logger,
+        raise BagelValidationError(
             "The data dictionary has more than one column about participant ID or session ID. "
             "Please ensure only one column is annotated for participant and session IDs.",
         )
@@ -644,22 +642,22 @@ def validate_data_dict(data_dict: dict, config: str | None) -> None:
         )
 
 
-def check_for_duplicate_ids(data_dict: dict, pheno_df: pd.DataFrame):
+def get_duplicate_id_rows(data_dict: dict, pheno_df: pd.DataFrame) -> list:
     """Log an error if there are duplicate participant IDs or duplicate combinations of participant and session IDs, if both are present."""
+    duplicate_indices = []
+
     id_columns = get_columns_about(
         data_dict, concept=mappings.NEUROBAGEL["participant"]
     ) + get_columns_about(data_dict, concept=mappings.NEUROBAGEL["session"])
     duplicates_mask = pheno_df.duplicated(subset=id_columns, keep=False)
+
     if duplicates_mask.any():
+        # Adjust row indices for 1-based indexing and the header row
         duplicate_indices = [
             idx + 2 for idx in pheno_df[duplicates_mask].index
         ]
-        log_error(
-            logger,
-            "The phenotypic table contains duplicate participant IDs or duplicate combinations of participant and session IDs. "
-            f"Duplicate IDs were found in these rows (header row is 1): {duplicate_indices}. "
-            "Ensure that each row represents a unique participant or participant-session (if a session column is present).",
-        )
+
+    return duplicate_indices
 
 
 def get_validated_dataset_description_and_incomplete_fields(
@@ -702,16 +700,15 @@ def validate_dataset_description(
                 "The dataset description is missing or has empty values for the following recommended fields:\n"
                 + "\n".join(f"- {field}" for field in unset_fields)
                 + "\nConsider completing these fields to improve dataset reuse and clarify access procedures."
-                + "\nSee the documentation at https://neurobagel.org/user_guide/dataset_description/"
+                + "\nRefer to the documentation at https://neurobagel.org/user_guide/dataset_description/"
             )
         return validated_dataset_desc
     except pydantic.ValidationError as err:
         # Pydantic will list all offending fields and their issues in the error message (https://docs.pydantic.dev/latest/errors/errors/)
-        log_error(
-            logger,
-            "The dataset description is invalid. "
-            "\nSee the documentation at https://neurobagel.org/user_guide/dataset_description/. "
-            f"\nValidation details:\n"
+        raise BagelValidationError(
+            "The dataset description does not match the expected format. "
+            "\nRefer to the documentation at https://neurobagel.org/user_guide/dataset_description/. "
+            f"\nDetails:\n"
             f"{err}",
         )
 
@@ -725,8 +722,7 @@ def validate_inputs(
     if missing_annotated_cols := find_missing_annotated_cols(
         data_dict, pheno_df
     ):
-        log_error(
-            logger,
+        raise BagelValidationError(
             "The provided phenotypic table and data dictionary are incompatible. "
             f"The following columns are annotated in the data dictionary but are missing from the phenotypic table: {missing_annotated_cols}. "
             "Check that you've selected the correct data dictionary for your phenotypic table. "
@@ -737,22 +733,25 @@ def validate_inputs(
         data_dict, concept=mappings.NEUROBAGEL["participant"]
     ) + get_columns_about(data_dict, concept=mappings.NEUROBAGEL["session"])
     if row_indices := get_rows_with_empty_strings(pheno_df, columns_about_ids):
-        log_error(
-            logger,
+        raise BagelValidationError(
             "The phenotypic table contains missing values in participant or session ID columns. "
             "Ensure that each row includes a non-empty participant ID (and session ID, if the table contains a session ID column). "
             f"Missing IDs were found in these rows (header row is 1): {row_indices}. "
             "[italic]TIP: Check that your table does not have any completely empty rows.[/italic]",
         )
 
-    check_for_duplicate_ids(data_dict, pheno_df)
+    if duplicate_id_rows := get_duplicate_id_rows(data_dict, pheno_df):
+        raise BagelValidationError(
+            "The phenotypic table contains duplicate participant IDs or duplicate combinations of participant and session IDs. "
+            f"Duplicate IDs were found in these rows (header row is 1): {duplicate_id_rows}. "
+            "Ensure that each row represents a unique participant or participant-session (if a session column is present).",
+        )
 
     undefined_cat_col_values = find_undefined_cat_col_values(
         data_dict, pheno_df
     )
     if undefined_cat_col_values:
-        log_error(
-            logger,
+        raise BagelValidationError(
             "One or more unique values found in annotated categorical columns of the phenotypic table are missing annotations in the data dictionary "
             rf"(shown by column as 'column_name': \[unannotated_values]): {undefined_cat_col_values}. "
             "Check that you've selected the correct data dictionary or annotate the values that are missing. "

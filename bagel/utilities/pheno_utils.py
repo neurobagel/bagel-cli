@@ -10,7 +10,7 @@ import pandas as pd
 import pydantic
 
 from bagel import dataset_description_model, dictionary_models, mappings
-from bagel.logger import log_error, logger
+from bagel.logger import logger
 from bagel.mappings import DEPRECATED_NAMESPACE_PREFIXES, NB
 
 from .exceptions import BagelValidationError
@@ -249,15 +249,15 @@ def transform_age(value: str, value_format: str) -> float:
             a_min, a_max = value.split("-")
             transformed_age = sum(map(float, [a_min, a_max])) / 2
         else:
-            log_error(
-                logger,
+            # TODO: Consider moving unrecognized age format check to the upfront data dictionary validation -
+            # this is a data dictionary issue, not a per-row transformation issue like the other errors caught here.
+            raise BagelValidationError(
                 f"The data dictionary contains an unrecognized age format: {value_format}. "
                 f"Ensure that the format TermURL is one of {list(AGE_FORMATS.values())}.",
             )
 
         if transformed_age < 0:
-            log_error(
-                logger,
+            raise BagelValidationError(
                 f"Error applying the format {value_format} to the age value '{value}': "
                 f"the resulting age {transformed_age} is negative. Age values must be non-negative. "
                 "Please check your age column.",
@@ -266,13 +266,12 @@ def transform_age(value: str, value_format: str) -> float:
         return transformed_age
 
     except (ValueError, isodate.isoerror.ISO8601Error) as e:
-        log_error(
-            logger,
+        raise BagelValidationError(
             f"Error applying the format {value_format} to the age value '{value}'. Error: {e}\n"
             f"Check your data dictionary to ensure that the annotated age format matches the age values in your phenotypic table, "
             "and that any missing values in your age column have been correctly annotated. "
             "For examples of acceptable values for specific age formats, see https://neurobagel.org/data_models/dictionaries/#age.",
-        )
+        ) from e
 
 
 def get_transformed_values(

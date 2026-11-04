@@ -705,7 +705,7 @@ def validate_dataset_description(
     except pydantic.ValidationError as err:
         # Pydantic will list all offending fields and their issues in the error message (https://docs.pydantic.dev/latest/errors/errors/)
         raise BagelValidationError(
-            "The dataset description does not match the expected format. "
+            "The dataset description does not match the expected schema. "
             "\nRefer to the documentation at https://neurobagel.org/user_guide/dataset_description/. "
             f"\nDetails:\n"
             f"{err}",

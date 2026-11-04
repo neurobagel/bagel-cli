@@ -11,3 +11,9 @@ class BagelValidationError(Exception):
     """Exception class for input validation errors."""
 
     pass
+
+
+class BagelResourceError(Exception):
+    """Exception class for errors related to loading Neurobagel vocabulary resources."""
+
+    pass

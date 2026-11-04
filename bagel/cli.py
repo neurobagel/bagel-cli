@@ -422,18 +422,14 @@ def create(
     try:
         pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
     except BagelValidationError as e:
-        phenotypic_input_errors.append(
-            f"Issue detected in phenotypic TSV and/or data dictionary: {e}"
-        )
+        phenotypic_input_errors.append(str(e))
 
     try:
         dataset_metadata = pheno_utils.validate_dataset_description(
             dataset_metadata
         )
     except BagelValidationError as e:
-        phenotypic_input_errors.append(
-            f"Issue detected in dataset description: {e}"
-        )
+        phenotypic_input_errors.append(str(e))
 
     for error in phenotypic_input_errors:
         logger.error(error)
@@ -584,6 +580,7 @@ def process_bids(
             f"Error parsing BIDS table: {e}.",
         )
 
+    # TODO: Catch error
     # NOTE: This check requires fetching a remote vocabulary, and so is only performed
     # if a BIDS table is provided
     bids_suffix_to_std_term_map = (
@@ -620,7 +617,11 @@ def process_bids(
             bids_dataset["suffix"].isin(neurobagel_supported_suffixes)
         ].copy()
 
-    bids_utils.validate_bids_table(bids_dataset)
+    # TODO: Move above suffix check
+    try:
+        bids_utils.validate_bids_table(bids_dataset)
+    except BagelValidationError as e:
+        log_error(logger, str(e))
 
     existing_subs_dict = model_utils.get_subject_instances(graph_dataset)
     bids_subject_ids = list(bids_dataset["sub"].unique())

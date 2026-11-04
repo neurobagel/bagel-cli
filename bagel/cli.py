@@ -422,9 +422,6 @@ def create(
     try:
         pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
     except BagelValidationError as e:
-        logger.error(
-            f"Issue detected in phenotypic TSV and/or data dictionary: {e}"
-        )
         phenotypic_input_errors.append(
             f"Issue detected in phenotypic TSV and/or data dictionary: {e}"
         )
@@ -434,7 +431,6 @@ def create(
             dataset_metadata
         )
     except BagelValidationError as e:
-        logger.error(f"Issue detected in dataset description: {e}")
         phenotypic_input_errors.append(
             f"Issue detected in dataset description: {e}"
         )

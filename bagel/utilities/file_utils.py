@@ -6,15 +6,16 @@ import httpx
 import pandas as pd
 import typer
 
-from ..logger import log_error, logger
+from ..logger import logger
+from .exceptions import BagelFileError
 
 
 def file_encoding_error_message(input_p: Path) -> str:
     """Return a message for when a file cannot be read due to encoding issues."""
     return (
-        f"Failed to decode the input file {input_p}. "
-        "Please ensure that all input files have UTF-8 encoding. "
-        "[italic]TIP: Need help converting your file? Try a tool like iconv (http://linux.die.net/man/1/iconv) or https://www.freeformatter.com/convert-file-encoding.html.[/italic]"
+        f"Failed to read {input_p} due to a character encoding error. "
+        "Please ensure all input files are UTF-8 encoded. "
+        "[italic]TIP: Need help converting your file? Try iconv (http://linux.die.net/man/1/iconv) or https://www.freeformatter.com/convert-file-encoding.html.[/italic]"
     )
 
 
@@ -25,45 +26,42 @@ def file_encoding_error_message(input_p: Path) -> str:
 def load_tabular(
     input_p: Path, input_type: str = "phenotypic"
 ) -> pd.DataFrame:
-    """Load a .tsv pheno file and do some basic validation of the file type."""
-    if input_p.suffix == ".tsv":
-        try:
-            tabular_df = pd.read_csv(
-                input_p,
-                sep="\t",
-                keep_default_na=False,
-                dtype=str,
-                encoding="utf-8",
-            )
-        except UnicodeDecodeError:
-            log_error(
-                logger,
-                file_encoding_error_message(input_p),
-            )
+    """Load a .tsv file and do some basic validation of the file type."""
+    if input_p.suffix != ".tsv":
+        raise BagelFileError(
+            f"{input_p} does not have a .tsv extension. Please provide a valid TSV file.",
+        )
 
-        if tabular_df.shape[1] > 1:
-            return tabular_df
+    try:
+        tabular_df = pd.read_csv(
+            input_p,
+            sep="\t",
+            keep_default_na=False,
+            dtype=str,
+            encoding="utf-8",
+        )
+    except UnicodeDecodeError as exc:
+        raise BagelFileError(file_encoding_error_message(input_p)) from exc
 
+    if tabular_df.shape[1] == 1:
         # If we have only one column, but splitting by ',' gives us several elements
         # then there is a good chance the user accidentally renamed a .csv into .tsv
         # and we should give them some extra info with our error message to fix this.
-        note_misnamed_csv = (
-            f"[italic]NOTE: Your {input_type} table resembles a .csv file "
+        looks_like_csv = len(tabular_df.columns[0].split(",")) > 1
+        misnamed_csv_note = (
+            "[italic]NOTE: Your table resembles a .csv file "
             "as it contains several ',' commas. Check that you have not "
             "accidentally renamed a .csv file to a .tsv.[/italic]"
+            if looks_like_csv
+            else ""
         )
-        log_error(
-            logger,
+        raise BagelFileError(
             f"{input_p} is not a valid Neurobagel {input_type} table (.tsv). "
             "This file is expected to have multiple columns but only one column was found. "
-            f"\n{note_misnamed_csv if len(tabular_df.columns[0].split(',')) > 1 else ''}",
+            f"\n{misnamed_csv_note}",
         )
 
-    log_error(
-        logger,
-        f"({input_p}) is not a .tsv file. "
-        f"Please provide a valid .tsv {input_type} table!",
-    )
+    return tabular_df
 
 
 def load_json(input_p: Path) -> Any:
@@ -71,16 +69,12 @@ def load_json(input_p: Path) -> Any:
     try:
         with open(input_p, "r", encoding="utf-8") as f:
             return json.load(f)
-    except UnicodeDecodeError:
-        log_error(
-            logger,
-            file_encoding_error_message(input_p),
-        )
-    except json.JSONDecodeError:
-        log_error(
-            logger,
-            f"File is not valid JSON: {input_p}. Please provide a valid JSON file.",
-        )
+    except UnicodeDecodeError as exc:
+        raise BagelFileError(file_encoding_error_message(input_p)) from exc
+    except json.JSONDecodeError as exc:
+        raise BagelFileError(
+            f"{input_p} is not valid JSON. Please provide a valid JSON file."
+        ) from exc
 
 
 def check_overwrite(output: Path, overwrite: bool):

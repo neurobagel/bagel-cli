@@ -19,7 +19,7 @@ from .utilities import (
     pheno_utils,
 )
 from .utilities.derivative_utils import PROC_STATUS_COLS
-from .utilities.exceptions import BagelValidationError
+from .utilities.exceptions import BagelFileError, BagelValidationError
 
 OPTION_GROUP_NAMES = {
     "troubleshooting": "Troubleshooting",
@@ -352,9 +352,34 @@ def create(
     """
     file_utils.check_overwrite(output, overwrite)
 
-    data_dictionary = file_utils.load_json(dictionary)
-    pheno_df = file_utils.load_tabular(pheno)
-    dataset_metadata = file_utils.load_json(dataset_description)
+    # The phenotypic input files can be loaded independently of each other,
+    # so we collect any file errors across all three before exiting to give the user a complete picture of file formatting issues.”
+    phenotypic_file_parsing_errors = []
+    try:
+        data_dictionary = file_utils.load_json(dictionary)
+    except BagelFileError as e:
+        phenotypic_file_parsing_errors.append(
+            f"Error parsing data dictionary: {e}"
+        )
+
+    try:
+        pheno_df = file_utils.load_tabular(pheno)
+    except BagelFileError as e:
+        phenotypic_file_parsing_errors.append(
+            f"Error parsing phenotypic TSV: {e}"
+        )
+
+    try:
+        dataset_metadata = file_utils.load_json(dataset_description)
+    except BagelFileError as e:
+        phenotypic_file_parsing_errors.append(
+            f"Error parsing dataset description: {e}"
+        )
+
+    for error in phenotypic_file_parsing_errors:
+        logger.error(error)
+    if phenotypic_file_parsing_errors:
+        raise typer.Exit(code=1)
 
     pheno_utils.check_if_remote_config_namespaces_used()
 
@@ -397,6 +422,9 @@ def create(
     try:
         pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
     except BagelValidationError as e:
+        logger.error(
+            f"Issue detected in phenotypic TSV and/or data dictionary: {e}"
+        )
         phenotypic_input_errors.append(
             f"Issue detected in phenotypic TSV and/or data dictionary: {e}"
         )
@@ -406,6 +434,7 @@ def create(
             dataset_metadata
         )
     except BagelValidationError as e:
+        logger.error(f"Issue detected in dataset description: {e}")
         phenotypic_input_errors.append(
             f"Issue detected in dataset description: {e}"
         )
@@ -551,7 +580,13 @@ def process_bids(
     Extract and integrate imaging metadata from a BIDS dataset with harmonized subject graph data.
     """
 
-    bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
+    try:
+        bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
+    except BagelFileError as e:
+        log_error(
+            logger,
+            f"Error parsing BIDS table: {e}.",
+        )
 
     # NOTE: This check requires fetching a remote vocabulary, and so is only performed
     # if a BIDS table is provided
@@ -663,9 +698,15 @@ def process_derivatives(
 
     derivative_utils.check_if_pipeline_catalog_available()
 
-    status_df = file_utils.load_tabular(
-        processing_status_table, input_type="processing status"
-    )
+    try:
+        status_df = file_utils.load_tabular(
+            processing_status_table, input_type="processing status"
+        )
+    except BagelFileError as e:
+        log_error(
+            logger,
+            f"Error parsing processing status TSV: {e}.",
+        )
 
     # We don't allow empty values in the participant ID column
     if row_indices := pheno_utils.get_rows_with_empty_strings(
@@ -777,8 +818,25 @@ def harmonize_pheno(
     """
     file_utils.check_overwrite(output, overwrite)
 
-    data_dictionary = file_utils.load_json(dictionary)
-    pheno_df = file_utils.load_tabular(pheno)
+    phenotypic_file_parsing_errors = []
+    try:
+        data_dictionary = file_utils.load_json(dictionary)
+    except BagelFileError as e:
+        phenotypic_file_parsing_errors.append(
+            f"Error loading data dictionary: {e}"
+        )
+
+    try:
+        pheno_df = file_utils.load_tabular(pheno)
+    except BagelFileError as e:
+        phenotypic_file_parsing_errors.append(
+            f"Error loading phenotypic TSV: {e}"
+        )
+
+    for error in phenotypic_file_parsing_errors:
+        logger.error(error)
+    if phenotypic_file_parsing_errors:
+        raise typer.Exit(code=1)
 
     logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
@@ -786,7 +844,11 @@ def harmonize_pheno(
     width = 26
     logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
     logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
-    pheno_utils.validate_inputs(data_dictionary, pheno_df)
+
+    try:
+        pheno_utils.validate_inputs(data_dictionary, pheno_df)
+    except BagelValidationError as e:
+        log_error(logger, str(e))
 
     # TODO: Remove once we no longer support annotation tool v1 data dictionaries
     data_dictionary = pheno_utils.convert_transformation_to_format(

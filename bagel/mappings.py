@@ -1,7 +1,7 @@
 from collections import namedtuple
 from pathlib import Path
 
-from bagel.utilities import file_utils
+from .utilities import file_utils
 
 DEFAULT_CONFIG = "Neurobagel"
 

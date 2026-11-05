@@ -439,7 +439,7 @@ def test_bids_table_missing_required_columns_exits_gracefully(
     assert result.exit_code != 0
     assert not temp_output_jsonld_path.exists()
     assert len(caplog.records) == 1
-    assert "Invalid BIDS table" in caplog.text
+    assert "BIDS table does not match the expected schema" in caplog.text
     assert "suffix" in caplog.text
 
 

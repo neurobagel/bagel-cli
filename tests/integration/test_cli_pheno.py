@@ -96,14 +96,14 @@ def test_pheno_valid_inputs_run_successfully(
             "example11",
             [
                 "missing values in participant or session ID columns",
-                "rows (header row is 1): [2, 4]",
+                "[2, 4]",
             ],
         ),
         (
             "example22",
             [
                 "missing values in participant or session ID columns",
-                "rows (header row is 1): [6, 7, 8]",
+                "[6, 7, 8]",
             ],
         ),
         (

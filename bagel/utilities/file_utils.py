@@ -29,7 +29,7 @@ def load_tabular(
     """Load a .tsv file and do some basic validation of the file type."""
     if input_p.suffix != ".tsv":
         raise BagelFileError(
-            f"{input_p} does not have a .tsv extension. Please provide a valid TSV file.",
+            f"{input_p} is not a .tsv file. Please provide a valid TSV file.",
         )
 
     try:

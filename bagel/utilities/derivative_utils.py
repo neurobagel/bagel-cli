@@ -18,26 +18,6 @@ PROC_STATUS_COLS = {
 }
 
 
-# TODO: Remove
-def check_if_pipeline_catalog_available():
-    """
-    Check if the pipeline catalog has been successfully fetched from the remote source.
-    """
-    if mappings.PIPELINE_CATALOG != []:
-        if mappings.PIPELINES_FETCHING_ERR:
-            logger.warning(
-                f"Failed to fetch pipeline catalog from {mappings.PROCESSING_PIPELINE_URL}. Error: {mappings.PIPELINES_FETCHING_ERR}. "
-                "Using a packaged backup pipeline catalog instead *which may be outdated*. "
-                "Check your internet connection?"
-            )
-    else:
-        log_error(
-            logger,
-            f"Failed to load the pipeline catalog. Error: {mappings.PIPELINES_FETCHING_ERR} "
-            "Please check that you have an internet connection and try again, or open an issue in https://github.com/neurobagel/bagel-cli/issues if the problem persists.",
-        )
-
-
 def parse_pipeline_catalog(pipeline_catalog: list) -> tuple[dict, dict]:
     """
     Load the pipeline catalog and return a dictionary of pipeline names and their URIs in the Nipoppy namespace,

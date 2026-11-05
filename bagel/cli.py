@@ -747,12 +747,15 @@ def process_derivatives(
             pipeline_catalog=pipeline_catalog
         )
     )
-    # TODO: Refactor
-    derivative_utils.check_at_least_one_pipeline_version_is_recognized(
-        status_df=status_df,
-        known_pipeline_uris=known_pipeline_uris,
-        known_pipeline_versions=known_pipeline_versions,
-    )
+
+    try:
+        derivative_utils.validate_pipeline_name_version_combinations(
+            status_df=status_df,
+            known_pipeline_uris=known_pipeline_uris,
+            known_pipeline_versions=known_pipeline_versions,
+        )
+    except BagelValidationError as e:
+        log_error_and_exit(logger, str(e))
 
     processing_status_subs = status_df[
         PROC_STATUS_COLS["participant"]

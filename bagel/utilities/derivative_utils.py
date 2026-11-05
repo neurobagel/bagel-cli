@@ -4,8 +4,8 @@ from typing import Iterable
 import pandas as pd
 
 from bagel import mappings, models
-from bagel.exceptions import BagelResourceError
-from bagel.logger import log_error_and_exit, logger
+from bagel.exceptions import BagelResourceError, BagelValidationError
+from bagel.logger import logger
 from bagel.utilities import file_utils
 
 # Shorthands for expected column names in a Nipoppy processing status file
@@ -73,7 +73,7 @@ def get_recognized_pipelines(
 ) -> list:
     """
     Check that all pipelines in the processing status file are supported by Nipoppy.
-    Log an error if all pipelines are unrecognized, otherwise warn about unrecognized pipelines.
+    Raise an error if all pipelines are unrecognized, otherwise warn about unrecognized pipelines.
     """
     recognized_pipelines = list(
         set(pipelines).intersection(known_pipeline_uris)
@@ -88,8 +88,7 @@ def get_recognized_pipelines(
         f"{list(known_pipeline_uris.keys())}"
     )
     if not recognized_pipelines:
-        log_error_and_exit(
-            logger,
+        raise BagelValidationError(
             f"The processing status file contains no recognized pipelines in the column: '{PROC_STATUS_COLS['pipeline_name']}'.\n"
             f"{unrecognized_pipelines_details}",
         )
@@ -102,7 +101,7 @@ def get_recognized_pipelines(
     return recognized_pipelines
 
 
-def validate_pipeline_versions(
+def partition_pipeline_versions(
     pipeline: str, versions: Iterable[str], known_pipeline_versions: dict
 ) -> tuple[list, list]:
     """
@@ -119,7 +118,7 @@ def validate_pipeline_versions(
     return recognized_versions, unrecognized_versions
 
 
-def check_at_least_one_pipeline_version_is_recognized(
+def validate_pipeline_name_version_combinations(
     status_df: pd.DataFrame,
     known_pipeline_uris: dict,
     known_pipeline_versions: dict,
@@ -140,7 +139,7 @@ def check_at_least_one_pipeline_version_is_recognized(
         ][PROC_STATUS_COLS["pipeline_version"]].unique()
 
         recognized_versions, unrecognized_versions = (
-            validate_pipeline_versions(
+            partition_pipeline_versions(
                 pipeline=pipeline,
                 versions=versions,
                 known_pipeline_versions=known_pipeline_versions,
@@ -156,8 +155,7 @@ def check_at_least_one_pipeline_version_is_recognized(
         "Supported pipeline versions are found in the Nipoppy pipeline catalog (https://github.com/nipoppy/pipeline-catalog)."
     )
     if not any_recognized_versions:
-        log_error_and_exit(
-            logger,
+        raise BagelValidationError(
             f"The processing status file contains no recognized versions of any pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}'.\n"
             f"{unrecognized_versions_details}",
         )

@@ -1,42 +1,40 @@
 import httpx
 import pytest
-import typer
 
 from bagel import mappings
-from bagel.utilities import file_utils
+from bagel.exceptions import BagelFileError
+from bagel.utilities import derivative_utils, file_utils
 
 
 @pytest.mark.parametrize(
     "unreadable_json,expected_message",
     [
-        ("example_iso88591.json", "Failed to decode the input file"),
+        ("example_iso88591.json", "character encoding error"),
         ("example_invalid_json.json", "not valid JSON"),
     ],
 )
 def test_failed_json_reading_raises_informative_error(
-    test_data, unreadable_json, expected_message, caplog, propagate_errors
+    test_data, unreadable_json, expected_message
 ):
-    """Test that when there is an issue reading an input JSON file, the CLI exits with an informative error message."""
-    with pytest.raises(typer.Exit):
+    """Test that when there is an issue reading an input JSON file, an informative error message is raised."""
+    with pytest.raises(BagelFileError) as exc_info:
         file_utils.load_json(test_data / unreadable_json)
 
-    assert expected_message in caplog.text
+    assert expected_message in str(exc_info.value)
 
 
-def test_unsupported_tsv_encoding_raises_informative_error(
-    test_data, caplog, propagate_errors
-):
-    """Test that given an input phenotypic TSV with an unsupported encoding, the CLI exits with an informative error message."""
-    with pytest.raises(typer.Exit):
+def test_unsupported_tsv_encoding_raises_informative_error(test_data):
+    """Test that given an input phenotypic TSV with an unsupported encoding, an informative error message is raised."""
+    with pytest.raises(BagelFileError) as exc_info:
         file_utils.load_tabular(test_data / "example_iso88591.tsv")
 
-    assert "Failed to decode the input file" in caplog.text
+    assert "character encoding error" in str(exc_info.value)
 
 
 @pytest.mark.parametrize(
     "backup_path",
     [
-        mappings.PROCESSING_PIPELINE_PATH,
+        derivative_utils.PROCESSING_PIPELINE_BACKUP_PATH,
         mappings.CONFIG_NAMESPACES_PATH,
     ],
 )

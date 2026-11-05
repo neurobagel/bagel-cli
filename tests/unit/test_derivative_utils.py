@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
-import typer
 
 from bagel import mappings
+from bagel.exceptions import BagelValidationError
 from bagel.utilities import derivative_utils
 
 
@@ -27,8 +27,8 @@ def known_pipeline_versions():
 def test_pipeline_uris_are_loaded():
     """Test that pipeline URIs are loaded from the pipeline-catalog submodule."""
 
-    uri_dict, _ = derivative_utils.parse_pipeline_catalog(
-        mappings.PIPELINE_CATALOG
+    uri_dict, _ = derivative_utils.create_pipeline_lookups(
+        derivative_utils.fetch_pipeline_catalog()
     )
     assert all(
         ((mappings.NP.pf in pipe_uri) and (" " not in pipe_uri))
@@ -39,8 +39,8 @@ def test_pipeline_uris_are_loaded():
 def test_pipeline_versions_are_loaded():
     """Test that pipeline versions are loaded from the pipeline-catalog submodule."""
 
-    _, version_dict = derivative_utils.parse_pipeline_catalog(
-        mappings.PIPELINE_CATALOG
+    _, version_dict = derivative_utils.create_pipeline_lookups(
+        derivative_utils.fetch_pipeline_catalog()
     )
     assert all(
         isinstance(pipe_versions, list) and len(pipe_versions) > 0
@@ -68,21 +68,19 @@ def test_warning_raised_when_some_pipeline_names_unrecognized(
     assert recognized_pipelines == ["fmriprep"]
 
 
-def test_error_raised_when_no_pipeline_names_recognized(
-    caplog, propagate_errors, known_pipeline_uris
-):
+def test_error_raised_when_no_pipeline_names_recognized(known_pipeline_uris):
     """
     Test that when no provided pipeline names are found in the pipeline catalog,
     an informative error is raised.
     """
     pipelines = ["fakepipeline1", "fakepipeline2"]
 
-    with pytest.raises(typer.Exit):
+    with pytest.raises(BagelValidationError) as exc_info:
         derivative_utils.get_recognized_pipelines(
             pipelines, known_pipeline_uris
         )
 
-    assert "no recognized pipelines" in caplog.text
+    assert "no recognized pipelines" in str(exc_info.value)
 
 
 @pytest.mark.parametrize(
@@ -100,7 +98,7 @@ def test_pipeline_versions_classified_correctly(
 ):
     """Test that versions of a pipeline are correctly classified as recognized or unrecognized according to the pipeline catalog."""
     recog_versions, unrecog_versions = (
-        derivative_utils.validate_pipeline_versions(
+        derivative_utils.partition_pipeline_versions(
             pipeline="fmriprep",
             versions=fmriprep_versions,
             known_pipeline_versions=known_pipeline_versions,
@@ -191,7 +189,7 @@ def test_parse_pipeline_catalog():
         },
         {"name": "freesurfer", "versions": ["6.0.1", "7.3.2"]},
     ]
-    uri_dict, version_dict = derivative_utils.parse_pipeline_catalog(
+    uri_dict, version_dict = derivative_utils.create_pipeline_lookups(
         mock_pipeline_catalog
     )
     assert uri_dict == {

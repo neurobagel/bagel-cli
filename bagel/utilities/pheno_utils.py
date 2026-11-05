@@ -658,7 +658,7 @@ def get_duplicate_id_rows(data_dict: dict, pheno_df: pd.DataFrame) -> list:
     return duplicate_indices
 
 
-# TODO: Factor out dataset description validation from extraction of incomplete fields for readability
+# TODO: Factor out dataset description validation from extraction of incomplete fields for readability?
 def get_validated_dataset_description_and_incomplete_fields(
     raw_dataset_desc: dict,
 ) -> tuple[dataset_description_model.DatasetDescription, set]:

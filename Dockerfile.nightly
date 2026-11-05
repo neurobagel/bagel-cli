@@ -5,6 +5,9 @@ WORKDIR /app
 
 COPY . /app
 
+# Monorepo: the build context has no .git; CI passes the version from the bagel-cli-v* tags
+ARG SETUPTOOLS_SCM_PRETEND_VERSION
+
 # Git is needed for VCS dynamic versioning
 RUN apt-get update && apt-get install git --assume-yes
 

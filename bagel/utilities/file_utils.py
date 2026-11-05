@@ -104,13 +104,13 @@ def request_file(url: str, backup_path: Path) -> tuple[list, str | None]:
         contents = response.json()
     except (httpx.HTTPError, json.JSONDecodeError) as request_err:
         try:
-            # We don't use file_utils.load_json() here because we don't want to throw an error yet if there are problems with the file.
-            # Otherwise, since this function is called to populate global constants in mappings.py, there may be exceptions on import,
-            # meaning there will be errors even if the user runs just bagel --help.
             with open(backup_path, "r", encoding="utf-8") as f:
                 contents = json.load(f)
                 err = str(request_err)
         except Exception as load_err:
+            # We don't want to raise an error here since this function is called to populate global constants in mappings.py
+            # (needed to dynamically load configuration names for the help text of --config for 'bagel create')
+            # and we want to avoid exceptions on import (so there aren't errors if the user runs just bagel --help)
             err = str(load_err)
 
     return contents, err

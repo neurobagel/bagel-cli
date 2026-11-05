@@ -735,7 +735,7 @@ def validate_inputs(
         raise BagelValidationError(
             "The phenotypic table contains missing values in participant or session ID columns. "
             "Ensure that each row includes a non-empty participant ID (and session ID, if the table contains a session ID column). "
-            f"Missing IDs were found in these rows (header row is 1): {row_indices}. "
+            f"Rows with missing IDs (header row is 1): {row_indices}. "
             "[italic]TIP: Check that your table does not have any completely empty rows.[/italic]",
         )
 

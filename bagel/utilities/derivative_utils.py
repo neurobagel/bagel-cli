@@ -18,6 +18,7 @@ PROC_STATUS_COLS = {
 }
 
 
+# TODO: Remove
 def check_if_pipeline_catalog_available():
     """
     Check if the pipeline catalog has been successfully fetched from the remote source.

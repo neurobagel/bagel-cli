@@ -5,7 +5,7 @@ import pandas as pd
 
 from bagel import mappings, models
 from bagel.exceptions import BagelResourceError
-from bagel.logger import log_error, logger
+from bagel.logger import log_error_and_exit, logger
 from bagel.utilities import file_utils
 
 # Shorthands for expected column names in a Nipoppy processing status file
@@ -88,7 +88,7 @@ def get_recognized_pipelines(
         f"{list(known_pipeline_uris.keys())}"
     )
     if not recognized_pipelines:
-        log_error(
+        log_error_and_exit(
             logger,
             f"The processing status file contains no recognized pipelines in the column: '{PROC_STATUS_COLS['pipeline_name']}'.\n"
             f"{unrecognized_pipelines_details}",
@@ -156,7 +156,7 @@ def check_at_least_one_pipeline_version_is_recognized(
         "Supported pipeline versions are found in the Nipoppy pipeline catalog (https://github.com/nipoppy/pipeline-catalog)."
     )
     if not any_recognized_versions:
-        log_error(
+        log_error_and_exit(
             logger,
             f"The processing status file contains no recognized versions of any pipelines in the column '{PROC_STATUS_COLS['pipeline_version']}'.\n"
             f"{unrecognized_versions_details}",

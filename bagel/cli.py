@@ -15,7 +15,12 @@ from .exceptions import (
     BagelResourceError,
     BagelValidationError,
 )
-from .logger import VerbosityLevel, configure_logger, log_error, logger
+from .logger import (
+    VerbosityLevel,
+    configure_logger,
+    log_error_and_exit,
+    logger,
+)
 from .utilities import (
     bids_utils,
     derivative_utils,
@@ -177,7 +182,7 @@ def bids2tsv(
             BIDSLayout(bids_dir, validate=True)
         logger.info("BIDS validation passed.")
     except exceptions.BIDSValidationError as e:
-        log_error(
+        log_error_and_exit(
             logger,
             f"Invalid BIDS dataset at {bids_dir}. Validation error: {e}",
         )
@@ -189,7 +194,7 @@ def bids2tsv(
     try:
         bids_terms_vocab = bids_utils.fetch_bids_terms_vocab()
     except BagelResourceError as e:
-        log_error(logger, str(e))
+        log_error_and_exit(logger, str(e))
 
     nb_bids_suffix_term_map = bids_utils.create_bids_suffix_uri_lookup(
         bids_terms_vocab
@@ -224,7 +229,7 @@ def bids2tsv(
             f"These will be ignored. Supported BIDS suffixes: {list(nb_bids_suffix_term_map.keys())}."
         )
     if not neurobagel_supported_suffixes:
-        log_error(
+        log_error_and_exit(
             logger,
             f"No image files with supported BIDS suffixes were found in {bids_dir}. "
             "A BIDS metadata table could not be generated. "
@@ -542,7 +547,7 @@ def create(
             )
             subject_list.append(subject)
     except BagelValidationError as e:
-        log_error(logger, str(e))
+        log_error_and_exit(logger, str(e))
 
     dataset_graph_attributes = (
         pheno_utils.dataset_description_to_graph_attributes(dataset_metadata)
@@ -585,7 +590,7 @@ def process_bids(
     try:
         bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
     except BagelFileError as e:
-        log_error(
+        log_error_and_exit(
             logger,
             f"Error parsing BIDS table: {e}.",
         )
@@ -597,7 +602,7 @@ def process_bids(
         # NOTE: This only needs to be done if a BIDS table is provided
         bids_terms_vocab = bids_utils.fetch_bids_terms_vocab()
     except (BagelValidationError, BagelResourceError) as e:
-        log_error(logger, str(e))
+        log_error_and_exit(logger, str(e))
 
     bids_suffix_to_std_term_map = bids_utils.create_bids_suffix_uri_lookup(
         bids_terms_vocab
@@ -612,7 +617,7 @@ def process_bids(
         )
     )
     if not neurobagel_supported_suffixes:
-        log_error(
+        log_error_and_exit(
             logger,
             f"No Neurobagel-supported BIDS suffixes found in the 'suffix' column of the BIDS table: {bids_table}. "
             "No imaging metadata could be added to the subject graph data. "
@@ -638,7 +643,7 @@ def process_bids(
         subjects=bids_subject_ids,
         pheno_subjects=existing_subs_dict.keys(),
     ):
-        log_error(
+        log_error_and_exit(
             logger,
             "The BIDS metadata table contains subject IDs not found in the phenotypic table:\n"
             f"{subjects_missing_from_pheno}\n"
@@ -712,7 +717,7 @@ def process_derivatives(
             processing_status_table, input_type="processing status"
         )
     except BagelFileError as e:
-        log_error(
+        log_error_and_exit(
             logger,
             f"Error parsing processing status TSV: {e}.",
         )
@@ -721,7 +726,7 @@ def process_derivatives(
     if missing_id_rows := pheno_utils.get_rows_with_empty_strings(
         status_df, [PROC_STATUS_COLS["participant"]]
     ):
-        log_error(
+        log_error_and_exit(
             logger,
             f"The processing status file contains missing values in the column '{PROC_STATUS_COLS['participant']}'. "
             "Please ensure that every row has a non-empty participant ID. "
@@ -731,7 +736,7 @@ def process_derivatives(
     try:
         pipeline_catalog = derivative_utils.fetch_pipeline_catalog()
     except BagelResourceError as e:
-        log_error(logger, str(e))
+        log_error_and_exit(logger, str(e))
 
     known_pipeline_uris, known_pipeline_versions = (
         derivative_utils.create_pipeline_lookups(
@@ -754,7 +759,7 @@ def process_derivatives(
         subjects=processing_status_subs,
         pheno_subjects=existing_subs_dict.keys(),
     ):
-        log_error(
+        log_error_and_exit(
             logger,
             "The processing status table contains subject IDs not found in the phenotypic table:\n"
             f"{subjects_missing_from_pheno}\n"
@@ -873,7 +878,7 @@ def harmonize_pheno(
     try:
         pheno_utils.validate_inputs(data_dictionary, pheno_df)
     except BagelValidationError as e:
-        log_error(logger, str(e))
+        log_error_and_exit(logger, str(e))
 
     # TODO: Remove once we no longer support annotation tool v1 data dictionaries
     data_dictionary = pheno_utils.convert_transformation_to_format(

@@ -63,7 +63,7 @@ def configure_logger(
     return verbosity.value
 
 
-def log_error(
+def log_error_and_exit(
     logger: logging.Logger,
     message: str,
 ) -> NoReturn:

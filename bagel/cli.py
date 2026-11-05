@@ -587,6 +587,8 @@ def process_bids(
     Extract and integrate imaging metadata from a BIDS dataset with harmonized subject graph data.
     """
 
+    # TODO: Combine BIDS TSV file type validation with file type validation of phenotypic inputs
+    # (i.e., at top of 'create' function) to return all input file parsing errors together
     try:
         bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
     except BagelFileError as e:
@@ -712,6 +714,8 @@ def process_derivatives(
     Extract subject processing pipeline and derivative metadata from a tabular processing status file and integrate it with harmonized subject graph data.
     """
 
+    # TODO: Combine processing status TSV file type validation with file type validation of phenotypic inputs
+    # (i.e., at top of 'create' function) to return all input file parsing errors together
     try:
         status_df = file_utils.load_tabular(
             processing_status_table, input_type="processing status"

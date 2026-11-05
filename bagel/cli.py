@@ -435,7 +435,7 @@ def create(
     except BagelValidationError as e:
         phenotypic_input_errors.append(str(e))
     try:
-        dataset_metadata = pheno_utils.validate_dataset_description(
+        dataset_metadata = pheno_utils.parse_dataset_description(
             dataset_metadata
         )
     except BagelValidationError as e:

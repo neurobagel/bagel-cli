@@ -10,6 +10,11 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, track
 from bagel import mappings, models
 from bagel._version import __version__
 
+from .exceptions import (
+    BagelFileError,
+    BagelResourceError,
+    BagelValidationError,
+)
 from .logger import VerbosityLevel, configure_logger, log_error, logger
 from .utilities import (
     bids_utils,
@@ -19,11 +24,6 @@ from .utilities import (
     pheno_utils,
 )
 from .utilities.derivative_utils import PROC_STATUS_COLS
-from .utilities.exceptions import (
-    BagelFileError,
-    BagelResourceError,
-    BagelValidationError,
-)
 
 OPTION_GROUP_NAMES = {
     "troubleshooting": "Troubleshooting",

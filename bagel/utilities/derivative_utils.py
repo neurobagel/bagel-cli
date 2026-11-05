@@ -4,9 +4,9 @@ from typing import Iterable
 import pandas as pd
 
 from bagel import mappings, models
+from bagel.exceptions import BagelResourceError
 from bagel.logger import log_error, logger
 from bagel.utilities import file_utils
-from bagel.utilities.exceptions import BagelResourceError
 
 # Shorthands for expected column names in a Nipoppy processing status file
 # TODO: While there are multiple session ID columns in a Nipoppy processing status file,

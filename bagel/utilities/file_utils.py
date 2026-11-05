@@ -6,8 +6,8 @@ import httpx
 import pandas as pd
 import typer
 
+from ..exceptions import BagelFileError
 from ..logger import logger
-from .exceptions import BagelFileError
 
 
 def file_encoding_error_message(input_p: Path) -> str:

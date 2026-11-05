@@ -10,9 +10,9 @@ import pandas as pd
 import pydantic
 
 from bagel import dataset_description_model, dictionary_models, mappings
+from bagel.exceptions import BagelValidationError
 from bagel.logger import logger
 from bagel.mappings import DEPRECATED_NAMESPACE_PREFIXES, NB
-from bagel.utilities.exceptions import BagelValidationError
 
 # TODO: Once we remove support for v1 annotation tool data dictionaries, revert to using this version for data dictionary schema validation
 # DICTIONARY_SCHEMA = dictionary_models.DataDictionary.model_json_schema()

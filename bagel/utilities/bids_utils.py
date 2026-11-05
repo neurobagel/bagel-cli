@@ -8,9 +8,9 @@ import pandera.pandas as pa
 from typer import BadParameter
 
 from bagel import bids_table_model, models
+from bagel.exceptions import BagelResourceError, BagelValidationError
 from bagel.logger import logger
 from bagel.utilities import file_utils
-from bagel.utilities.exceptions import BagelResourceError, BagelValidationError
 
 # NOTE: A copy of the imaging modality vocab will likely end up in all community config directories,
 # but since the contents will be the same, we always pull it from the Neurobagel config for now for simplicity.

@@ -1,7 +1,10 @@
 from collections import namedtuple
+from functools import cached_property
 from pathlib import Path
 
-from .utilities import file_utils
+from bagel.logger import logger
+from bagel.utilities import file_utils
+from bagel.utilities.exceptions import BagelResourceError
 
 DEFAULT_CONFIG = "Neurobagel"
 
@@ -43,14 +46,34 @@ CONFIG_NAMESPACES_PATH = (
 )
 CONFIG_NAMESPACES_URL = "https://raw.githubusercontent.com/neurobagel/communities/refs/heads/main/config_metadata/config_namespace_map.json"
 
-
-# TODO: consider refactoring this into a Mappings class that also
-# handles lazy loading of the remote content, i.e. only when accessed
-PIPELINE_CATALOG, PIPELINES_FETCHING_ERR = file_utils.request_file(
-    url=PROCESSING_PIPELINE_URL, backup_path=PROCESSING_PIPELINE_PATH
-)
 CONFIG_NAMESPACES_MAPPING, CONFIG_NAMESPACES_FETCHING_ERR = (
     file_utils.request_file(
         url=CONFIG_NAMESPACES_URL, backup_path=CONFIG_NAMESPACES_PATH
     )
 )
+
+
+class PipelineCatalog:
+    @cached_property
+    def content(self) -> list:
+        """
+        Fetch the pipeline catalog from the remote source and return the content.
+        """
+        pipeline_catalog, fetch_error = file_utils.request_file(
+            url=PROCESSING_PIPELINE_URL, backup_path=PROCESSING_PIPELINE_PATH
+        )
+        if not pipeline_catalog:
+            raise BagelResourceError(
+                f"Failed to load the pipeline catalog. Error: {fetch_error} "
+                "Please check that you have an internet connection and try again, or open an issue in https://github.com/neurobagel/bagel-cli/issues if the problem persists.",
+            )
+        if fetch_error:
+            logger.warning(
+                f"Failed to fetch pipeline catalog from {PROCESSING_PIPELINE_URL}. Error: {fetch_error}. "
+                "Using a packaged backup pipeline catalog instead *which may be outdated*. "
+                "Check your internet connection?"
+            )
+        return pipeline_catalog
+
+
+PIPELINE_CATALOG = PipelineCatalog()

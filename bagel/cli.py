@@ -584,6 +584,7 @@ def process_bids(
             f"Error parsing BIDS table: {e}.",
         )
 
+    # TODO: Check error independence
     try:
         # Check that all expected columns are present
         bids_utils.validate_bids_table(bids_dataset)
@@ -701,8 +702,6 @@ def process_derivatives(
     Extract subject processing pipeline and derivative metadata from a tabular processing status file and integrate it with harmonized subject graph data.
     """
 
-    derivative_utils.check_if_pipeline_catalog_available()
-
     try:
         status_df = file_utils.load_tabular(
             processing_status_table, input_type="processing status"
@@ -713,20 +712,28 @@ def process_derivatives(
             f"Error parsing processing status TSV: {e}.",
         )
 
+    derivatives_errors = []
     # We don't allow empty values in the participant ID column
-    if row_indices := pheno_utils.get_rows_with_empty_strings(
+    if missing_id_rows := pheno_utils.get_rows_with_empty_strings(
         status_df, [PROC_STATUS_COLS["participant"]]
     ):
-        log_error(
-            logger,
-            f"Your processing status file contains missing values in the column '{PROC_STATUS_COLS['participant']}'. "
-            "Please ensure that every row has a non-empty participant id. "
-            f"We found missing values in the following rows (first row is zero): {row_indices}.",
+        derivatives_errors.append(
+            f"The processing status file contains missing values in the column '{PROC_STATUS_COLS['participant']}'. "
+            "Please ensure that every row has a non-empty participant ID. "
+            f"Rows with missing participant IDs (first row is 1): {missing_id_rows}.",
         )
-
-    known_pipeline_uris, known_pipeline_versions = (
-        derivative_utils.parse_pipeline_catalog(mappings.PIPELINE_CATALOG)
-    )
+    try:
+        known_pipeline_uris, known_pipeline_versions = (
+            derivative_utils.parse_pipeline_catalog(
+                mappings.PIPELINE_CATALOG.content
+            )
+        )
+    except BagelResourceError as e:
+        derivatives_errors.append(str(e))
+    for error in derivatives_errors:
+        logger.error(error)
+    if derivatives_errors:
+        raise typer.Exit(code=1)
 
     derivative_utils.check_at_least_one_pipeline_version_is_recognized(
         status_df=status_df,

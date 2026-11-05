@@ -1,9 +1,12 @@
+from pathlib import Path
 from typing import Iterable
 
 import pandas as pd
 
 from bagel import mappings, models
 from bagel.logger import log_error, logger
+from bagel.utilities import file_utils
+from bagel.utilities.exceptions import BagelResourceError
 
 # Shorthands for expected column names in a Nipoppy processing status file
 # TODO: While there are multiple session ID columns in a Nipoppy processing status file,
@@ -16,12 +19,43 @@ PROC_STATUS_COLS = {
     "pipeline_version": "pipeline_version",
     "status": "status",
 }
+PROCESSING_PIPELINE_URL = "https://raw.githubusercontent.com/nipoppy/pipeline-catalog/refs/heads/main/processing/processing.json"
+# TODO: Use importlib.resources.files(bagel) to get the path to the pipeline-catalog instead?
+PROCESSING_PIPELINE_BACKUP_PATH = (
+    Path(__file__).parents[1] / "pipeline-catalog/processing/processing.json"
+)
 
 
-def parse_pipeline_catalog(pipeline_catalog: list) -> tuple[dict, dict]:
+def fetch_pipeline_catalog() -> list:
     """
-    Load the pipeline catalog and return a dictionary of pipeline names and their URIs in the Nipoppy namespace,
-    and a dictionary of pipeline names and their supported versions in Nipoppy.
+    Fetch the pipeline catalog from the remote source and return the content.
+
+    Raises:
+        BagelResourceError: If the pipeline catalog cannot be fetched from either the remote URL or local backup.
+    """
+    pipeline_catalog, fetch_error = file_utils.request_file(
+        url=PROCESSING_PIPELINE_URL,
+        backup_path=PROCESSING_PIPELINE_BACKUP_PATH,
+    )
+    if not pipeline_catalog:
+        raise BagelResourceError(
+            f"Failed to load the pipeline catalog needed to validate the processing status file. Error: {fetch_error} "
+            "Please check that you have an internet connection and try again, or open an issue in https://github.com/neurobagel/bagel-cli/issues if the problem persists.",
+        )
+    if fetch_error:
+        logger.warning(
+            f"Failed to fetch pipeline catalog from {PROCESSING_PIPELINE_URL}. Error: {fetch_error}. "
+            "Using a packaged backup pipeline catalog instead *which may be outdated*. "
+            "Check your internet connection?"
+        )
+    return pipeline_catalog
+
+
+def create_pipeline_lookups(pipeline_catalog: list) -> tuple[dict, dict]:
+    """
+    Parse the pipeline catalog and return two lookup dictionaries:
+    - one mapping pipeline names to their URIs in the Nipoppy namespace
+    - one mapping pipeline names to their supported versions in Nipoppy
     """
     pipeline_versions = {}
     pipeline_uris = {}

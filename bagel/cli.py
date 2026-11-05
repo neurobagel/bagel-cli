@@ -186,7 +186,14 @@ def bids2tsv(
     dataset_tab = b2t2.index_dataset(bids_dir)
     dataset_df = dataset_tab.to_pandas()
 
-    nb_bids_suffix_term_map = bids_utils.get_bids_suffix_to_std_term_mapping()
+    try:
+        bids_terms_vocab = bids_utils.fetch_bids_terms_vocab()
+    except BagelResourceError as e:
+        log_error(logger, str(e))
+
+    nb_bids_suffix_term_map = bids_utils.create_bids_suffix_uri_lookup(
+        bids_terms_vocab
+    )
 
     bids_recognized_suffixes, bids_unrecognized_suffixes = (
         bids_utils.partition_suffixes(
@@ -583,19 +590,27 @@ def process_bids(
             f"Error parsing BIDS table: {e}.",
         )
 
-    # TODO: Check error independence
+    bids_initial_errors = []
     try:
         # Check that all expected columns are present
         bids_utils.validate_bids_table(bids_dataset)
-
+    except BagelValidationError as e:
+        bids_initial_errors.append(str(e))
+    try:
         # Fetch the remote imaging modality vocabulary needed for downstream checks
         # NOTE: This only needs to be done if a BIDS table is provided
-        bids_suffix_to_std_term_map = (
-            bids_utils.get_bids_suffix_to_std_term_mapping()
-        )
-    except (BagelValidationError, BagelResourceError) as e:
-        log_error(logger, str(e))
+        bids_terms_vocab = bids_utils.fetch_bids_terms_vocab()
+    except BagelResourceError as e:
+        bids_initial_errors.append(str(e))
 
+    for error in bids_initial_errors:
+        logger.error(error)
+    if bids_initial_errors:
+        raise typer.Exit(code=1)
+
+    bids_suffix_to_std_term_map = bids_utils.create_bids_suffix_uri_lookup(
+        bids_terms_vocab
+    )
     # NOTE: The BIDS table model validation will check for required columns and for empty values in the "suffix" column
     # and error out for any problem. Because we want to also ignore unsupported suffixes with a warning instead of a validation error,
     # we check the suffix column separately here and then remove any offending values.
@@ -711,29 +726,31 @@ def process_derivatives(
             f"Error parsing processing status TSV: {e}.",
         )
 
-    derivatives_errors = []
+    errors = []
     # We don't allow empty values in the participant ID column
     if missing_id_rows := pheno_utils.get_rows_with_empty_strings(
         status_df, [PROC_STATUS_COLS["participant"]]
     ):
-        derivatives_errors.append(
+        errors.append(
             f"The processing status file contains missing values in the column '{PROC_STATUS_COLS['participant']}'. "
             "Please ensure that every row has a non-empty participant ID. "
             f"Rows with missing participant IDs (first row is 1): {missing_id_rows}.",
         )
     try:
-        known_pipeline_uris, known_pipeline_versions = (
-            derivative_utils.parse_pipeline_catalog(
-                mappings.PIPELINE_CATALOG.content
-            )
-        )
+        pipeline_catalog = derivative_utils.fetch_pipeline_catalog()
     except BagelResourceError as e:
-        derivatives_errors.append(str(e))
-    for error in derivatives_errors:
+        errors.append(str(e))
+    for error in errors:
         logger.error(error)
-    if derivatives_errors:
+    if errors:
         raise typer.Exit(code=1)
 
+    known_pipeline_uris, known_pipeline_versions = (
+        derivative_utils.create_pipeline_lookups(
+            pipeline_catalog=pipeline_catalog
+        )
+    )
+    # TODO: Refactor
     derivative_utils.check_at_least_one_pipeline_version_is_recognized(
         status_df=status_df,
         known_pipeline_uris=known_pipeline_uris,

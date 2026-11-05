@@ -4,7 +4,6 @@ from typing import Iterable
 import pydantic
 
 from bagel import models
-from bagel.logger import log_error, logger
 from bagel.mappings import NB
 from bagel.utilities import pheno_utils
 
@@ -45,29 +44,6 @@ def get_subs_missing_from_pheno_data(
 ) -> list:
     """Check a list of subject IDs and return any not found in the provided phenotypic subject list."""
     return list(set(subjects).difference(pheno_subjects))
-
-
-# TODO: Remove
-def confirm_subs_match_pheno_data(
-    subjects: Iterable, subject_source_for_err: str, pheno_subjects: Iterable
-):
-    """
-    Return an error if not all subjects in the subject list are found in the provided phenotypic subject list.
-    """
-    missing_subs = get_subs_missing_from_pheno_data(
-        subjects=subjects,
-        pheno_subjects=pheno_subjects,
-    )
-
-    if len(missing_subs) > 0:
-        log_error(
-            logger,
-            f"The {subject_source_for_err} contains subject IDs not found in "
-            "the provided JSON-LD file:\n"
-            f"{missing_subs}\n"
-            "Subject IDs are case sensitive. "
-            f"Please check that the {subject_source_for_err} corresponds to the dataset in the .jsonld file.",
-        )
 
 
 def get_subject_instances(

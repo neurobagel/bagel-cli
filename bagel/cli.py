@@ -427,7 +427,6 @@ def create(
         pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
     except BagelValidationError as e:
         phenotypic_input_errors.append(str(e))
-
     try:
         dataset_metadata = pheno_utils.validate_dataset_description(
             dataset_metadata
@@ -635,7 +634,7 @@ def process_bids(
     ):
         log_error(
             logger,
-            f"The BIDS metadata table contains subject IDs not found in the phenotypic table:\n"
+            "The BIDS metadata table contains subject IDs not found in the phenotypic table:\n"
             f"{subjects_missing_from_pheno}\n"
             "Subject IDs are case sensitive. "
             "Please ensure that all subjects in the BIDS TSV have a corresponding entry in the phenotypic TSV.",
@@ -741,14 +740,22 @@ def process_derivatives(
         known_pipeline_versions=known_pipeline_versions,
     )
 
+    processing_status_subs = status_df[
+        PROC_STATUS_COLS["participant"]
+    ].unique()
     existing_subs_dict = model_utils.get_subject_instances(graph_dataset)
 
-    # TODO: Refactor
-    model_utils.confirm_subs_match_pheno_data(
-        subjects=status_df[PROC_STATUS_COLS["participant"]].unique(),
-        subject_source_for_err="processing status file",
+    if subjects_missing_from_pheno := model_utils.get_subs_missing_from_pheno_data(
+        subjects=processing_status_subs,
         pheno_subjects=existing_subs_dict.keys(),
-    )
+    ):
+        log_error(
+            logger,
+            "The processing status table contains subject IDs not found in the phenotypic table:\n"
+            f"{subjects_missing_from_pheno}\n"
+            "Subject IDs are case sensitive. "
+            "Please ensure that all subjects in the processing status TSV have a corresponding entry in the phenotypic TSV.",
+        )
 
     # Create sub-dataframes for each subject
     for subject, sub_proc_df in status_df.groupby(

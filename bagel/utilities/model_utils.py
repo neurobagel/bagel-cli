@@ -47,6 +47,7 @@ def get_subs_missing_from_pheno_data(
     return list(set(subjects).difference(pheno_subjects))
 
 
+# TODO: Remove
 def confirm_subs_match_pheno_data(
     subjects: Iterable, subject_source_for_err: str, pheno_subjects: Iterable
 ):

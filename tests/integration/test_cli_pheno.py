@@ -1071,12 +1071,13 @@ def test_phenotypic_file_parsing_errors_returned_together(
     propagate_errors,
 ):
     """
-    Test that when multiple phenotypic input files have file format issues,
+    Test that when multiple phenotypic input files have file format issues (i.e., not UTF-8 encoded),
     the CLI returns all errors together instead of failing on the first one.
     """
     expected_err_messages = [
         "Error parsing phenotypic TSV",
         "Error parsing data dictionary",
+        "Error parsing dataset description",
     ]
     result = runner.invoke(
         bagel,
@@ -1089,7 +1090,8 @@ def test_phenotypic_file_parsing_errors_returned_together(
             "--output",
             temp_output_jsonld_path,
             "--dataset-description",
-            test_data_upload_path / "synthetic_dataset_description.json",
+            # not a real dataset description, just a placeholder for a non-UTF-8 encoded JSON file
+            test_data_upload_path / "example_iso88591.json",
         ],
         catch_exceptions=False,
     )
@@ -1101,6 +1103,6 @@ def test_phenotypic_file_parsing_errors_returned_together(
     ]
 
     assert result.exit_code != 0
-    assert len(errors) == 2
+    assert len(errors) == 3
     for err_message in expected_err_messages:
         assert any(err_message in error for error in errors)

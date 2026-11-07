@@ -1059,3 +1059,48 @@ def test_invalid_dataset_description_handled_gracefully(
     assert (
         "dataset description does not match the expected schema" in caplog.text
     )
+
+
+def test_phenotypic_file_parsing_errors_returned_together(
+    runner,
+    test_data,
+    test_data_upload_path,
+    temp_output_jsonld_path,
+    tmp_path,
+    caplog,
+    propagate_errors,
+):
+    """
+    Test that when multiple phenotypic input files have file format issues,
+    the CLI returns all errors together instead of failing on the first one.
+    """
+    expected_err_messages = [
+        "Error parsing phenotypic TSV",
+        "Error parsing data dictionary",
+    ]
+    result = runner.invoke(
+        bagel,
+        [
+            "create",
+            "--pheno",
+            test_data / "example_iso88591.tsv",
+            "--dictionary",
+            test_data / "example_iso88591.json",
+            "--output",
+            temp_output_jsonld_path,
+            "--dataset-description",
+            test_data_upload_path / "synthetic_dataset_description.json",
+        ],
+        catch_exceptions=False,
+    )
+
+    errors = [
+        record.message
+        for record in caplog.records
+        if record.levelname == "ERROR"
+    ]
+
+    assert result.exit_code != 0
+    assert len(errors) == 2
+    for err_message in expected_err_messages:
+        assert any(err_message in error for error in errors)

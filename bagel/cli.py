@@ -10,7 +10,17 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, track
 from bagel import mappings, models
 from bagel._version import __version__
 
-from .logger import VerbosityLevel, configure_logger, log_error, logger
+from .exceptions import (
+    BagelFileError,
+    BagelResourceError,
+    BagelValidationError,
+)
+from .logger import (
+    VerbosityLevel,
+    configure_logger,
+    log_error_and_exit,
+    logger,
+)
 from .utilities import (
     bids_utils,
     derivative_utils,
@@ -172,7 +182,7 @@ def bids2tsv(
             BIDSLayout(bids_dir, validate=True)
         logger.info("BIDS validation passed.")
     except exceptions.BIDSValidationError as e:
-        log_error(
+        log_error_and_exit(
             logger,
             f"Invalid BIDS dataset at {bids_dir}. Validation error: {e}",
         )
@@ -181,7 +191,14 @@ def bids2tsv(
     dataset_tab = b2t2.index_dataset(bids_dir)
     dataset_df = dataset_tab.to_pandas()
 
-    nb_bids_suffix_term_map = bids_utils.get_bids_suffix_to_std_term_mapping()
+    try:
+        bids_terms_vocab = bids_utils.fetch_bids_terms_vocab()
+    except BagelResourceError as e:
+        log_error_and_exit(logger, str(e))
+
+    nb_bids_suffix_term_map = bids_utils.create_bids_suffix_uri_lookup(
+        bids_terms_vocab
+    )
 
     bids_recognized_suffixes, bids_unrecognized_suffixes = (
         bids_utils.partition_suffixes(
@@ -212,7 +229,7 @@ def bids2tsv(
             f"These will be ignored. Supported BIDS suffixes: {list(nb_bids_suffix_term_map.keys())}."
         )
     if not neurobagel_supported_suffixes:
-        log_error(
+        log_error_and_exit(
             logger,
             f"No image files with supported BIDS suffixes were found in {bids_dir}. "
             "A BIDS metadata table could not be generated. "
@@ -351,9 +368,34 @@ def create(
     """
     file_utils.check_overwrite(output, overwrite)
 
-    data_dictionary = file_utils.load_json(dictionary)
-    pheno_df = file_utils.load_tabular(pheno)
-    dataset_metadata = file_utils.load_json(dataset_description)
+    # The phenotypic input files can be loaded independently of each other,
+    # so we collect any file errors across all three before exiting to give the user a complete picture of file formatting issues.”
+    phenotypic_file_parsing_errors = []
+    try:
+        data_dictionary = file_utils.load_json(dictionary)
+    except BagelFileError as e:
+        phenotypic_file_parsing_errors.append(
+            f"Error parsing data dictionary: {e}"
+        )
+
+    try:
+        pheno_df = file_utils.load_tabular(pheno)
+    except BagelFileError as e:
+        phenotypic_file_parsing_errors.append(
+            f"Error parsing phenotypic TSV: {e}"
+        )
+
+    try:
+        dataset_metadata = file_utils.load_json(dataset_description)
+    except BagelFileError as e:
+        phenotypic_file_parsing_errors.append(
+            f"Error parsing dataset description: {e}"
+        )
+
+    for error in phenotypic_file_parsing_errors:
+        logger.error(error)
+    if phenotypic_file_parsing_errors:
+        raise typer.Exit(code=1)
 
     pheno_utils.check_if_remote_config_namespaces_used()
 
@@ -391,10 +433,23 @@ def create(
         )
 
     logger.info("Processing phenotypic annotations...")
-    pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
-    dataset_metadata = pheno_utils.validate_dataset_description(
-        dataset_metadata
-    )
+
+    phenotypic_input_errors = []
+    try:
+        pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
+    except BagelValidationError as e:
+        phenotypic_input_errors.append(str(e))
+    try:
+        dataset_metadata = pheno_utils.parse_dataset_description(
+            dataset_metadata
+        )
+    except BagelValidationError as e:
+        phenotypic_input_errors.append(str(e))
+
+    for error in phenotypic_input_errors:
+        logger.error(error)
+    if phenotypic_input_errors:
+        raise typer.Exit(code=1)
 
     # TODO: Remove once we no longer support annotation tool v1 data dictionaries
     data_dictionary = pheno_utils.convert_transformation_to_format(
@@ -412,82 +467,87 @@ def create(
     # Note that `session_column will be None if there is no session column in the pheno.tsv
     session_column = column_mapping.get("session")
 
-    for participant in pheno_df[participants].unique():
-        _sub_pheno = pheno_df.query(
-            f"`{participants}` == '{str(participant)}'"
-        )
+    try:
+        for participant in pheno_df[participants].unique():
+            _sub_pheno = pheno_df.query(
+                f"`{participants}` == '{str(participant)}'"
+            )
 
-        sessions = []
-        for session_row_idx, session_row in _sub_pheno.iterrows():
-            # Our data model requires a session. To support phenotypic data without sessions,
-            # we create a session with a fixed, but unusual CUSTOM_SESSION_LABEL and add the
-            # phenotypic data to that session.
-            if session_column is None:
-                session_label = CUSTOM_SESSION_LABEL
-            else:
-                # NOTE: We take the name from the first session column - we don't know how to handle multiple session columns yet
-                session_label = session_row[session_column[0]]
+            sessions = []
+            for session_row_idx, session_row in _sub_pheno.iterrows():
+                # Our data model requires a session. To support phenotypic data without sessions,
+                # we create a session with a fixed, but unusual CUSTOM_SESSION_LABEL and add the
+                # phenotypic data to that session.
+                if session_column is None:
+                    session_label = CUSTOM_SESSION_LABEL
+                else:
+                    # NOTE: We take the name from the first session column - we don't know how to handle multiple session columns yet
+                    session_label = session_row[session_column[0]]
 
-            session = models.PhenotypicSession(hasLabel=str(session_label))
-            _ses_pheno = session_row
+                session = models.PhenotypicSession(hasLabel=str(session_label))
+                _ses_pheno = session_row
 
-            if "sex" in column_mapping.keys():
-                _sex_vals = pheno_utils.get_transformed_values(
-                    column_mapping["sex"], _ses_pheno, data_dictionary
-                )
-                if _sex_vals:
-                    # NOTE: Our data model only allows a single sex value, so we only take the first instance if multiple columns are about sex
-                    session.hasSex = models.Sex(identifier=_sex_vals[0])
+                if "sex" in column_mapping.keys():
+                    _sex_vals = pheno_utils.get_transformed_values(
+                        column_mapping["sex"], _ses_pheno, data_dictionary
+                    )
+                    if _sex_vals:
+                        # NOTE: Our data model only allows a single sex value, so we only take the first instance if multiple columns are about sex
+                        session.hasSex = models.Sex(identifier=_sex_vals[0])
 
-            if "diagnosis" in column_mapping.keys():
-                _dx_vals = pheno_utils.get_transformed_values(
-                    column_mapping["diagnosis"], _ses_pheno, data_dictionary
-                )
-                if _dx_vals:
-                    session.hasDiagnosis = [
-                        models.Diagnosis(identifier=_dx_val)
-                        for _dx_val in _dx_vals
+                if "diagnosis" in column_mapping.keys():
+                    _dx_vals = pheno_utils.get_transformed_values(
+                        column_mapping["diagnosis"],
+                        _ses_pheno,
+                        data_dictionary,
+                    )
+                    if _dx_vals:
+                        session.hasDiagnosis = [
+                            models.Diagnosis(identifier=_dx_val)
+                            for _dx_val in _dx_vals
+                        ]
+
+                if "subject_group" in column_mapping.keys():
+                    _group_vals = pheno_utils.get_transformed_values(
+                        column_mapping["subject_group"],
+                        _ses_pheno,
+                        data_dictionary,
+                    )
+                    if _group_vals:
+                        session.isSubjectGroup = models.SubjectGroup(
+                            identifier=_group_vals[0]
+                        )
+
+                if "age" in column_mapping.keys():
+                    # NOTE: At the moment, our data model only supports a single age value per subject.
+                    # To achieve this, we transform the values from ALL columns annotated as about age
+                    # (so we expect each of them to be valid according to the data dictionary model),
+                    # but we take and store only the first instance in the graph data.
+                    _age_vals = pheno_utils.get_transformed_values(
+                        column_mapping["age"], _ses_pheno, data_dictionary
+                    )
+                    if _age_vals:
+                        session.hasAge = _age_vals[0]
+
+                if tool_mapping:
+                    _assessments = [
+                        models.Assessment(identifier=tool)
+                        for tool, columns in tool_mapping.items()
+                        if pheno_utils.are_any_available(
+                            columns, _ses_pheno, data_dictionary
+                        )
                     ]
+                    if _assessments:
+                        # Only set assessments for the subject if at least one has a non-missing item
+                        session.hasAssessment = _assessments
+                sessions.append(session)
 
-            if "subject_group" in column_mapping.keys():
-                _group_vals = pheno_utils.get_transformed_values(
-                    column_mapping["subject_group"],
-                    _ses_pheno,
-                    data_dictionary,
-                )
-                if _group_vals:
-                    session.isSubjectGroup = models.SubjectGroup(
-                        identifier=_group_vals[0]
-                    )
-
-            if "age" in column_mapping.keys():
-                # NOTE: At the moment, our data model only supports a single age value per subject.
-                # To achieve this, we transform the values from ALL columns annotated as about age
-                # (so we expect each of them to be valid according to the data dictionary model),
-                # but we take and store only the first instance in the graph data.
-                _age_vals = pheno_utils.get_transformed_values(
-                    column_mapping["age"], _ses_pheno, data_dictionary
-                )
-                if _age_vals:
-                    session.hasAge = _age_vals[0]
-
-            if tool_mapping:
-                _assessments = [
-                    models.Assessment(identifier=tool)
-                    for tool, columns in tool_mapping.items()
-                    if pheno_utils.are_any_available(
-                        columns, _ses_pheno, data_dictionary
-                    )
-                ]
-                if _assessments:
-                    # Only set assessments for the subject if at least one has a non-missing item
-                    session.hasAssessment = _assessments
-            sessions.append(session)
-
-        subject = models.Subject(
-            hasLabel=str(participant), hasSession=sessions
-        )
-        subject_list.append(subject)
+            subject = models.Subject(
+                hasLabel=str(participant), hasSession=sessions
+            )
+            subject_list.append(subject)
+    except BagelValidationError as e:
+        log_error_and_exit(logger, str(e))
 
     dataset_graph_attributes = (
         pheno_utils.dataset_description_to_graph_attributes(dataset_metadata)
@@ -527,54 +587,71 @@ def process_bids(
     Extract and integrate imaging metadata from a BIDS dataset with harmonized subject graph data.
     """
 
-    bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
+    # TODO: Combine BIDS TSV file type validation with file type validation of phenotypic inputs
+    # (i.e., at top of 'create' function) to return all input file parsing errors together
+    try:
+        bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
+    except BagelFileError as e:
+        log_error_and_exit(
+            logger,
+            f"Error parsing BIDS table: {e}.",
+        )
 
-    # NOTE: This check requires fetching a remote vocabulary, and so is only performed
-    # if a BIDS table is provided
-    bids_suffix_to_std_term_map = (
-        bids_utils.get_bids_suffix_to_std_term_mapping()
+    try:
+        # Check that all expected columns are present
+        bids_utils.validate_bids_table(bids_dataset)
+        # Fetch the remote imaging modality vocabulary needed for downstream checks
+        # NOTE: This only needs to be done if a BIDS table is provided
+        bids_terms_vocab = bids_utils.fetch_bids_terms_vocab()
+    except (BagelValidationError, BagelResourceError) as e:
+        log_error_and_exit(logger, str(e))
+
+    bids_suffix_to_std_term_map = bids_utils.create_bids_suffix_uri_lookup(
+        bids_terms_vocab
     )
     # NOTE: The BIDS table model validation will check for required columns and for empty values in the "suffix" column
-    # and error out for any problem. Because we want to ignore unsupported suffixes with a warning instead of a validation error,
+    # and error out for any problem. Because we want to also ignore unsupported suffixes with a warning instead of a validation error,
     # we check the suffix column separately here and then remove any offending values.
-    # For our custom suffix-check to work, we need to ensure that the "suffix" column exists here.
-    if "suffix" in bids_dataset.columns:
-        # We assume that most input BIDS TSVs will have been generated by the 'bids2tsv' command,
-        # so we only log a generic warning here for any suffixes found in the table that are not supported by Neurobagel
-        neurobagel_supported_suffixes, neurobagel_unsupported_suffixes = (
-            bids_utils.partition_suffixes(
-                suffixes=bids_dataset["suffix"],
-                reference_suffixes=bids_suffix_to_std_term_map.keys(),
-            )
+    neurobagel_supported_suffixes, neurobagel_unsupported_suffixes = (
+        bids_utils.partition_suffixes(
+            suffixes=bids_dataset["suffix"],
+            reference_suffixes=bids_suffix_to_std_term_map.keys(),
         )
-        if not neurobagel_supported_suffixes:
-            log_error(
-                logger,
-                f"No Neurobagel-supported BIDS suffixes found in BIDS table 'suffix' column: {bids_table}. "
-                "No imaging metadata could be added to the subject graph data. "
-                "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
-                f"(supported suffixes: {list(bids_suffix_to_std_term_map.keys())}).",
-            )
-        if neurobagel_unsupported_suffixes:
-            logger.warning(
-                f"BIDS table 'suffix' column contains file suffixes unsupported by Neurobagel: {list(neurobagel_unsupported_suffixes)}. "
-                f"These records will be ignored. Supported file suffixes: {list(bids_suffix_to_std_term_map.keys())}."
-            )
+    )
+    if not neurobagel_supported_suffixes:
+        log_error_and_exit(
+            logger,
+            f"No Neurobagel-supported BIDS suffixes found in the 'suffix' column of the BIDS table: {bids_table}. "
+            "No imaging metadata could be added to the subject graph data. "
+            "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
+            f"(supported suffixes: {list(bids_suffix_to_std_term_map.keys())}).",
+        )
+    # We assume that most input BIDS TSVs will have been generated by the 'bids2tsv' command,
+    # so we only log a generic warning here for any suffixes found in the table that are not supported by Neurobagel
+    if neurobagel_unsupported_suffixes:
+        logger.warning(
+            f"BIDS table 'suffix' column contains file suffixes unsupported by Neurobagel: {list(neurobagel_unsupported_suffixes)}. "
+            f"These records will be ignored. Supported file suffixes: {list(bids_suffix_to_std_term_map.keys())}."
+        )
 
         bids_dataset = bids_dataset[
             bids_dataset["suffix"].isin(neurobagel_supported_suffixes)
         ].copy()
 
-    bids_utils.validate_bids_table(bids_dataset)
-
     existing_subs_dict = model_utils.get_subject_instances(graph_dataset)
     bids_subject_ids = list(bids_dataset["sub"].unique())
 
-    model_utils.confirm_subs_match_pheno_data(
+    if subjects_missing_from_pheno := model_utils.get_subs_missing_from_pheno_data(
         subjects=bids_subject_ids,
-        subject_source_for_err="BIDS dataset file",
         pheno_subjects=existing_subs_dict.keys(),
-    )
+    ):
+        log_error_and_exit(
+            logger,
+            "The BIDS metadata table contains subject IDs not found in the phenotypic table:\n"
+            f"{subjects_missing_from_pheno}\n"
+            "Subject IDs are case sensitive. "
+            "Please ensure that all subjects in the BIDS TSV have a corresponding entry in the phenotypic TSV.",
+        )
 
     logger.info(
         "Subject metadata for the following Neurobagel-supported imaging modalities "
@@ -637,40 +714,65 @@ def process_derivatives(
     Extract subject processing pipeline and derivative metadata from a tabular processing status file and integrate it with harmonized subject graph data.
     """
 
-    derivative_utils.check_if_pipeline_catalog_available()
-
-    status_df = file_utils.load_tabular(
-        processing_status_table, input_type="processing status"
-    )
-
-    # We don't allow empty values in the participant ID column
-    if row_indices := pheno_utils.get_rows_with_empty_strings(
-        status_df, [PROC_STATUS_COLS["participant"]]
-    ):
-        log_error(
+    # TODO: Combine processing status TSV file type validation with file type validation of phenotypic inputs
+    # (i.e., at top of 'create' function) to return all input file parsing errors together
+    try:
+        status_df = file_utils.load_tabular(
+            processing_status_table, input_type="processing status"
+        )
+    except BagelFileError as e:
+        log_error_and_exit(
             logger,
-            f"Your processing status file contains missing values in the column '{PROC_STATUS_COLS['participant']}'. "
-            "Please ensure that every row has a non-empty participant id. "
-            f"We found missing values in the following rows (first row is zero): {row_indices}.",
+            f"Error parsing processing status TSV: {e}.",
         )
 
+    # We don't allow empty values in the participant ID column
+    if missing_id_rows := pheno_utils.get_rows_with_empty_strings(
+        status_df, [PROC_STATUS_COLS["participant"]]
+    ):
+        log_error_and_exit(
+            logger,
+            f"The processing status file contains missing values in the column '{PROC_STATUS_COLS['participant']}'. "
+            "Please ensure that every row has a non-empty participant ID. "
+            f"Rows with missing participant IDs (first row is 1): {missing_id_rows}.",
+        )
+
+    try:
+        pipeline_catalog = derivative_utils.fetch_pipeline_catalog()
+    except BagelResourceError as e:
+        log_error_and_exit(logger, str(e))
+
     known_pipeline_uris, known_pipeline_versions = (
-        derivative_utils.parse_pipeline_catalog(mappings.PIPELINE_CATALOG)
+        derivative_utils.create_pipeline_lookups(
+            pipeline_catalog=pipeline_catalog
+        )
     )
 
-    derivative_utils.check_at_least_one_pipeline_version_is_recognized(
-        status_df=status_df,
-        known_pipeline_uris=known_pipeline_uris,
-        known_pipeline_versions=known_pipeline_versions,
-    )
+    try:
+        derivative_utils.validate_pipeline_name_version_combinations(
+            status_df=status_df,
+            known_pipeline_uris=known_pipeline_uris,
+            known_pipeline_versions=known_pipeline_versions,
+        )
+    except BagelValidationError as e:
+        log_error_and_exit(logger, str(e))
 
+    processing_status_subs = status_df[
+        PROC_STATUS_COLS["participant"]
+    ].unique()
     existing_subs_dict = model_utils.get_subject_instances(graph_dataset)
 
-    model_utils.confirm_subs_match_pheno_data(
-        subjects=status_df[PROC_STATUS_COLS["participant"]].unique(),
-        subject_source_for_err="processing status file",
+    if subjects_missing_from_pheno := model_utils.get_subs_missing_from_pheno_data(
+        subjects=processing_status_subs,
         pheno_subjects=existing_subs_dict.keys(),
-    )
+    ):
+        log_error_and_exit(
+            logger,
+            "The processing status table contains subject IDs not found in the phenotypic table:\n"
+            f"{subjects_missing_from_pheno}\n"
+            "Subject IDs are case sensitive. "
+            "Please ensure that all subjects in the processing status TSV have a corresponding entry in the phenotypic TSV.",
+        )
 
     # Create sub-dataframes for each subject
     for subject, sub_proc_df in status_df.groupby(
@@ -753,8 +855,25 @@ def harmonize_pheno(
     """
     file_utils.check_overwrite(output, overwrite)
 
-    data_dictionary = file_utils.load_json(dictionary)
-    pheno_df = file_utils.load_tabular(pheno)
+    phenotypic_file_parsing_errors = []
+    try:
+        data_dictionary = file_utils.load_json(dictionary)
+    except BagelFileError as e:
+        phenotypic_file_parsing_errors.append(
+            f"Error loading data dictionary: {e}"
+        )
+
+    try:
+        pheno_df = file_utils.load_tabular(pheno)
+    except BagelFileError as e:
+        phenotypic_file_parsing_errors.append(
+            f"Error loading phenotypic TSV: {e}"
+        )
+
+    for error in phenotypic_file_parsing_errors:
+        logger.error(error)
+    if phenotypic_file_parsing_errors:
+        raise typer.Exit(code=1)
 
     logger.info("Running initial checks of inputs...")
     # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
@@ -762,7 +881,11 @@ def harmonize_pheno(
     width = 26
     logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
     logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
-    pheno_utils.validate_inputs(data_dictionary, pheno_df)
+
+    try:
+        pheno_utils.validate_inputs(data_dictionary, pheno_df)
+    except BagelValidationError as e:
+        log_error_and_exit(logger, str(e))
 
     # TODO: Remove once we no longer support annotation tool v1 data dictionaries
     data_dictionary = pheno_utils.convert_transformation_to_format(
@@ -785,12 +908,15 @@ def harmonize_pheno(
             cols_to_harmonize.append(columns[0])
 
     transformed_rows = []
-    for _, row in pheno_df.iterrows():
-        transformed_row = pheno_utils.get_transformed_row_for_table(
-            cols_to_harmonize, row, data_dictionary, collection_mapping
-        )
-        transformed_rows.append(transformed_row)
-    harmonized_pheno_df = pd.DataFrame(transformed_rows)
+    try:
+        for _, row in pheno_df.iterrows():
+            transformed_row = pheno_utils.get_transformed_row_for_table(
+                cols_to_harmonize, row, data_dictionary, collection_mapping
+            )
+            transformed_rows.append(transformed_row)
+        harmonized_pheno_df = pd.DataFrame(transformed_rows)
+    except BagelValidationError as e:
+        log_error_and_exit(logger, str(e))
 
     harmonized_pheno_df.to_csv(output, sep="\t", index=False)
     logger.info(f"Saved harmonized table to:  {output}")

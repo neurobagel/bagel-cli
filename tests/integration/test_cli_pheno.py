@@ -96,14 +96,14 @@ def test_pheno_valid_inputs_run_successfully(
             "example11",
             [
                 "missing values in participant or session ID columns",
-                "rows (header row is 1): [2, 4]",
+                "[2, 4]",
             ],
         ),
         (
             "example22",
             [
                 "missing values in participant or session ID columns",
-                "rows (header row is 1): [6, 7, 8]",
+                "[6, 7, 8]",
             ],
         ),
         (
@@ -1009,3 +1009,100 @@ def test_catalog_pheno_input_is_parsed(
     assert (
         temp_output_jsonld_path
     ).exists(), "The JSONLD output was not created."
+
+
+def test_invalid_dataset_description_handled_gracefully(
+    runner,
+    test_data_upload_path,
+    temp_output_jsonld_path,
+    tmp_path,
+    caplog,
+    propagate_errors,
+):
+    """
+    Ensure that the app exits gracefully with an informative error when an invalid dataset description is provided.
+    """
+    invalid_dataset_description = {
+        "Name": "Test Dataset",
+        "Authors": None,  # must be omitted or a list
+        "AccessType": "unknown",  # unrecognized access type
+        "AccessEmail": "invalid email",  # not a valid email
+        "AccessLink": 12345,  # not a valid URL
+    }
+    with open(
+        tmp_path / "invalid_dataset_description.json", "w", encoding="utf-8"
+    ) as f:
+        f.write(
+            json.dumps(
+                invalid_dataset_description, indent=2, ensure_ascii=False
+            )
+        )
+
+    result = runner.invoke(
+        bagel,
+        [
+            "create",
+            "--pheno",
+            test_data_upload_path / "example_synthetic.tsv",
+            "--dictionary",
+            test_data_upload_path / "example_synthetic.json",
+            "--output",
+            temp_output_jsonld_path,
+            "--dataset-description",
+            tmp_path / "invalid_dataset_description.json",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code != 0
+    assert len(caplog.records) == 1
+    assert (
+        "dataset description does not match the expected schema" in caplog.text
+    )
+
+
+def test_phenotypic_file_parsing_errors_returned_together(
+    runner,
+    test_data,
+    test_data_upload_path,
+    temp_output_jsonld_path,
+    tmp_path,
+    caplog,
+    propagate_errors,
+):
+    """
+    Test that when multiple phenotypic input files have file format issues (i.e., not UTF-8 encoded),
+    the CLI returns all errors together instead of failing on the first one.
+    """
+    expected_err_messages = [
+        "Error parsing phenotypic TSV",
+        "Error parsing data dictionary",
+        "Error parsing dataset description",
+    ]
+    result = runner.invoke(
+        bagel,
+        [
+            "create",
+            "--pheno",
+            test_data / "example_iso88591.tsv",
+            "--dictionary",
+            test_data / "example_iso88591.json",
+            "--output",
+            temp_output_jsonld_path,
+            "--dataset-description",
+            # not a real dataset description, just a placeholder for a non-UTF-8 encoded JSON file
+            test_data / "example_iso88591.json",
+        ],
+        catch_exceptions=False,
+    )
+
+    errors = [
+        record.message
+        for record in caplog.records
+        if record.levelname == "ERROR"
+    ]
+
+    assert result.exit_code != 0
+    assert len(errors) == 3
+    for err_message in expected_err_messages:
+        assert any(err_message in error for error in errors)

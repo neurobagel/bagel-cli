@@ -32,23 +32,12 @@ NEUROBAGEL = {
     "assessment_tool": NB.pf + ":Assessment",
 }
 
-# TODO: Use importlib.resources.files(bagel) to get the path to the pipeline-catalog instead?
-PROCESSING_PIPELINE_PATH = (
-    Path(__file__).parent / "pipeline-catalog/processing/processing.json"
-)
-PROCESSING_PIPELINE_URL = "https://raw.githubusercontent.com/nipoppy/pipeline-catalog/refs/heads/main/processing/processing.json"
 CONFIG_NAMESPACES_PATH = (
     Path(__file__).parent
     / "communities/config_metadata/config_namespace_map.json"
 )
 CONFIG_NAMESPACES_URL = "https://raw.githubusercontent.com/neurobagel/communities/refs/heads/main/config_metadata/config_namespace_map.json"
 
-
-# TODO: consider refactoring this into a Mappings class that also
-# handles lazy loading of the remote content, i.e. only when accessed
-PIPELINE_CATALOG, PIPELINES_FETCHING_ERR = file_utils.request_file(
-    url=PROCESSING_PIPELINE_URL, backup_path=PROCESSING_PIPELINE_PATH
-)
 CONFIG_NAMESPACES_MAPPING, CONFIG_NAMESPACES_FETCHING_ERR = (
     file_utils.request_file(
         url=CONFIG_NAMESPACES_URL, backup_path=CONFIG_NAMESPACES_PATH

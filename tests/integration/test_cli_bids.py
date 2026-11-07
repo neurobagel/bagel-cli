@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from bagel.cli import bagel
+from bagel.utilities import file_utils
 from tests import utils
 
 
@@ -559,3 +560,41 @@ def test_warning_when_bids_source_dir_provided_without_bids_table(
         "imaging source directory path was provided without a corresponding BIDS metadata table"
         in caplog.text
     )
+
+
+def test_app_exits_with_bids_inputs_and_failed_imaging_vocab_fetching(
+    runner,
+    synthetic_dataset_phenotypic_inputs,
+    synthetic_dataset_bids_tsv,
+    temp_output_jsonld_path,
+    caplog,
+    propagate_errors,
+    monkeypatch,
+):
+    """
+    Test that if the imaging vocabulary fetching fails when a BIDS table is provided,
+    the app exits gracefully with an informative error.
+    """
+    monkeypatch.setattr(
+        file_utils,
+        "request_file",
+        lambda url, backup_path: ([], "Network unreachable"),
+    )
+
+    result = runner.invoke(
+        bagel,
+        [
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "--bids-table",
+            synthetic_dataset_bids_tsv,
+            "--output",
+            temp_output_jsonld_path,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code != 0
+    assert not temp_output_jsonld_path.exists()
+    assert len(caplog.records) == 1
+    assert "Failed to load the imaging modality vocabulary" in caplog.text

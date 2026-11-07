@@ -1091,7 +1091,7 @@ def test_phenotypic_file_parsing_errors_returned_together(
             temp_output_jsonld_path,
             "--dataset-description",
             # not a real dataset description, just a placeholder for a non-UTF-8 encoded JSON file
-            test_data_upload_path / "example_iso88591.json",
+            test_data / "example_iso88591.json",
         ],
         catch_exceptions=False,
     )

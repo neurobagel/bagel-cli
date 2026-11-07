@@ -3,6 +3,7 @@ import pytest
 from pandas.testing import assert_frame_equal
 
 from bagel.cli import bagel
+from bagel.utilities import file_utils
 
 
 @pytest.mark.parametrize(
@@ -60,3 +61,45 @@ def test_valid_inputs_run_successfully(
         check_exact=False,
         atol=0.01,
     )
+
+
+def test_command_exits_gracefully_on_malformed_age_value(
+    runner,
+    test_data,
+    tmp_path,
+    caplog,
+    propagate_errors,
+):
+    """
+    Test that when the age transformation fails for a given combination of
+    phenotypic TSV and data dictionary, the CLI exits gracefully with an informative error message.
+    """
+    # Set up a phenotypic TSV containing an age value that's not a valid ISO 8601 duration
+    # unlike expected by the corresponding data dictionary
+    phenotypic_df = file_utils.load_tabular(test_data / "example2.tsv")
+    phenotypic_df.at[0, "participant_age"] = "20.5"
+    phenotypic_df.to_csv(
+        tmp_path / "example_with_malformed_age_value.tsv",
+        sep="\t",
+        index=False,
+    )
+
+    out_path = tmp_path / "harmonized.tsv"
+    result = runner.invoke(
+        bagel,
+        [
+            "harmonize-pheno",
+            "--pheno",
+            tmp_path / "example_with_malformed_age_value.tsv",
+            "--dictionary",
+            test_data
+            / "example2.json",  # expects age values to be in ISO 8601 format
+            "--output",
+            out_path,
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert not out_path.exists()
+    assert len(caplog.records) == 1
+    assert "Error applying the format nb:FromISO8601" in caplog.text

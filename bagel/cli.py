@@ -908,12 +908,15 @@ def harmonize_pheno(
             cols_to_harmonize.append(columns[0])
 
     transformed_rows = []
-    for _, row in pheno_df.iterrows():
-        transformed_row = pheno_utils.get_transformed_row_for_table(
-            cols_to_harmonize, row, data_dictionary, collection_mapping
-        )
-        transformed_rows.append(transformed_row)
-    harmonized_pheno_df = pd.DataFrame(transformed_rows)
+    try:
+        for _, row in pheno_df.iterrows():
+            transformed_row = pheno_utils.get_transformed_row_for_table(
+                cols_to_harmonize, row, data_dictionary, collection_mapping
+            )
+            transformed_rows.append(transformed_row)
+        harmonized_pheno_df = pd.DataFrame(transformed_rows)
+    except BagelValidationError as e:
+        log_error_and_exit(logger, str(e))
 
     harmonized_pheno_df.to_csv(output, sep="\t", index=False)
     logger.info(f"Saved harmonized table to:  {output}")

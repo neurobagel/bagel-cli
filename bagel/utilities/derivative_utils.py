@@ -73,7 +73,7 @@ def get_recognized_pipelines(
 ) -> list:
     """
     Check that all pipelines in the processing status file are supported by Nipoppy.
-    Raise an error if all pipelines are unrecognized, otherwise warn about unrecognized pipelines.
+    Raise an error if no pipelines are recognized, otherwise warn about unrecognized pipelines.
     """
     recognized_pipelines = list(
         set(pipelines).intersection(known_pipeline_uris)

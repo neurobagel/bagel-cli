@@ -467,88 +467,88 @@ def create(
     # Note that `session_column will be None if there is no session column in the pheno.tsv
     session_column = column_mapping.get("session")
 
-    try:
-        for participant in pheno_df[participants].unique():
-            _sub_pheno = pheno_df.query(
-                f"`{participants}` == '{str(participant)}'"
-            )
+    for participant in pheno_df[participants].unique():
+        _sub_pheno = pheno_df.query(
+            f"`{participants}` == '{str(participant)}'"
+        )
 
-            sessions = []
-            for session_row_idx, session_row in _sub_pheno.iterrows():
-                # Our data model requires a session. To support phenotypic data without sessions,
-                # we create a session with a fixed, but unusual CUSTOM_SESSION_LABEL and add the
-                # phenotypic data to that session.
-                if session_column is None:
-                    session_label = CUSTOM_SESSION_LABEL
-                else:
-                    # NOTE: We take the name from the first session column - we don't know how to handle multiple session columns yet
-                    session_label = session_row[session_column[0]]
+        sessions = []
+        for session_row_idx, session_row in _sub_pheno.iterrows():
+            # Our data model requires a session. To support phenotypic data without sessions,
+            # we create a session with a fixed, but unusual CUSTOM_SESSION_LABEL and add the
+            # phenotypic data to that session.
+            if session_column is None:
+                session_label = CUSTOM_SESSION_LABEL
+            else:
+                # NOTE: We take the name from the first session column - we don't know how to handle multiple session columns yet
+                session_label = session_row[session_column[0]]
 
-                session = models.PhenotypicSession(hasLabel=str(session_label))
-                _ses_pheno = session_row
+            session = models.PhenotypicSession(hasLabel=str(session_label))
+            _ses_pheno = session_row
 
-                if "sex" in column_mapping.keys():
-                    _sex_vals = pheno_utils.get_transformed_values(
-                        column_mapping["sex"], _ses_pheno, data_dictionary
+            if "sex" in column_mapping.keys():
+                _sex_vals = pheno_utils.get_transformed_values(
+                    column_mapping["sex"], _ses_pheno, data_dictionary
+                )
+                if _sex_vals:
+                    # NOTE: Our data model only allows a single sex value, so we only take the first instance if multiple columns are about sex
+                    session.hasSex = models.Sex(identifier=_sex_vals[0])
+
+            if "diagnosis" in column_mapping.keys():
+                _dx_vals = pheno_utils.get_transformed_values(
+                    column_mapping["diagnosis"],
+                    _ses_pheno,
+                    data_dictionary,
+                )
+                if _dx_vals:
+                    session.hasDiagnosis = [
+                        models.Diagnosis(identifier=_dx_val)
+                        for _dx_val in _dx_vals
+                    ]
+
+            if "subject_group" in column_mapping.keys():
+                _group_vals = pheno_utils.get_transformed_values(
+                    column_mapping["subject_group"],
+                    _ses_pheno,
+                    data_dictionary,
+                )
+                if _group_vals:
+                    session.isSubjectGroup = models.SubjectGroup(
+                        identifier=_group_vals[0]
                     )
-                    if _sex_vals:
-                        # NOTE: Our data model only allows a single sex value, so we only take the first instance if multiple columns are about sex
-                        session.hasSex = models.Sex(identifier=_sex_vals[0])
 
-                if "diagnosis" in column_mapping.keys():
-                    _dx_vals = pheno_utils.get_transformed_values(
-                        column_mapping["diagnosis"],
-                        _ses_pheno,
-                        data_dictionary,
-                    )
-                    if _dx_vals:
-                        session.hasDiagnosis = [
-                            models.Diagnosis(identifier=_dx_val)
-                            for _dx_val in _dx_vals
-                        ]
-
-                if "subject_group" in column_mapping.keys():
-                    _group_vals = pheno_utils.get_transformed_values(
-                        column_mapping["subject_group"],
-                        _ses_pheno,
-                        data_dictionary,
-                    )
-                    if _group_vals:
-                        session.isSubjectGroup = models.SubjectGroup(
-                            identifier=_group_vals[0]
-                        )
-
-                if "age" in column_mapping.keys():
-                    # NOTE: At the moment, our data model only supports a single age value per subject.
-                    # To achieve this, we transform the values from ALL columns annotated as about age
-                    # (so we expect each of them to be valid according to the data dictionary model),
-                    # but we take and store only the first instance in the graph data.
+            if "age" in column_mapping.keys():
+                # NOTE: At the moment, our data model only supports a single age value per subject.
+                # To achieve this, we transform the values from ALL columns annotated as about age
+                # (so we expect each of them to be valid according to the data dictionary model),
+                # but we take and store only the first instance in the graph data.
+                try:
                     _age_vals = pheno_utils.get_transformed_values(
                         column_mapping["age"], _ses_pheno, data_dictionary
                     )
-                    if _age_vals:
-                        session.hasAge = _age_vals[0]
+                except BagelValidationError as e:
+                    logger.error(str(e))
+                    raise typer.Exit(code=1)
+                if _age_vals:
+                    session.hasAge = _age_vals[0]
 
-                if tool_mapping:
-                    _assessments = [
-                        models.Assessment(identifier=tool)
-                        for tool, columns in tool_mapping.items()
-                        if pheno_utils.are_any_available(
-                            columns, _ses_pheno, data_dictionary
-                        )
-                    ]
-                    if _assessments:
-                        # Only set assessments for the subject if at least one has a non-missing item
-                        session.hasAssessment = _assessments
-                sessions.append(session)
+            if tool_mapping:
+                _assessments = [
+                    models.Assessment(identifier=tool)
+                    for tool, columns in tool_mapping.items()
+                    if pheno_utils.are_any_available(
+                        columns, _ses_pheno, data_dictionary
+                    )
+                ]
+                if _assessments:
+                    # Only set assessments for the subject if at least one has a non-missing item
+                    session.hasAssessment = _assessments
+            sessions.append(session)
 
-            subject = models.Subject(
-                hasLabel=str(participant), hasSession=sessions
-            )
-            subject_list.append(subject)
-    except BagelValidationError as e:
-        logger.error(str(e))
-        raise typer.Exit(code=1)
+        subject = models.Subject(
+            hasLabel=str(participant), hasSession=sessions
+        )
+        subject_list.append(subject)
 
     dataset_graph_attributes = (
         pheno_utils.dataset_description_to_graph_attributes(dataset_metadata)

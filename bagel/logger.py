@@ -1,9 +1,7 @@
 import logging
 import sys
 from enum import Enum
-from typing import NoReturn
 
-import typer
 from rich.logging import RichHandler
 
 LOG_FMT = "%(message)s"
@@ -61,12 +59,3 @@ def configure_logger(
     # NOTE: We must return the value instead of the level itself to avoid the callback returning None,
     # see bug tracked in https://github.com/fastapi/typer/issues/223
     return verbosity.value
-
-
-def log_error_and_exit(
-    logger: logging.Logger,
-    message: str,
-) -> NoReturn:
-    """Log an exception with an informative error message, and exit the app."""
-    logger.error(message)
-    raise typer.Exit(code=1)

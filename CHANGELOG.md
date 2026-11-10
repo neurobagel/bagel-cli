@@ -1,3 +1,15 @@
+# v0.11.5 (Mon Nov 09 2026)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Pin Typer to <0.29.0 to fix crash due to upstream breaking API change ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.11.6 (Wed Sep 16 2026)
 
 :tada: This release contains work from new contributors! :tada:

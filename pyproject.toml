@@ -22,7 +22,7 @@ classifiers = [
 requires-python = ">=3.11, <3.15"
 dependencies = [
   "pybids",
-  "typer<0.29.0",  # temporary pin until #751 is addressed
+  "typer<0.29.0", # temporary pin until #755 is addressed
   "rich",
   "pydantic>=2.12,<3",
   "jsonschema",
@@ -77,3 +77,6 @@ no_warn_no_return = true
 warn_redundant_casts = true
 show_error_codes = true
 pretty = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

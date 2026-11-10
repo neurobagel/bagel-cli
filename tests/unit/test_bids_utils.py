@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-import typer
 
+from bagel.exceptions import BagelValidationError
 from bagel.utilities import bids_utils
 
 
@@ -354,22 +354,23 @@ def test_valid_bids_tables_pass_validation(row_data):
         ),
     ],
 )
-def test_bids_tables_with_invalid_values_produce_error(
-    row_data, invalid_column, invalid_row_indices, caplog, propagate_errors
+def test_bids_tables_with_invalid_missing_values_produce_error(
+    row_data, invalid_column, invalid_row_indices
 ):
-    """Test that a BIDS table containing invalid values for columns produces an informative schema validation error."""
+    """Test that a BIDS table containing invalid missing values for columns produces an informative schema validation error."""
     bids_table = pd.DataFrame(
         row_data, columns=["sub", "ses", "suffix", "path"]
     )
-    with pytest.raises(typer.Exit):
+    with pytest.raises(BagelValidationError) as exc_info:
         bids_utils.validate_bids_table(bids_table)
 
-    assert "Invalid BIDS table" in caplog.text
-    assert invalid_column in caplog.text
-    assert str(invalid_row_indices) in caplog.text
+    error_message = str(exc_info.value)
+    assert "BIDS table does not match the expected schema" in error_message
+    assert invalid_column in error_message
+    assert str(invalid_row_indices) in error_message
 
 
-def test_missing_required_column_produces_error(caplog, propagate_errors):
+def test_missing_required_column_produces_error():
     """Test that a BIDS table missing a required column produces an informative schema validation error."""
     bids_table = pd.DataFrame(
         [
@@ -396,26 +397,29 @@ def test_missing_required_column_produces_error(caplog, propagate_errors):
         ],
         columns=["sub", "ses", "path"],  # missing 'suffix' column
     )
-    with pytest.raises(typer.Exit):
+    with pytest.raises(BagelValidationError) as exc_info:
         bids_utils.validate_bids_table(bids_table)
 
-    assert "Invalid BIDS table" in caplog.text
-    assert "suffix" in caplog.text
+    error_message = str(exc_info.value)
+    assert "BIDS table does not match the expected schema" in error_message
+    assert "suffix" in error_message
 
 
-def test_header_only_bids_table_produces_error(caplog, propagate_errors):
+def test_header_only_bids_table_produces_error():
     """Test that a BIDS table with no rows except the header produces an informative error."""
     bids_table = pd.DataFrame(columns=["sub", "ses", "suffix", "path"])
-    with pytest.raises(typer.Exit):
+    with pytest.raises(BagelValidationError) as exc_info:
         bids_utils.validate_bids_table(bids_table)
 
-    assert "BIDS table is empty" in caplog.text
+    assert "BIDS table is empty" in str(exc_info.value)
 
 
 def test_get_bids_suffix_to_std_term_mapping():
     """Test that get_bids_suffix_to_std_term_mapping() returns a mapping with expected suffix to standardized term pairings."""
     expected_prefix = "nidm"
-    nb_bids_suffix_term_map = bids_utils.get_bids_suffix_to_std_term_mapping()
+    nb_bids_suffix_term_map = bids_utils.create_bids_suffix_uri_lookup(
+        bids_utils.fetch_bids_terms_vocab()
+    )
 
     assert all(
         str(value).startswith(f"{expected_prefix}:")

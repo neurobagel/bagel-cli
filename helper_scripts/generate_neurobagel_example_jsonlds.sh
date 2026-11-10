@@ -12,7 +12,7 @@
 data_dir=tests/neurobagel_examples/data-upload
 
 # Phenotypic data only JSONLD
-bagel pheno \
+bagel create \
     --pheno "${data_dir}/example_synthetic.tsv" \
     --dictionary "${data_dir}/example_synthetic.json" \
     --dataset-description "${data_dir}/synthetic_dataset_description.json" \
@@ -30,23 +30,30 @@ bagel pheno \
 #     --overwrite
 
 # Phenotypic & BIDS data JSONLD
-bagel bids \
-    --jsonld-path ${data_dir}/example_synthetic.jsonld \
+bagel create \
+    --pheno "${data_dir}/example_synthetic.tsv" \
+    --dictionary "${data_dir}/example_synthetic.json" \
+    --dataset-description "${data_dir}/synthetic_dataset_description.json" \
     --bids-table ${data_dir}/example_synthetic_bids_metadata.tsv \
-    --dataset-source-dir /data/neurobagel/bagel-cli/bids-examples/synthetic \
+    --bids-source-dir /data/neurobagel/bagel-cli/bids-examples/synthetic \
     --output ${data_dir}/pheno-bids-output/example_synthetic_pheno-bids.jsonld \
     --overwrite
 
 # Phenotypic & derivatives data JSONLD
-bagel derivatives \
-    --tabular ${data_dir}/nipoppy_proc_status_synthetic.tsv \
-    --jsonld-path ${data_dir}/example_synthetic.jsonld \
+bagel create \
+    --pheno "${data_dir}/example_synthetic.tsv" \
+    --dictionary "${data_dir}/example_synthetic.json" \
+    --dataset-description "${data_dir}/synthetic_dataset_description.json" \
+    --processing-status ${data_dir}/nipoppy_proc_status_synthetic.tsv \
     --output "${data_dir}/pheno-derivatives-output/example_synthetic_pheno-derivatives.jsonld" \
     --overwrite
 
 # Phenotypic, BIDS, and derivatives data JSONLD
-bagel derivatives \
-    --tabular ${data_dir}/nipoppy_proc_status_synthetic.tsv \
-    --jsonld-path "${data_dir}/pheno-bids-output/example_synthetic_pheno-bids.jsonld" \
+bagel create \
+    --pheno "${data_dir}/example_synthetic.tsv" \
+    --dictionary "${data_dir}/example_synthetic.json" \
+    --dataset-description "${data_dir}/synthetic_dataset_description.json" \
+    --bids-table ${data_dir}/example_synthetic_bids_metadata.tsv \
+    --processing-status ${data_dir}/nipoppy_proc_status_synthetic.tsv \
     --output "${data_dir}/pheno-bids-derivatives-output/example_synthetic_pheno-bids-derivatives.jsonld" \
     --overwrite

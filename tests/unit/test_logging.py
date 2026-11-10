@@ -22,7 +22,7 @@ def test_verbosity_level(
     result = runner.invoke(
         bagel,
         [
-            "pheno",
+            "create",
             "--pheno",
             test_data / "example1.tsv",
             "--dictionary",
@@ -59,11 +59,15 @@ def test_no_progress_graphic_with_min_verbosity(
     result = runner.invoke(
         bagel,
         [
-            "bids",
+            "create",
+            "--pheno",
+            test_data_upload_path / "example_synthetic.tsv",
+            "--dictionary",
+            test_data_upload_path / "example_synthetic.json",
+            "--dataset-description",
+            test_data_upload_path / "synthetic_dataset_description.json",
             "--bids-table",
             test_data_upload_path / "example_synthetic_bids_metadata.tsv",
-            "--jsonld-path",
-            test_data_upload_path / "example_synthetic.jsonld",
             "--output",
             tmp_path / "bids.jsonld",
             "--verbosity",

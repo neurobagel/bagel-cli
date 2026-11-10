@@ -1,0 +1,11 @@
+participant_id	session_id	pheno_age	pheno_sex	pheno_group	moca_attention	moca_delayed_recall	updrs_total
+01	01	34,1	F	CTRL	6	5	6
+01	02	35,3	F	CTRL	6	5	5
+02	01	NA	M	PAT	5	missing	25
+02	02	39,0	M	PAT	6	4	30
+03	01	22,1	missing	NA	4	4	not completed
+03	02	23,2	missing	PAT	5	3	36
+04	01	21,1	F	CTRL	missing	missing	3
+04	02	22,3	F	CTRL	6	5	4
+05	01	42,5	M	PAT	4	4	39
+05	02	43,2	M	PAT	6	5	33

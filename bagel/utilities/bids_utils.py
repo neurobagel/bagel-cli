@@ -8,13 +8,14 @@ import pandera.pandas as pa
 from typer import BadParameter
 
 from bagel import bids_table_model, models
-from bagel.logger import log_error, logger
+from bagel.exceptions import BagelResourceError, BagelValidationError
+from bagel.logger import logger
 from bagel.utilities import file_utils
 
 # NOTE: A copy of the imaging modality vocab will likely end up in all community config directories,
 # but since the contents will be the same, we always pull it from the Neurobagel config for now for simplicity.
 IMAGING_MODALITIES_URL = "https://raw.githubusercontent.com/neurobagel/communities/refs/heads/main/configs/Neurobagel/imaging_modalities.json"
-IMAGING_MODALITIES_PATH = (
+IMAGING_MODALITIES_BACKUP_PATH = (
     Path(__file__).parents[1]
     / "communities/configs/Neurobagel/imaging_modalities.json"
 )
@@ -22,34 +23,44 @@ IMAGING_MODALITIES_PATH = (
 bids_schema = bst.load_schema()
 
 
-def get_bids_suffix_to_std_term_mapping() -> dict[str, str]:
+def fetch_bids_terms_vocab() -> list:
     """
-    Fetch the standardized imaging modality vocabulary from the neurobagel/communities repository
-    and return a mapping of supported BIDS suffixes to prefixed standardized terms.
-
-    Returns:
-        dict[str, str]: A mapping where keys are BIDS suffixes (e.g., "T1w", "bold")
-                        and values are namespaced standardized terms (e.g., "nidm:T1Weighted").
+    Fetch the standardized imaging modality vocabulary from the neurobagel/communities repository.
 
     Raises:
-        typer.Exit: If the vocabulary cannot be fetched from either the remote URL or local backup.
+        BagelResourceError: If the vocabulary cannot be fetched from either the remote URL or local backup.
     """
     # TODO: Revisit once we cache community config files locally as part of https://github.com/neurobagel/bagel-cli/issues/493.
     # For now we revert to a local submodule backup if the request fails, but this means we might not have the latest vocab.
-    bids_terms_vocab, err = file_utils.request_file(
-        url=IMAGING_MODALITIES_URL, backup_path=IMAGING_MODALITIES_PATH
+    bids_terms_vocab, fetch_err = file_utils.request_file(
+        url=IMAGING_MODALITIES_URL, backup_path=IMAGING_MODALITIES_BACKUP_PATH
     )
-    if bids_terms_vocab == []:
-        log_error(
-            logger,
-            f"Failed to fetch the standardized imaging modality vocabulary required to validate your BIDS metadata. Error: {err} "
+    if not bids_terms_vocab:
+        raise BagelResourceError(
+            f"Failed to load the imaging modality vocabulary needed to validate your BIDS metadata. Error: {fetch_err} "
             "Please check that you have an internet connection and try again, or open an issue in https://github.com/neurobagel/bagel-cli/issues if the problem persists.",
         )
+    if fetch_err:
+        logger.warning(
+            f"Failed to fetch the imaging modality vocabulary from {IMAGING_MODALITIES_URL}. Error: {fetch_err}. "
+            "Using a packaged backup vocabulary instead *which may be outdated*. "
+            "Check your internet connection?"
+        )
+    return bids_terms_vocab
+
+
+def create_bids_suffix_uri_lookup(
+    bids_terms_vocab: list[dict],
+) -> dict[str, str]:
+    """
+    Parse the imaging modality vocabulary to create a lookup dictionary mapping supported BIDS suffixes
+    to their corresponding standardized term URIs.
+    """
     # We only expect one term namespace in the bids_term_vocab list
-    bids_terms_vocab = bids_terms_vocab[0]
-    namespace_prefix = bids_terms_vocab["namespace_prefix"]
+    vocab_namespace = bids_terms_vocab[0]
+    namespace_prefix = vocab_namespace["namespace_prefix"]
     bids_suffix_to_std_term_mapping = {}
-    for term in bids_terms_vocab["terms"]:
+    for term in vocab_namespace["terms"]:
         bids_suffix_to_std_term_mapping[term["abbreviation"]] = (
             f"{namespace_prefix}:{term['id']}"
         )
@@ -125,23 +136,22 @@ def check_absolute_path(dir_path: Path | None) -> Path | None:
 
 
 def validate_bids_table(bids_table: pd.DataFrame):
-    """Error and exit if the provided BIDS table is empty or fails schema validation."""
+    """Check that the provided BIDS table is schema-compliant and is not empty."""
     try:
         bids_table_model.model.validate(bids_table)
     except pa.errors.SchemaError as err:
-        rows_with_errs_msg = ""
+        rows_with_errs_note = ""
         # When validation fails due to a column value check (e.g., as opposed to a missing column),
-        # printing the row indices helps with debugging, especially for invalid empty values.
+        # the resulting exception object contains a DataFrame of the rows that failed validation.
+        # In this case, we print the row indices to help with debugging, especially for invalid empty values.
         if isinstance(err.failure_cases, pd.DataFrame):
-            rows_with_errs_msg = f"Rows with error (0 = first non-header row): {err.failure_cases['index'].tolist()}. "
-        log_error(
-            logger,
-            f"Invalid BIDS table. Error: {err}. {rows_with_errs_msg}",
-        )
+            rows_with_errs_note = f"Rows with error (0 = first non-header row): {err.failure_cases['index'].tolist()}. "
+        raise BagelValidationError(
+            f"The BIDS table does not match the expected schema. Error: {err} {rows_with_errs_note}",
+        ) from err
     if bids_table.empty:
-        log_error(
-            logger,
-            "BIDS table is empty (only a header row was found). No imaging metadata to add.",
+        raise BagelValidationError(
+            "The BIDS table is empty (only a header row was found). No imaging metadata to add.",
         )
 
 

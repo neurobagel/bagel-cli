@@ -1,4 +1,22 @@
-# v0.11.6 (Wed Sep 16 2026)
+# Changelog
+
+## [0.12.0](https://github.com/neurobagel/testplace/compare/bagel-cli-v0.11.6...bagel-cli-v0.12.0) (2026-11-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* Replace `pheno`, `bids`, and `derivatives` commands with single `create` command (neurobagel/bagel-cli#746)
+
+### Features
+
+* Replace `pheno`, `bids`, and `derivatives` commands with single `create` command (neurobagel/bagel-cli[#746](https://github.com/neurobagel/testplace/issues/746)) ([ebe6a47](https://github.com/neurobagel/testplace/commit/ebe6a47facacf37f5e9c4a5cfdbaa66a12062141))
+
+
+### Bug Fixes
+
+* Refactor check functions to reduce side effects: raise custom errors, handle similar failures consistently (neurobagel/bagel-cli[#750](https://github.com/neurobagel/testplace/issues/750)) ([d8c7e93](https://github.com/neurobagel/testplace/commit/d8c7e9390b22138bc2ab9010d7f793ea67d1d2b8))
+
+## v0.11.6 (Wed Sep 16 2026)
 
 :tada: This release contains work from new contributors! :tada:
 
@@ -25,7 +43,7 @@ Thanks for all your work!
 
 ---
 
-# v0.11.5 (Fri Jun 05 2026)
+## v0.11.5 (Fri Jun 05 2026)
 
 #### 🏠 Internal
 
@@ -39,7 +57,7 @@ Thanks for all your work!
 
 ---
 
-# v0.11.4 (Wed Feb 18 2026)
+## v0.11.4 (Wed Feb 18 2026)
 
 #### 🚀 Enhancements
 
@@ -51,7 +69,7 @@ Thanks for all your work!
 
 ---
 
-# v0.11.3 (Mon Feb 16 2026)
+## v0.11.3 (Mon Feb 16 2026)
 
 #### 🚀 Enhancements
 
@@ -63,7 +81,7 @@ Thanks for all your work!
 
 ---
 
-# v0.11.2 (Fri Feb 13 2026)
+## v0.11.2 (Fri Feb 13 2026)
 
 #### 🚀 Enhancements
 
@@ -75,7 +93,7 @@ Thanks for all your work!
 
 ---
 
-# v0.11.1 (Mon Jan 12 2026)
+## v0.11.1 (Mon Jan 12 2026)
 
 #### 🐛 Bug Fixes
 
@@ -87,7 +105,7 @@ Thanks for all your work!
 
 ---
 
-# v0.11.0 (Thu Jan 08 2026)
+## v0.11.0 (Thu Jan 08 2026)
 
 #### 💥 Breaking Changes
 
@@ -104,7 +122,7 @@ Thanks for all your work!
 
 ---
 
-# v0.10.2 (Thu Nov 27 2025)
+## v0.10.2 (Thu Nov 27 2025)
 
 #### 🚀 Enhancements
 
@@ -125,7 +143,7 @@ Thanks for all your work!
 
 ---
 
-# v0.10.1 (Thu Nov 20 2025)
+## v0.10.1 (Thu Nov 20 2025)
 
 ####  🧪 Tests
 
@@ -141,7 +159,7 @@ Thanks for all your work!
 
 ---
 
-# v0.10.0 (Fri Nov 14 2025)
+## v0.10.0 (Fri Nov 14 2025)
 
 #### 🚀 Enhancements
 
@@ -163,7 +181,7 @@ Thanks for all your work!
 
 ---
 
-# v0.9.2 (Tue Nov 04 2025)
+## v0.9.2 (Tue Nov 04 2025)
 
 #### 🐛 Bug Fixes
 
@@ -175,7 +193,7 @@ Thanks for all your work!
 
 ---
 
-# v0.9.1 (Mon Oct 27 2025)
+## v0.9.1 (Mon Oct 27 2025)
 
 #### 🚀 Enhancements
 
@@ -200,7 +218,7 @@ Thanks for all your work!
 
 ---
 
-# v0.9.0 (Wed Oct 15 2025)
+## v0.9.0 (Wed Oct 15 2025)
 
 #### 🚀 Enhancements
 
@@ -219,7 +237,7 @@ Thanks for all your work!
 
 ---
 
-# v0.8.2 (Mon Sep 29 2025)
+## v0.8.2 (Mon Sep 29 2025)
 
 #### 🐛 Bug Fixes
 
@@ -231,7 +249,7 @@ Thanks for all your work!
 
 ---
 
-# v0.8.1 (Fri Sep 26 2025)
+## v0.8.1 (Fri Sep 26 2025)
 
 #### 🐛 Bug Fixes
 
@@ -244,7 +262,7 @@ Thanks for all your work!
 
 ---
 
-# v0.8.0 (Thu Sep 11 2025)
+## v0.8.0 (Thu Sep 11 2025)
 
 #### 💥 Breaking Changes
 
@@ -262,7 +280,7 @@ Thanks for all your work!
 
 ---
 
-# v0.7.2 (Tue Sep 09 2025)
+## v0.7.2 (Tue Sep 09 2025)
 
 #### 🔩 Dependency Updates
 
@@ -274,7 +292,7 @@ Thanks for all your work!
 
 ---
 
-# v0.7.1 (Tue Aug 19 2025)
+## v0.7.1 (Tue Aug 19 2025)
 
 #### 🚀 Enhancements
 
@@ -287,7 +305,7 @@ Thanks for all your work!
 
 ---
 
-# v0.7.0 (Thu Aug 14 2025)
+## v0.7.0 (Thu Aug 14 2025)
 
 #### 💥 Breaking Changes
 
@@ -305,7 +323,7 @@ Thanks for all your work!
 
 ---
 
-# v0.6.0 (Mon Jun 23 2025)
+## v0.6.0 (Mon Jun 23 2025)
 
 #### 🚀 Enhancements
 
@@ -321,7 +339,7 @@ Thanks for all your work!
 
 ---
 
-# v0.5.0 (Wed Jun 04 2025)
+## v0.5.0 (Wed Jun 04 2025)
 
 #### 🚀 Enhancements
 
@@ -335,7 +353,7 @@ Thanks for all your work!
 
 ---
 
-# v0.4.4 (Tue Apr 08 2025)
+## v0.4.4 (Tue Apr 08 2025)
 
 #### 🚀 Enhancements
 
@@ -348,7 +366,7 @@ Thanks for all your work!
 
 ---
 
-# v0.4.3 (Fri Mar 07 2025)
+## v0.4.3 (Fri Mar 07 2025)
 
 #### 🚀 Enhancements
 
@@ -360,7 +378,7 @@ Thanks for all your work!
 
 ---
 
-# v0.4.2 (Tue Feb 11 2025)
+## v0.4.2 (Tue Feb 11 2025)
 
 #### 🏠 Internal
 
@@ -373,7 +391,7 @@ Thanks for all your work!
 
 ---
 
-# v0.4.1 (Wed Jan 29 2025)
+## v0.4.1 (Wed Jan 29 2025)
 
 #### 🐛 Bug Fixes
 
@@ -389,7 +407,7 @@ Thanks for all your work!
 
 ---
 
-# v0.4.0 (Tue Jan 07 2025)
+## v0.4.0 (Tue Jan 07 2025)
 
 #### 💥 Breaking Changes
 
@@ -401,7 +419,7 @@ Thanks for all your work!
 
 ---
 
-# v0.3.5 (Wed Dec 11 2024)
+## v0.3.5 (Wed Dec 11 2024)
 
 #### 🚀 Enhancements
 
@@ -414,7 +432,7 @@ Thanks for all your work!
 
 ---
 
-# v0.3.4 (Wed Nov 20 2024)
+## v0.3.4 (Wed Nov 20 2024)
 
 #### 🚀 Enhancements
 
@@ -435,7 +453,7 @@ Thanks for all your work!
 
 ---
 
-# v0.3.3 (Thu Nov 07 2024)
+## v0.3.3 (Thu Nov 07 2024)
 
 #### 🚀 Enhancements
 
@@ -447,7 +465,7 @@ Thanks for all your work!
 
 ---
 
-# v0.3.2 (Tue Nov 05 2024)
+## v0.3.2 (Tue Nov 05 2024)
 
 #### 🚀 Enhancements
 
@@ -459,7 +477,7 @@ Thanks for all your work!
 
 ---
 
-# v0.3.1 (Mon Nov 04 2024)
+## v0.3.1 (Mon Nov 04 2024)
 
 #### 🚀 Enhancements
 
@@ -475,7 +493,7 @@ Thanks for all your work!
 
 ---
 
-# v0.3.0 (Thu Oct 24 2024)
+## v0.3.0 (Thu Oct 24 2024)
 
 #### 💥 Breaking Changes
 
@@ -503,7 +521,7 @@ Thanks for all your work!
 
 ---
 
-# v0.2.2 (Fri Jul 19 2024)
+## v0.2.2 (Fri Jul 19 2024)
 
 ### Release Notes
 
@@ -532,7 +550,7 @@ This release introduces short option names for CLI commands and fixes a bug that
 
 ---
 
-# v0.2.2 (Fri Jul 19 2024)
+## v0.2.2 (Fri Jul 19 2024)
 
 ### Release Notes
 
@@ -562,7 +580,7 @@ We have updated the Neurobagel data model to allow users to specify phenotypic i
 
 ---
 
-# v0.2.2 (Thu Apr 11 2024)
+## v0.2.2 (Thu Apr 11 2024)
 
 ### Release Notes
 
@@ -583,7 +601,7 @@ We have updated the Neurobagel data model to allow users to specify phenotypic i
 
 ---
 
-# v0.2.1 (Mon Jan 08 2024)
+## v0.2.1 (Mon Jan 08 2024)
 
 #### 🐛 Bug Fix
 
@@ -604,7 +622,7 @@ We have updated the Neurobagel data model to allow users to specify phenotypic i
 
 ---
 
-# v0.2.0 (Thu Dec 14 2023)
+## v0.2.0 (Thu Dec 14 2023)
 
 #### 🚀 Enhancement
 
@@ -632,7 +650,7 @@ We have updated the Neurobagel data model to allow users to specify phenotypic i
 
 ---
 
-# v0.1.3 (Tue Dec 12 2023)
+## v0.1.3 (Tue Dec 12 2023)
 
 #### 🐛 Bug Fix
 
@@ -648,7 +666,7 @@ We have updated the Neurobagel data model to allow users to specify phenotypic i
 
 ---
 
-# v0.1.5 (Mon Dec 11 2023)
+## v0.1.5 (Mon Dec 11 2023)
 
 #### 🐛 Bug Fix
 
@@ -660,7 +678,7 @@ We have updated the Neurobagel data model to allow users to specify phenotypic i
 
 ---
 
-# v0.1.3 (Mon Dec 11 2023)
+## v0.1.3 (Mon Dec 11 2023)
 
 #### 🐛 Bug Fix
 
@@ -673,7 +691,7 @@ We have updated the Neurobagel data model to allow users to specify phenotypic i
 
 ---
 
-# v0.1.3 (Sun Dec 10 2023)
+## v0.1.3 (Sun Dec 10 2023)
 
 #### 🐛 Bug Fix
 
@@ -685,7 +703,7 @@ We have updated the Neurobagel data model to allow users to specify phenotypic i
 
 ---
 
-# v0.1.2 (Thu Dec 07 2023)
+## v0.1.2 (Thu Dec 07 2023)
 
 #### 🐛 Bug Fix
 

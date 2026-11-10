@@ -646,7 +646,8 @@ def process_bids(
         pheno_subjects=existing_subs_dict.keys(),
     ):
         logger.error(
-            "The BIDS metadata table contains subject IDs not found in the phenotypic table:\n"
+            f"The BIDS metadata table contains {len(subjects_missing_from_pheno)} subject IDs "
+            "not found in the phenotypic table:\n"
             f"{subjects_missing_from_pheno}\n"
             "Subject IDs are case sensitive. "
             "Please ensure that all subjects in the BIDS TSV have a corresponding entry in the phenotypic TSV.",

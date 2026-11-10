@@ -298,3 +298,39 @@ def test_strip_id_prefixes_option(
     assert bids_tsv[["sub", "ses"]].notna().all(axis=None)
     assert not bids_tsv["sub"].str.startswith("sub-").all()
     assert not bids_tsv["ses"].str.startswith("ses-").all()
+
+
+def test_app_exits_with_bids_inputs_and_failed_imaging_vocab_fetching(
+    runner,
+    bids_synthetic,
+    default_bids2tsv_output_path,
+    caplog,
+    propagate_errors,
+    monkeypatch,
+):
+    """
+    Test that if the imaging vocabulary fetching fails when a BIDS table is provided,
+    the app exits gracefully with an informative error.
+    """
+    monkeypatch.setattr(
+        file_utils,
+        "request_file",
+        lambda url, backup_path: ([], "Network unreachable"),
+    )
+
+    result = runner.invoke(
+        bagel,
+        [
+            "bids2tsv",
+            "--bids-dir",
+            bids_synthetic,
+            "--output",
+            default_bids2tsv_output_path,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code != 0
+    assert not default_bids2tsv_output_path.exists()
+    assert len(caplog.records) == 1
+    assert "Failed to load the imaging modality vocabulary" in caplog.text

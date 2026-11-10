@@ -1,9 +1,9 @@
 import pandas as pd
 import pytest
-import typer
 from pandas.testing import assert_series_equal
 
 from bagel import dictionary_models, mappings
+from bagel.exceptions import BagelValidationError
 from bagel.utilities import pheno_utils
 
 
@@ -170,23 +170,22 @@ def mock_config_namespaces_mapping():
 def test_schema_invalid_data_dict_raises_error(
     partial_data_dict,
     invalid_column_names,
-    caplog,
-    propagate_errors,
     neurobagel_test_config,
 ):
     """
     Test that when an input data dictionary contains schema-invalid column annotations,
     an informative error is raised which includes the name(s) of the offending column.
     """
-    with pytest.raises(typer.Exit):
+    with pytest.raises(BagelValidationError) as exc_info:
         pheno_utils.validate_data_dict(
             partial_data_dict, neurobagel_test_config
         )
 
-    assert "not a valid Neurobagel data dictionary" in caplog.text
-    assert str(len(invalid_column_names)) in caplog.text
+    error_message = str(exc_info.value)
+    assert "not a valid Neurobagel data dictionary" in error_message
+    assert str(len(invalid_column_names)) in error_message
     for invalid_column_name in invalid_column_names:
-        assert invalid_column_name in caplog.text
+        assert invalid_column_name in error_message
 
 
 def test_get_columns_that_are_about_concept(test_data, load_test_json):
@@ -483,25 +482,23 @@ def test_age_gets_converted(raw_age, expected_age, value_format):
         ("-30", "nb:FromRange"),
     ],
 )
-def test_incorrect_age_format(
-    raw_age, incorrect_format, caplog, propagate_errors
-):
+def test_incorrect_age_format(raw_age, incorrect_format):
     """Given an age format that does not match the type of age value provided, returns an informative error."""
-    with pytest.raises(typer.Exit):
+    with pytest.raises(BagelValidationError) as exc_info:
         pheno_utils.transform_age(raw_age, incorrect_format)
 
     assert (
         f"Error applying the format {incorrect_format} to the age value '{raw_age}'"
-        in caplog.text
+        in str(exc_info.value)
     )
 
 
-def test_invalid_age_format(caplog, propagate_errors):
-    """Given an age format that is not recognized, returns an informative ValueError."""
-    with pytest.raises(typer.Exit):
+def test_invalid_age_format():
+    """Given an age format that is not recognized, returns an informative error."""
+    with pytest.raises(BagelValidationError) as exc_info:
         pheno_utils.transform_age("11,0", "nb:birthyear")
 
-    assert "unrecognized age format: nb:birthyear" in caplog.text
+    assert "unrecognized age format: nb:birthyear" in str(exc_info.value)
 
 
 @pytest.mark.parametrize(
@@ -511,14 +508,12 @@ def test_invalid_age_format(caplog, propagate_errors):
         ("-10", "nb:FromInt"),
     ],
 )
-def test_negative_age_raises_error(
-    caplog, propagate_errors, raw_age, value_format
-):
-    """Test that negative ages trigger an informative error/exit."""
-    with pytest.raises(typer.Exit):
+def test_negative_age_raises_error(raw_age, value_format):
+    """Test that negative ages raise an informative error."""
+    with pytest.raises(BagelValidationError) as exc_info:
         pheno_utils.transform_age(raw_age, value_format)
 
-    assert "Age values must be non-negative" in caplog.text
+    assert "Age values must be non-negative" in str(exc_info.value)
 
 
 @pytest.mark.parametrize(
@@ -607,14 +602,13 @@ def test_negative_age_raises_error(
     ],
 )
 def test_format_and_transformation_schema_validation(
-    data_dict, caplog, propagate_errors, neurobagel_test_config
+    data_dict, neurobagel_test_config
 ):
     """
     A data dictionary where continuous columns have either a valid 'Format' or 'Transformation' field
     should pass validation without errors.
     """
     pheno_utils.validate_data_dict(data_dict, neurobagel_test_config)
-    assert len(caplog.records) == 0
 
 
 @pytest.mark.parametrize(
@@ -1186,7 +1180,7 @@ def test_valid_complete_dataset_description_passes_validation(
         "AccessEmail": "first.author@gmail.com",
         "AccessLink": "https://mydataset.org/access",
     }
-    pheno_utils.validate_dataset_description(valid_dataset_desc)
+    pheno_utils.parse_dataset_description(valid_dataset_desc)
     assert len(caplog.records) == 0
 
 
@@ -1215,7 +1209,7 @@ def test_incomplete_dataset_description_raises_warning(
     incomplete_dataset_desc, caplog, propagate_warnings
 ):
     """Test that incomplete optional fields in a dataset description raise an informative warning without erroring out."""
-    pheno_utils.validate_dataset_description(incomplete_dataset_desc)
+    pheno_utils.parse_dataset_description(incomplete_dataset_desc)
 
     assert len(caplog.records) == 1
     assert caplog.records[0].levelname == "WARNING"
@@ -1243,19 +1237,13 @@ def test_incomplete_dataset_description_raises_warning(
     ],
 )
 def test_invalid_dataset_description_raises_error(
-    invalid_dataset_desc, invalid_fields, caplog, propagate_errors
+    invalid_dataset_desc, invalid_fields
 ):
     """Test that an invalid dataset description raises a validation error."""
-    with pytest.raises(typer.Exit):
-        pheno_utils.validate_dataset_description(invalid_dataset_desc)
+    with pytest.raises(BagelValidationError) as exc_info:
+        pheno_utils.parse_dataset_description(invalid_dataset_desc)
 
-    errors = [
-        record.message
-        for record in caplog.records
-        if record.levelname == "ERROR"
-    ]
-
-    assert len(errors) == 1
-    assert "dataset description is invalid" in errors[0]
+    error_message = str(exc_info.value)
+    assert "does not match the expected schema" in error_message
     for invalid_field in invalid_fields:
-        assert invalid_field in errors[0]
+        assert invalid_field in error_message

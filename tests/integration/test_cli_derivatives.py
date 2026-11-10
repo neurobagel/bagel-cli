@@ -4,6 +4,7 @@ import pytest
 
 from bagel import mappings
 from bagel.cli import bagel
+from bagel.utilities import file_utils
 
 
 @pytest.fixture(scope="function")
@@ -127,7 +128,7 @@ def test_pipeline_info_added_to_existing_imaging_sessions(
         ),
         (
             "proc_status_unique_subs.tsv",
-            ["processing status file", "subject IDs not found"],
+            ["processing status table", "subject IDs not found"],
         ),
     ],
 )
@@ -317,11 +318,12 @@ def test_failed_pipeline_catalog_fetching_does_not_raise_error_for_help(
 ):
     """
     Test that if the pipeline catalog fetching fails when a processing status file has not been provided,
-    this happens silently and the CLI does not raise an error.
+    this happens silently and the CLI does not raise any errors or warnings.
     """
-    monkeypatch.setattr(mappings, "PIPELINE_CATALOG", [])
     monkeypatch.setattr(
-        mappings, "PIPELINES_FETCHING_ERR", "Network unreachable"
+        file_utils,
+        "request_file",
+        lambda url, backup_path: ([], "Network unreachable"),
     )
 
     result = runner.invoke(
@@ -336,7 +338,7 @@ def test_failed_pipeline_catalog_fetching_does_not_raise_error_for_help(
         "Run 'bagel COMMAND --help' for more information on a command"
         in result.output
     )
-    assert "Failed to locate a pipeline catalog" not in result.output
+    assert "Failed to load a pipeline catalog" not in result.output
 
 
 @pytest.mark.parametrize(
@@ -375,10 +377,12 @@ def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_input(
     the command raises an appropriate warning or error depending on if the backup catalog could be loaded.
     """
     monkeypatch.setattr(
-        mappings, "PIPELINE_CATALOG", mock_pipeline_catalog_fetching_result
-    )
-    monkeypatch.setattr(
-        mappings, "PIPELINES_FETCHING_ERR", "Network unreachable"
+        file_utils,
+        "request_file",
+        lambda url, backup_path: (
+            mock_pipeline_catalog_fetching_result,
+            "Network unreachable",
+        ),
     )
 
     result = runner.invoke(

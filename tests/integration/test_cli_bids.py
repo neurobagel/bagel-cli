@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from bagel.cli import bagel
+from bagel.utilities import file_utils
 from tests import utils
 
 
@@ -439,7 +440,7 @@ def test_bids_table_missing_required_columns_exits_gracefully(
     assert result.exit_code != 0
     assert not temp_output_jsonld_path.exists()
     assert len(caplog.records) == 1
-    assert "Invalid BIDS table" in caplog.text
+    assert "BIDS table does not match the expected schema" in caplog.text
     assert "suffix" in caplog.text
 
 
@@ -558,4 +559,113 @@ def test_warning_when_bids_source_dir_provided_without_bids_table(
     assert (
         "imaging source directory path was provided without a corresponding BIDS metadata table"
         in caplog.text
+    )
+
+
+def test_app_exits_with_bids_inputs_and_failed_imaging_vocab_fetching(
+    runner,
+    synthetic_dataset_phenotypic_inputs,
+    synthetic_dataset_bids_tsv,
+    temp_output_jsonld_path,
+    caplog,
+    propagate_errors,
+    monkeypatch,
+):
+    """
+    Test that if the imaging vocabulary fetching fails when a BIDS table is provided,
+    the app exits gracefully with an informative error.
+    """
+    monkeypatch.setattr(
+        file_utils,
+        "request_file",
+        lambda url, backup_path: ([], "Network unreachable"),
+    )
+
+    result = runner.invoke(
+        bagel,
+        [
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "--bids-table",
+            synthetic_dataset_bids_tsv,
+            "--output",
+            temp_output_jsonld_path,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code != 0
+    assert not temp_output_jsonld_path.exists()
+    assert len(caplog.records) == 1
+    assert "Failed to load the imaging modality vocabulary" in caplog.text
+
+
+def test_app_exits_for_bids_and_pheno_subject_id_mismatch(
+    runner,
+    synthetic_dataset_phenotypic_inputs,
+    tmp_path,
+    temp_output_jsonld_path,
+    caplog,
+    propagate_errors,
+):
+    """
+    Test that if the subject IDs in the BIDS table do not match those in the phenotypic data,
+    the app exits gracefully with an informative error.
+    """
+    expected_error_message = [
+        "2 subject IDs not found in the phenotypic table",
+        "sub-990",
+        "sub-991",
+    ]
+
+    bids_table = pd.DataFrame(
+        [
+            [
+                "sub-990",
+                "ses-01",
+                "T1w",
+                "/data/synthetic/sub-01/ses-01/anat/sub-990_ses-01_T1w.nii.gz",
+            ],
+            [
+                "sub-990",
+                "ses-01",
+                "bold",
+                "/data/synthetic/sub-01/ses-01/func/sub-990_ses-01_task-nback_run-01_bold.nii.gz",
+            ],
+            [
+                "sub-991",
+                "ses-01",
+                "T1w",
+                "/data/synthetic/sub-02/ses-01/anat/sub-991_ses-01_T1w.nii.gz",
+            ],
+            [
+                "sub-991",
+                "ses-01",
+                "bold",
+                "/data/synthetic/sub-02/ses-01/func/sub-991_ses-01_task-nback_run-01_bold.nii.gz",
+            ],
+        ],
+        columns=["sub", "ses", "suffix", "path"],
+    )
+    bids_table.to_csv(tmp_path / "bids.tsv", sep="\t", index=False)
+
+    result = runner.invoke(
+        bagel,
+        [
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "--bids-table",
+            tmp_path / "bids.tsv",
+            "--output",
+            temp_output_jsonld_path,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code != 0
+    assert not temp_output_jsonld_path.exists()
+    assert len(caplog.records) == 1
+    assert all(
+        expected_substr in caplog.text
+        for expected_substr in expected_error_message
     )

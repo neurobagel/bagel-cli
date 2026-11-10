@@ -4,7 +4,7 @@
 
 - [FIX] Pin Typer to <0.29.0 to fix crash due to upstream breaking API change ([@alyssadai](https://github.com/alyssadai))
 
-#### Authors: 2
+#### Authors: 1
 
 - Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
 

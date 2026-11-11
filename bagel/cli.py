@@ -373,24 +373,29 @@ def create(
     """
     file_utils.check_overwrite(output, overwrite)
 
+    phenotypic_input_valid = True
+    bids_input_valid = True
+    derivatives_input_valid = True
     # The input files can be loaded independently of each other,
     # so we collect any file errors across all inputs before exiting to give the user
     # a complete picture of file formatting issues
-    file_parsing_errors = []
     try:
         data_dictionary = file_utils.load_json(dictionary)
     except BagelFileError as e:
-        file_parsing_errors.append(f"Error parsing data dictionary: {e}")
+        logger.error(f"Error parsing data dictionary: {e}")
+        phenotypic_input_valid = False
 
     try:
         pheno_df = file_utils.load_tabular(pheno)
     except BagelFileError as e:
-        file_parsing_errors.append(f"Error parsing phenotypic TSV: {e}")
+        logger.error(f"Error parsing phenotypic TSV: {e}")
+        phenotypic_input_valid = False
 
     try:
         dataset_metadata = file_utils.load_json(dataset_description)
     except BagelFileError as e:
-        file_parsing_errors.append(f"Error parsing dataset description: {e}")
+        logger.error(f"Error parsing dataset description: {e}")
+        phenotypic_input_valid = False
 
     if bids_table:
         try:
@@ -398,21 +403,20 @@ def create(
                 bids_table, input_type="BIDS"
             )
         except BagelFileError as e:
-            file_parsing_errors.append(f"Error parsing BIDS table: {e}.")
-
+            logger.error(f"Error parsing BIDS table: {e}.")
+            bids_input_valid = False
     if processing_status:
         try:
             processing_status_df = file_utils.load_tabular(
                 processing_status, input_type="processing status"
             )
         except BagelFileError as e:
-            file_parsing_errors.append(
-                f"Error parsing processing status TSV: {e}."
-            )
+            logger.error(f"Error parsing processing status TSV: {e}.")
+            derivatives_input_valid = False
 
-    for error in file_parsing_errors:
-        logger.error(error)
-    if file_parsing_errors:
+    if not phenotypic_input_valid or (
+        strict and not (bids_input_valid and derivatives_input_valid)
+    ):
         raise typer.Exit(code=1)
 
     pheno_utils.check_if_remote_config_namespaces_used()
@@ -577,13 +581,13 @@ def create(
         hasSamples=subject_list,
     )
 
-    if bids_table:
+    if bids_table and bids_input_valid:
         logger.info("Adding BIDS metadata to subjects...")
         graph_dataset = process_bids(
             bids_dataset, imaging_source_dir, graph_dataset, verbosity
         )
 
-    if processing_status:
+    if processing_status and derivatives_input_valid:
         logger.info("Adding subject-level derivative metadata...")
         graph_dataset = process_derivatives(
             processing_status_df, graph_dataset

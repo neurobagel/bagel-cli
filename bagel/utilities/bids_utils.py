@@ -136,7 +136,10 @@ def check_absolute_path(dir_path: Path | None) -> Path | None:
 
 
 def validate_bids_table(bids_table: pd.DataFrame) -> pd.DataFrame:
-    """Check that the provided BIDS table is schema-compliant and is not empty."""
+    """
+    Check that the provided BIDS table is schema-compliant and is not empty,
+    returning it if valid.
+    """
     try:
         validated_bids_table = bids_table_model.model.validate(bids_table)
     except pa.errors.SchemaError as err:

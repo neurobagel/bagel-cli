@@ -373,9 +373,9 @@ def create(
     """
     file_utils.check_overwrite(output, overwrite)
 
-    phenotypic_input_valid = True
-    bids_input_valid = True
-    derivatives_input_valid = True
+    phenotypic_files_valid = True
+    bids_files_valid = True
+    derivatives_files_valid = True
     # The input files can be loaded independently of each other,
     # so we collect any file errors across all inputs before exiting to give the user
     # a complete picture of file formatting issues
@@ -383,19 +383,19 @@ def create(
         data_dictionary = file_utils.load_json(dictionary)
     except BagelFileError as e:
         logger.error(f"Error parsing data dictionary: {e}")
-        phenotypic_input_valid = False
+        phenotypic_files_valid = False
 
     try:
         pheno_df = file_utils.load_tabular(pheno)
     except BagelFileError as e:
         logger.error(f"Error parsing phenotypic TSV: {e}")
-        phenotypic_input_valid = False
+        phenotypic_files_valid = False
 
     try:
         dataset_metadata = file_utils.load_json(dataset_description)
     except BagelFileError as e:
         logger.error(f"Error parsing dataset description: {e}")
-        phenotypic_input_valid = False
+        phenotypic_files_valid = False
 
     if bids_table:
         try:
@@ -404,7 +404,7 @@ def create(
             )
         except BagelFileError as e:
             logger.error(f"Error parsing BIDS table: {e}.")
-            bids_input_valid = False
+            bids_files_valid = False
     if processing_status:
         try:
             processing_status_df = file_utils.load_tabular(
@@ -412,10 +412,10 @@ def create(
             )
         except BagelFileError as e:
             logger.error(f"Error parsing processing status TSV: {e}.")
-            derivatives_input_valid = False
+            derivatives_files_valid = False
 
-    if not phenotypic_input_valid or (
-        strict and not (bids_input_valid and derivatives_input_valid)
+    if not phenotypic_files_valid or (
+        strict and not (bids_files_valid and derivatives_files_valid)
     ):
         raise typer.Exit(code=1)
 
@@ -433,7 +433,7 @@ def create(
     )
     if config:
         logger.info("%-*s%s", width, "Vocabulary configuration:", config)
-    if bids_table:
+    if bids_table and bids_files_valid:
         logger.info("%-*s%s", width, "BIDS metadata table (.tsv):", bids_table)
         if imaging_source_dir:
             logger.info(
@@ -445,11 +445,11 @@ def create(
     elif imaging_source_dir:
         # TODO: Make option names bolded in warning?
         logger.warning(
-            "An imaging source directory path was provided without a corresponding BIDS metadata table. "
+            "An imaging source directory path was provided without a corresponding valid BIDS metadata table. "
             "--imaging-source-dir will be ignored. "
             "To include imaging metadata, please specify a BIDS table using --bids-table."
         )
-    if processing_status:
+    if processing_status and derivatives_files_valid:
         logger.info(
             "%-*s%s", width, "Processing status (.tsv):", processing_status
         )
@@ -581,17 +581,23 @@ def create(
         hasSamples=subject_list,
     )
 
-    if bids_table and bids_input_valid:
+    if bids_table and bids_files_valid:
         logger.info("Adding BIDS metadata to subjects...")
-        graph_dataset = process_bids(
-            bids_dataset, imaging_source_dir, graph_dataset, verbosity
+        _graph_dataset_with_bids = process_bids(
+            bids_dataset, imaging_source_dir, graph_dataset, verbosity, strict
         )
+        # TODO: Double check
+        if _graph_dataset_with_bids is not None:
+            graph_dataset = _graph_dataset_with_bids
 
-    if processing_status and derivatives_input_valid:
+    if processing_status and derivatives_files_valid:
         logger.info("Adding subject-level derivative metadata...")
-        graph_dataset = process_derivatives(
+        _graph_dataset_with_derivatives = process_derivatives(
             processing_status_df, graph_dataset
         )
+        # TODO: Double check
+        if _graph_dataset_with_derivatives is not None:
+            graph_dataset = _graph_dataset_with_derivatives
 
     file_utils.save_jsonld(
         data=model_utils.dataset_to_jsonld(
@@ -604,58 +610,36 @@ def create(
 
 def process_bids(
     bids_dataset: pd.DataFrame,
-    bids_source_dir: Path,
+    bids_source_dir: Path,  # TODO: Rename to imaging_source_dir
     graph_dataset: models.Dataset,
     verbosity: VerbosityLevel,
-) -> models.Dataset:
+    strict: bool,
+) -> models.Dataset | None:
     """
     Extract and integrate imaging metadata from a BIDS dataset with harmonized subject graph data.
     """
 
     try:
         # Check that all expected columns are present
-        bids_utils.validate_bids_table(bids_dataset)
+        validated_bids_table = bids_utils.validate_bids_table(bids_dataset)
+    except BagelValidationError as e:
+        logger.error(str(e))
+        validated_bids_table = None
+    try:
         # Fetch the remote imaging modality vocabulary needed for downstream checks
         # NOTE: This only needs to be done if a BIDS table is provided
         bids_terms_vocab = bids_utils.fetch_bids_terms_vocab()
-    except (BagelValidationError, BagelResourceError) as e:
+    except BagelResourceError as e:
         logger.error(str(e))
-        raise typer.Exit(code=1)
+        bids_terms_vocab = None
 
-    bids_suffix_to_std_term_map = bids_utils.create_bids_suffix_uri_lookup(
-        bids_terms_vocab
-    )
-    # NOTE: The BIDS table model validation will check for required columns and for empty values in the "suffix" column
-    # and error out for any problem. Because we want to also ignore unsupported suffixes with a warning instead of a validation error,
-    # we check the suffix column separately here and then remove any offending values.
-    neurobagel_supported_suffixes, neurobagel_unsupported_suffixes = (
-        bids_utils.partition_suffixes(
-            suffixes=bids_dataset["suffix"],
-            reference_suffixes=bids_suffix_to_std_term_map.keys(),
-        )
-    )
-    if not neurobagel_supported_suffixes:
-        logger.error(
-            f"No Neurobagel-supported BIDS suffixes found in the 'suffix' column of the BIDS table. "
-            "No imaging metadata could be added to the subject graph data. "
-            "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
-            f"(supported suffixes: {list(bids_suffix_to_std_term_map.keys())}).",
-        )
-        raise typer.Exit(code=1)
-    # We assume that most input BIDS TSVs will have been generated by the 'bids2tsv' command,
-    # so we only log a generic warning here for any suffixes found in the table that are not supported by Neurobagel
-    if neurobagel_unsupported_suffixes:
-        logger.warning(
-            f"BIDS table 'suffix' column contains file suffixes unsupported by Neurobagel: {list(neurobagel_unsupported_suffixes)}. "
-            f"These records will be ignored. Supported file suffixes: {list(bids_suffix_to_std_term_map.keys())}."
-        )
-
-        bids_dataset = bids_dataset[
-            bids_dataset["suffix"].isin(neurobagel_supported_suffixes)
-        ].copy()
+    if not validated_bids_table:
+        if strict:
+            raise typer.Exit(code=1)
+        return None
 
     existing_subs_dict = model_utils.get_subject_instances(graph_dataset)
-    bids_subject_ids = list(bids_dataset["sub"].unique())
+    bids_subject_ids = list(validated_bids_table["sub"].unique())
 
     if subjects_missing_from_pheno := model_utils.get_subs_missing_from_pheno_data(
         subjects=bids_subject_ids,
@@ -668,7 +652,48 @@ def process_bids(
             "Subject IDs are case sensitive. "
             "Please ensure that all subjects in the BIDS TSV have a corresponding entry in the phenotypic TSV.",
         )
-        raise typer.Exit(code=1)
+        if strict:
+            raise typer.Exit(code=1)
+        return None
+
+    if not bids_terms_vocab:
+        if strict:
+            raise typer.Exit(code=1)
+        return None
+
+    bids_suffix_to_std_term_map = bids_utils.create_bids_suffix_uri_lookup(
+        bids_terms_vocab
+    )
+    # NOTE: The BIDS table model validation will check for required columns and for empty values in the "suffix" column
+    # and error out for any problem. Because we want to also ignore unsupported suffixes with a warning instead of a validation error,
+    # we check the suffix column separately here and then remove any offending values.
+    neurobagel_supported_suffixes, neurobagel_unsupported_suffixes = (
+        bids_utils.partition_suffixes(
+            suffixes=validated_bids_table["suffix"],
+            reference_suffixes=bids_suffix_to_std_term_map.keys(),
+        )
+    )
+    if not neurobagel_supported_suffixes:
+        logger.error(
+            f"No Neurobagel-supported BIDS suffixes found in the 'suffix' column of the BIDS table. "
+            "No imaging metadata could be added to the subject graph data. "
+            "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
+            f"(supported suffixes: {list(bids_suffix_to_std_term_map.keys())}).",
+        )
+        if strict:
+            raise typer.Exit(code=1)
+        return None
+    # We assume that most input BIDS TSVs will have been generated by the 'bids2tsv' command,
+    # so we only log a generic warning here for any suffixes found in the table that are not supported by Neurobagel
+    if neurobagel_unsupported_suffixes:
+        logger.warning(
+            f"BIDS table 'suffix' column contains file suffixes unsupported by Neurobagel: {list(neurobagel_unsupported_suffixes)}. "
+            f"These records will be ignored. Supported file suffixes: {list(bids_suffix_to_std_term_map.keys())}."
+        )
+
+        validated_bids_table = validated_bids_table[
+            validated_bids_table["suffix"].isin(neurobagel_supported_suffixes)
+        ].copy()
 
     logger.info(
         "Subject metadata for the following Neurobagel-supported imaging modalities "
@@ -681,7 +706,9 @@ def process_bids(
         description="Processing BIDS subjects...",
         disable=disable_progress_bar,
     ):
-        _bids_sub = bids_dataset[bids_dataset["sub"] == bids_sub_id]
+        _bids_sub = validated_bids_table[
+            validated_bids_table["sub"] == bids_sub_id
+        ]
         existing_subject = existing_subs_dict[bids_sub_id]
 
         bids_sessions = list(_bids_sub["ses"].unique())

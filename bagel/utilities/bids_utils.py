@@ -135,10 +135,10 @@ def check_absolute_path(dir_path: Path | None) -> Path | None:
     return dir_path
 
 
-def validate_bids_table(bids_table: pd.DataFrame):
+def validate_bids_table(bids_table: pd.DataFrame) -> pd.DataFrame:
     """Check that the provided BIDS table is schema-compliant and is not empty."""
     try:
-        bids_table_model.model.validate(bids_table)
+        validated_bids_table = bids_table_model.model.validate(bids_table)
     except pa.errors.SchemaError as err:
         rows_with_errs_note = ""
         # When validation fails due to a column value check (e.g., as opposed to a missing column),
@@ -149,10 +149,11 @@ def validate_bids_table(bids_table: pd.DataFrame):
         raise BagelValidationError(
             f"The BIDS table does not match the expected schema. Error: {err} {rows_with_errs_note}",
         ) from err
-    if bids_table.empty:
+    if validated_bids_table.empty:
         raise BagelValidationError(
             "The BIDS table is empty (only a header row was found). No imaging metadata to add.",
         )
+    return validated_bids_table
 
 
 def create_acquisitions(

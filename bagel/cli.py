@@ -355,6 +355,11 @@ def create(
         f"{pheno_utils.additional_config_help_text()}",
         rich_help_panel=OPTION_GROUP_NAMES["config"],
     ),
+    strict: bool = typer.Option(
+        False,
+        "--strict",
+        help="Fail if any errors are encountered during processing, without attempting to generate a partial JSONLD output.",
+    ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
     help_: bool = help_option(),
@@ -368,33 +373,46 @@ def create(
     """
     file_utils.check_overwrite(output, overwrite)
 
-    # The phenotypic input files can be loaded independently of each other,
-    # so we collect any file errors across all three before exiting to give the user a complete picture of file formatting issues.”
-    phenotypic_file_parsing_errors = []
+    # The input files can be loaded independently of each other,
+    # so we collect any file errors across all inputs before exiting to give the user
+    # a complete picture of file formatting issues
+    file_parsing_errors = []
     try:
         data_dictionary = file_utils.load_json(dictionary)
     except BagelFileError as e:
-        phenotypic_file_parsing_errors.append(
-            f"Error parsing data dictionary: {e}"
-        )
+        file_parsing_errors.append(f"Error parsing data dictionary: {e}")
 
     try:
         pheno_df = file_utils.load_tabular(pheno)
     except BagelFileError as e:
-        phenotypic_file_parsing_errors.append(
-            f"Error parsing phenotypic TSV: {e}"
-        )
+        file_parsing_errors.append(f"Error parsing phenotypic TSV: {e}")
 
     try:
         dataset_metadata = file_utils.load_json(dataset_description)
     except BagelFileError as e:
-        phenotypic_file_parsing_errors.append(
-            f"Error parsing dataset description: {e}"
-        )
+        file_parsing_errors.append(f"Error parsing dataset description: {e}")
 
-    for error in phenotypic_file_parsing_errors:
+    if bids_table:
+        try:
+            bids_dataset = file_utils.load_tabular(
+                bids_table, input_type="BIDS"
+            )
+        except BagelFileError as e:
+            file_parsing_errors.append(f"Error parsing BIDS table: {e}.")
+
+    if processing_status:
+        try:
+            processing_status_df = file_utils.load_tabular(
+                processing_status, input_type="processing status"
+            )
+        except BagelFileError as e:
+            file_parsing_errors.append(
+                f"Error parsing processing status TSV: {e}."
+            )
+
+    for error in file_parsing_errors:
         logger.error(error)
-    if phenotypic_file_parsing_errors:
+    if file_parsing_errors:
         raise typer.Exit(code=1)
 
     pheno_utils.check_if_remote_config_namespaces_used()
@@ -562,12 +580,14 @@ def create(
     if bids_table:
         logger.info("Adding BIDS metadata to subjects...")
         graph_dataset = process_bids(
-            bids_table, imaging_source_dir, graph_dataset, verbosity
+            bids_dataset, imaging_source_dir, graph_dataset, verbosity
         )
 
     if processing_status:
         logger.info("Adding subject-level derivative metadata...")
-        graph_dataset = process_derivatives(processing_status, graph_dataset)
+        graph_dataset = process_derivatives(
+            processing_status_df, graph_dataset
+        )
 
     file_utils.save_jsonld(
         data=model_utils.dataset_to_jsonld(
@@ -579,7 +599,7 @@ def create(
 
 
 def process_bids(
-    bids_table: Path,
+    bids_dataset: pd.DataFrame,
     bids_source_dir: Path,
     graph_dataset: models.Dataset,
     verbosity: VerbosityLevel,
@@ -587,14 +607,6 @@ def process_bids(
     """
     Extract and integrate imaging metadata from a BIDS dataset with harmonized subject graph data.
     """
-
-    # TODO: Combine BIDS TSV file type validation with file type validation of phenotypic inputs
-    # (i.e., at top of 'create' function) to return all input file parsing errors together
-    try:
-        bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
-    except BagelFileError as e:
-        logger.error(f"Error parsing BIDS table: {e}.")
-        raise typer.Exit(code=1)
 
     try:
         # Check that all expected columns are present
@@ -620,7 +632,7 @@ def process_bids(
     )
     if not neurobagel_supported_suffixes:
         logger.error(
-            f"No Neurobagel-supported BIDS suffixes found in the 'suffix' column of the BIDS table: {bids_table}. "
+            f"No Neurobagel-supported BIDS suffixes found in the 'suffix' column of the BIDS table. "
             "No imaging metadata could be added to the subject graph data. "
             "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
             f"(supported suffixes: {list(bids_suffix_to_std_term_map.keys())}).",
@@ -709,21 +721,11 @@ def process_bids(
 
 
 def process_derivatives(
-    processing_status_table: Path, graph_dataset: models.Dataset
+    status_df: pd.DataFrame, graph_dataset: models.Dataset
 ):
     """
     Extract subject processing pipeline and derivative metadata from a tabular processing status file and integrate it with harmonized subject graph data.
     """
-
-    # TODO: Combine processing status TSV file type validation with file type validation of phenotypic inputs
-    # (i.e., at top of 'create' function) to return all input file parsing errors together
-    try:
-        status_df = file_utils.load_tabular(
-            processing_status_table, input_type="processing status"
-        )
-    except BagelFileError as e:
-        logger.error(f"Error parsing processing status TSV: {e}.")
-        raise typer.Exit(code=1)
 
     # We don't allow empty values in the participant ID column
     if missing_id_rows := pheno_utils.get_rows_with_empty_strings(

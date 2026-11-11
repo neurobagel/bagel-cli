@@ -593,7 +593,7 @@ def create(
     if processing_status and derivatives_files_valid:
         logger.info("Adding subject-level derivative metadata...")
         _graph_dataset_with_derivatives = process_derivatives(
-            processing_status_df, graph_dataset
+            processing_status_df, graph_dataset, strict
         )
         # TODO: Double check
         if _graph_dataset_with_derivatives is not None:
@@ -752,8 +752,8 @@ def process_bids(
 
 
 def process_derivatives(
-    status_df: pd.DataFrame, graph_dataset: models.Dataset
-):
+    status_df: pd.DataFrame, graph_dataset: models.Dataset, strict: bool
+) -> models.Dataset | None:
     """
     Extract subject processing pipeline and derivative metadata from a tabular processing status file and integrate it with harmonized subject graph data.
     """
@@ -767,13 +767,41 @@ def process_derivatives(
             "Please ensure that every row has a non-empty participant ID. "
             f"Rows with missing participant IDs (first row is 1): {missing_id_rows}.",
         )
-        raise typer.Exit(code=1)
 
     try:
         pipeline_catalog = derivative_utils.fetch_pipeline_catalog()
     except BagelResourceError as e:
         logger.error(str(e))
-        raise typer.Exit(code=1)
+        pipeline_catalog = None
+
+    if missing_id_rows:
+        if strict:
+            raise typer.Exit(code=1)
+        return None
+
+    existing_subs_dict = model_utils.get_subject_instances(graph_dataset)
+    processing_status_subs = status_df[
+        PROC_STATUS_COLS["participant"]
+    ].unique()
+
+    if subjects_missing_from_pheno := model_utils.get_subs_missing_from_pheno_data(
+        subjects=processing_status_subs,
+        pheno_subjects=existing_subs_dict.keys(),
+    ):
+        logger.error(
+            "The processing status table contains subject IDs not found in the phenotypic table:\n"
+            f"{subjects_missing_from_pheno}\n"
+            "Subject IDs are case sensitive. "
+            "Please ensure that all subjects in the processing status TSV have a corresponding entry in the phenotypic TSV.",
+        )
+        if strict:
+            raise typer.Exit(code=1)
+        return None
+
+    if not pipeline_catalog:
+        if strict:
+            raise typer.Exit(code=1)
+        return None
 
     known_pipeline_uris, known_pipeline_versions = (
         derivative_utils.create_pipeline_lookups(
@@ -789,24 +817,9 @@ def process_derivatives(
         )
     except BagelValidationError as e:
         logger.error(str(e))
-        raise typer.Exit(code=1)
-
-    processing_status_subs = status_df[
-        PROC_STATUS_COLS["participant"]
-    ].unique()
-    existing_subs_dict = model_utils.get_subject_instances(graph_dataset)
-
-    if subjects_missing_from_pheno := model_utils.get_subs_missing_from_pheno_data(
-        subjects=processing_status_subs,
-        pheno_subjects=existing_subs_dict.keys(),
-    ):
-        logger.error(
-            "The processing status table contains subject IDs not found in the phenotypic table:\n"
-            f"{subjects_missing_from_pheno}\n"
-            "Subject IDs are case sensitive. "
-            "Please ensure that all subjects in the processing status TSV have a corresponding entry in the phenotypic TSV.",
-        )
-        raise typer.Exit(code=1)
+        if strict:
+            raise typer.Exit(code=1)
+        return None
 
     # Create sub-dataframes for each subject
     for subject, sub_proc_df in status_df.groupby(

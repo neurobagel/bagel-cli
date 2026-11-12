@@ -337,7 +337,7 @@ def test_all_unsupported_suffixes_in_bids_table_raises_error(
     synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     disable_rich_markup,
-    propagate_errors,
+    propagate_warnings,
     caplog,
     strict_flag,
     expected_exit_code,

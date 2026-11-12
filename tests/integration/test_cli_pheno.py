@@ -145,7 +145,10 @@ def test_invalid_inputs_are_handled_gracefully(
     caplog,
     propagate_errors,
 ):
-    """Assures that we handle expected user errors in phenotypic input files gracefully"""
+    """
+    Assures that we handle expected user errors in phenotypic input files gracefully,
+    and that the command is always aborted if phenotypic input processing fails.
+    """
     result = runner.invoke(
         bagel,
         [

@@ -373,7 +373,7 @@ def create(
     """
     Process a tabular phenotypic file (.tsv) that has been annotated with the Neurobagel annotation tool, with annotations stored in a data dictionary (.json),
     to create a harmonized representation of the subject-level data in JSON-LD format.
-    Optionally integrate tabular BIDS metadata and/or processing pipeline metadata for subjects in the same harmonized representation.
+    Optionally integrate tabular imaging metadata and/or processing pipeline metadata for subjects in the same harmonized representation.
 
     This command will generate a .jsonld file compliant with the Neurobagel graph data model for a dataset. The output file can be uploaded to a Neurobagel graph store.
     """

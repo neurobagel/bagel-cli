@@ -90,6 +90,7 @@ def test_partial_jsonld_created_when_only_phenotypic_inputs_valid(
     expected_warnings = [
         "Imaging metadata could not be added",
         "Processing pipeline metadata could not be added",
+        "Partial JSON-LD output generated",
     ]
 
     invalid_bids_table_path = tmp_path / "bids_with_unrecognized_subjects.tsv"
@@ -152,7 +153,7 @@ def test_partial_jsonld_created_when_only_phenotypic_inputs_valid(
 
     assert result.exit_code == 0
     assert len(errors) == 2
-    assert len(warnings) == 2
+    assert len(warnings) == 3
     for expected_error in expected_errors:
         assert any(expected_error in record.message for record in errors)
     for expected_warning in expected_warnings:
@@ -178,6 +179,11 @@ def test_partial_jsonld_created_when_only_phenotypic_and_derivatives_inputs_vali
     but the BIDS inputs do not, a partial JSON-LD is still created and an informative error
     and warning are logged for the incomplete BIDS metadata processing.
     """
+    expected_error = "subject IDs not found in the phenotypic table"
+    expected_warnings = [
+        "Imaging metadata could not be added",
+        "Partial JSON-LD output generated",
+    ]
 
     invalid_bids_table = pd.DataFrame(
         [
@@ -243,9 +249,10 @@ def test_partial_jsonld_created_when_only_phenotypic_and_derivatives_inputs_vali
 
     assert result.exit_code == 0
     assert len(errors) == 1
-    assert len(warnings) == 1
-    assert "subject IDs not found in the phenotypic table" in errors[0].message
-    assert "Imaging metadata could not be added" in warnings[0].message
+    assert len(warnings) == 2
+    assert expected_error in errors[0].message
+    for expected_warning in expected_warnings:
+        assert any(expected_warning in record.message for record in warnings)
     assert len(imaging_sessions) > 0
     assert not any("hasContrastType" in ses for ses in imaging_sessions)
     assert any("hasCompletedPipeline" in ses for ses in imaging_sessions)

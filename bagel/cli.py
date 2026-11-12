@@ -364,7 +364,7 @@ def create(
     strict: bool = typer.Option(
         False,
         "--strict",
-        help="Fail if any errors are encountered during processing, without attempting to generate a partial JSONLD output.",
+        help="Fail if any errors are encountered during processing, without attempting to generate a partial JSON-LD output.",
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
@@ -587,41 +587,42 @@ def create(
         hasSamples=subject_list,
     )
 
-    if bids_table:
-        bids_processing_succeeded = False
-        if bids_files_valid:
-            logger.info("Adding BIDS metadata to subjects...")
-            try:
-                updated_graph_dataset = process_bids(
-                    bids_dataset, imaging_source_dir, graph_dataset, verbosity
-                )
-                graph_dataset = updated_graph_dataset
-                bids_processing_succeeded = True
-            except _StopProcessing:
-                if strict:
-                    raise typer.Exit(code=1)
-        if not bids_processing_succeeded:
-            logger.warning(
-                "Imaging metadata could not be added to the subject graph data due to errors."
+    bids_processing_failed = False
+    if bids_table and bids_files_valid:
+        logger.info("Adding BIDS metadata to subjects...")
+        try:
+            updated_graph_dataset = process_bids(
+                bids_dataset, imaging_source_dir, graph_dataset, verbosity
             )
+            graph_dataset = updated_graph_dataset
+        except _StopProcessing:
+            bids_processing_failed = True
+            if strict:
+                raise typer.Exit(code=1)
 
-    if processing_status:
-        derivatives_processing_succeeded = False
-        if derivatives_files_valid:
-            logger.info("Adding subject-level derivative metadata...")
-            try:
-                updated_graph_dataset = process_derivatives(
-                    processing_status_df, graph_dataset
-                )
-                graph_dataset = updated_graph_dataset
-                derivatives_processing_succeeded = True
-            except _StopProcessing:
-                if strict:
-                    raise typer.Exit(code=1)
-        if not derivatives_processing_succeeded:
-            logger.warning(
-                "Processing pipeline metadata could not be added to the subject graph data due to errors."
+    derivatives_processing_failed = False
+    if processing_status and derivatives_files_valid:
+        logger.info("Adding subject-level derivative metadata...")
+        try:
+            updated_graph_dataset = process_derivatives(
+                processing_status_df, graph_dataset
             )
+            graph_dataset = updated_graph_dataset
+        except _StopProcessing:
+            derivatives_processing_failed = True
+            if strict:
+                raise typer.Exit(code=1)
+
+    if bids_processing_failed:
+        logger.warning(
+            "Imaging metadata could not be added to the subject graph data due to errors."
+        )
+    if derivatives_processing_failed:
+        logger.warning(
+            "Processing pipeline metadata could not be added to the subject graph data due to errors."
+        )
+    if bids_processing_failed or derivatives_processing_failed:
+        logger.warning("Partial JSON-LD output generated.")
 
     file_utils.save_jsonld(
         data=model_utils.dataset_to_jsonld(

@@ -116,6 +116,13 @@ def test_pipeline_info_added_to_existing_imaging_sessions(
 
 
 @pytest.mark.parametrize(
+    "strict_flag,expected_exit_code,is_output_expected",
+    [
+        (["--strict"], 1, False),
+        ([], 0, True),
+    ],
+)
+@pytest.mark.parametrize(
     "example,expected_message",
     [
         (
@@ -132,7 +139,7 @@ def test_pipeline_info_added_to_existing_imaging_sessions(
         ),
     ],
 )
-def test_derivatives_invalid_inputs_fail(
+def test_derivatives_invalid_inputs_raise_error(
     runner,
     test_data,
     synthetic_dataset_phenotypic_inputs,
@@ -141,6 +148,9 @@ def test_derivatives_invalid_inputs_fail(
     expected_message,
     caplog,
     propagate_errors,
+    strict_flag,
+    expected_exit_code,
+    is_output_expected,
 ):
     """Assure that we handle expected user errors from the processing status file gracefully."""
     result = runner.invoke(
@@ -152,18 +162,17 @@ def test_derivatives_invalid_inputs_fail(
             test_data / example,
             "-o",
             temp_output_jsonld_path,
+            *strict_flag,
         ],
         catch_exceptions=False,
     )
 
-    assert result.exit_code != 0
+    assert result.exit_code == expected_exit_code
     assert len(caplog.records) == 1
     for substring in expected_message:
         assert substring in caplog.text
 
-    assert (
-        not temp_output_jsonld_path.exists()
-    ), "The JSONLD output was created despite inputs being invalid."
+    assert temp_output_jsonld_path.exists() == is_output_expected
 
 
 @pytest.mark.parametrize(
@@ -280,6 +289,13 @@ def test_unrecognized_pipelines_and_versions_excluded_from_output(
     assert ses01_completed_pipes[0]["hasPipelineVersion"] == "7.3.2"
 
 
+@pytest.mark.parametrize(
+    "strict_flag,expected_exit_code,is_output_expected",
+    [
+        (["--strict"], 1, False),
+        ([], 0, True),
+    ],
+)
 def test_error_when_no_pipeline_version_combos_recognized(
     runner,
     test_data,
@@ -287,10 +303,13 @@ def test_error_when_no_pipeline_version_combos_recognized(
     temp_output_jsonld_path,
     caplog,
     propagate_errors,
+    strict_flag,
+    expected_exit_code,
+    is_output_expected,
 ):
     """
     Test that when there is no recognized pipeline-version combination in the processing status file,
-    the app exits with an error and no output JSONLD is created.
+    the app raises an informative error and exits gracefully when strict mode is enabled.
     """
     result = runner.invoke(
         bagel,
@@ -301,16 +320,15 @@ def test_error_when_no_pipeline_version_combos_recognized(
             test_data / "proc_status_no_recognized_pipelines.tsv",
             "-o",
             temp_output_jsonld_path,
+            *strict_flag,
         ],
         catch_exceptions=False,
     )
 
-    assert result.exit_code != 0
+    assert result.exit_code == expected_exit_code
     assert len(caplog.records) == 1
     assert "no recognized versions" in caplog.text
-    assert (
-        not temp_output_jsonld_path.exists()
-    ), "A JSONLD was created despite inputs being invalid."
+    assert temp_output_jsonld_path.exists() == is_output_expected
 
 
 def test_failed_pipeline_catalog_fetching_does_not_raise_error_for_help(
@@ -342,21 +360,10 @@ def test_failed_pipeline_catalog_fetching_does_not_raise_error_for_help(
 
 
 @pytest.mark.parametrize(
-    "mock_pipeline_catalog_fetching_result,expected_exit_code,expected_err,output_created_expectation",
+    "strict_flag,expected_exit_code,is_output_expected",
     [
-        (
-            [
-                {
-                    "name": "fmriprep",
-                    "versions": ["20.2.0", "20.2.7", "23.1.3", "24.1.1"],
-                },
-                {"name": "freesurfer", "versions": ["6.0.1", "7.3.2"]},
-            ],
-            0,
-            "Using a packaged backup pipeline catalog",
-            True,
-        ),
-        ([], 1, "Failed to load the pipeline catalog", False),
+        (["--strict"], 1, False),
+        ([], 0, True),
     ],
 )
 def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_input(
@@ -365,22 +372,71 @@ def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_input(
     synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     caplog,
-    propagate_warnings,
+    propagate_errors,
     monkeypatch,
-    mock_pipeline_catalog_fetching_result,
+    strict_flag,
     expected_exit_code,
-    expected_err,
-    output_created_expectation,
+    is_output_expected,
 ):
     """
     Test that when a processing status file is provided and the pipeline catalog fetching fails,
-    the command raises an appropriate warning or error depending on if the backup catalog could be loaded.
+    the command raises an error if no backup catalog is available.
     """
     monkeypatch.setattr(
         file_utils,
         "request_file",
         lambda url, backup_path: (
-            mock_pipeline_catalog_fetching_result,
+            [],
+            "Network unreachable",
+        ),
+    )
+
+    result = runner.invoke(
+        bagel,
+        [
+            "create",
+            *synthetic_dataset_phenotypic_inputs,
+            "-n",
+            test_data / "proc_status_synthetic.tsv",
+            "-o",
+            temp_output_jsonld_path,
+            *strict_flag,
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == expected_exit_code
+    assert len(caplog.records) == 1
+    assert "Failed to load the pipeline catalog" in caplog.text
+    assert temp_output_jsonld_path.exists() == is_output_expected
+
+
+def test_warning_when_local_pipeline_catalog_backup_used(
+    runner,
+    test_data,
+    synthetic_dataset_phenotypic_inputs,
+    temp_output_jsonld_path,
+    caplog,
+    propagate_warnings,
+    monkeypatch,
+):
+    """
+    Test that when a processing status file is provided and the pipeline catalog fetching fails
+    but a local backup catalog is available, the command raises an appropriate warning.
+    """
+    backup_pipeline_catalog_content = [
+        {
+            "name": "fmriprep",
+            "versions": ["20.2.0", "20.2.7", "23.1.3", "24.1.1"],
+        },
+        {"name": "freesurfer", "versions": ["6.0.1", "7.3.2"]},
+    ]
+
+    monkeypatch.setattr(
+        file_utils,
+        "request_file",
+        lambda url, backup_path: (
+            backup_pipeline_catalog_content,
             "Network unreachable",
         ),
     )
@@ -398,7 +454,7 @@ def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_input(
         catch_exceptions=False,
     )
 
-    assert result.exit_code == expected_exit_code
+    assert result.exit_code == 0
     assert len(caplog.records) == 1
-    assert expected_err in caplog.text
-    assert temp_output_jsonld_path.exists() is output_created_expectation
+    assert "Using a packaged backup pipeline catalog" in caplog.text
+    assert temp_output_jsonld_path.exists()

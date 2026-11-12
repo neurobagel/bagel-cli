@@ -634,7 +634,7 @@ def create(
 
 def process_bids(
     bids_dataset: pd.DataFrame,
-    bids_source_dir: Path,  # TODO: Rename to imaging_source_dir
+    bids_source_dir: Path,
     graph_dataset: models.Dataset,
     verbosity: VerbosityLevel,
 ) -> models.Dataset:

@@ -63,7 +63,7 @@ def verbosity_option():
         "--verbosity",
         "-v",
         callback=configure_logger,
-        help="Set the verbosity level of the output. 0 = show errors only; 1 = show errors, warnings, and informational messages; 3 = show all logs, including debug messages.",
+        help="Set the verbosity level of the output. 0 = show errors only; 1 = show errors, warnings, and informational messages; 2 = show all logs, including debug messages.",
         rich_help_panel=OPTION_GROUP_NAMES["troubleshooting"],
     )
 

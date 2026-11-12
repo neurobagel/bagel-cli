@@ -324,18 +324,28 @@ def test_some_unsupported_suffixes_in_bids_table_raises_warning(
     )
 
 
+@pytest.mark.parametrize(
+    "strict_flag,expected_exit_code,is_output_expected",
+    [
+        (["--strict"], 1, False),
+        ([], 0, True),
+    ],
+)
 def test_all_unsupported_suffixes_in_bids_table_raises_error(
     runner,
     tmp_path,
     synthetic_dataset_phenotypic_inputs,
     temp_output_jsonld_path,
     disable_rich_markup,
-    propagate_warnings,
+    propagate_errors,
     caplog,
+    strict_flag,
+    expected_exit_code,
+    is_output_expected,
 ):
     """
-    Check that a BIDS table containing only unsupported suffixes raises an error
-    and no output JSONLD file is created.
+    Check that a BIDS table containing only unsupported suffixes raises an error,
+    and the command exits gracefully when strict mode is enabled.
     """
     row_data = [
         [
@@ -377,17 +387,25 @@ def test_all_unsupported_suffixes_in_bids_table_raises_error(
             tmp_path / "bids.tsv",
             "--output",
             temp_output_jsonld_path,
+            *strict_flag,
         ],
         catch_exceptions=False,
     )
 
-    assert result.exit_code != 0
-    assert not temp_output_jsonld_path.exists()
+    assert result.exit_code == expected_exit_code
+    assert temp_output_jsonld_path.exists() == is_output_expected
     assert len(caplog.records) == 1
     assert "No Neurobagel-supported BIDS suffixes found" in caplog.text
 
 
-def test_bids_table_missing_required_columns_exits_gracefully(
+@pytest.mark.parametrize(
+    "strict_flag,expected_exit_code,is_output_expected",
+    [
+        (["--strict"], 1, False),
+        ([], 0, True),
+    ],
+)
+def test_bids_table_missing_required_columns_raises_error(
     runner,
     tmp_path,
     synthetic_dataset_phenotypic_inputs,
@@ -395,8 +413,14 @@ def test_bids_table_missing_required_columns_exits_gracefully(
     disable_rich_markup,
     propagate_errors,
     caplog,
+    strict_flag,
+    expected_exit_code,
+    is_output_expected,
 ):
-    """Test that the command exits gracefully when provided a BIDS table missing a required column."""
+    """
+    Test that the command raises an error when provided a BIDS table missing a required column,
+    and exits gracefully when strict mode is enabled.
+    """
     bids_table = pd.DataFrame(
         [
             [
@@ -433,12 +457,13 @@ def test_bids_table_missing_required_columns_exits_gracefully(
             tmp_path / "bids.tsv",
             "--output",
             temp_output_jsonld_path,
+            *strict_flag,
         ],
         catch_exceptions=False,
     )
 
-    assert result.exit_code != 0
-    assert not temp_output_jsonld_path.exists()
+    assert result.exit_code == expected_exit_code
+    assert temp_output_jsonld_path.exists() == is_output_expected
     assert len(caplog.records) == 1
     assert "BIDS table does not match the expected schema" in caplog.text
     assert "suffix" in caplog.text
@@ -557,12 +582,19 @@ def test_warning_when_bids_source_dir_provided_without_bids_table(
     assert temp_output_jsonld_path.exists()
     assert len(caplog.records) == 1
     assert (
-        "imaging source directory path was provided without a corresponding BIDS metadata table"
+        "imaging source directory path was provided without a corresponding valid BIDS metadata table"
         in caplog.text
     )
 
 
-def test_app_exits_with_bids_inputs_and_failed_imaging_vocab_fetching(
+@pytest.mark.parametrize(
+    "strict_flag,expected_exit_code,is_output_expected",
+    [
+        (["--strict"], 1, False),
+        ([], 0, True),
+    ],
+)
+def test_app_raises_error_given_bids_inputs_and_failed_imaging_vocab_fetching(
     runner,
     synthetic_dataset_phenotypic_inputs,
     synthetic_dataset_bids_tsv,
@@ -570,10 +602,13 @@ def test_app_exits_with_bids_inputs_and_failed_imaging_vocab_fetching(
     caplog,
     propagate_errors,
     monkeypatch,
+    strict_flag,
+    expected_exit_code,
+    is_output_expected,
 ):
     """
     Test that if the imaging vocabulary fetching fails when a BIDS table is provided,
-    the app exits gracefully with an informative error.
+    the app logs an informative error and exits gracefully when strict mode is enabled.
     """
     monkeypatch.setattr(
         file_utils,
@@ -590,27 +625,38 @@ def test_app_exits_with_bids_inputs_and_failed_imaging_vocab_fetching(
             synthetic_dataset_bids_tsv,
             "--output",
             temp_output_jsonld_path,
+            *strict_flag,
         ],
         catch_exceptions=False,
     )
 
-    assert result.exit_code != 0
-    assert not temp_output_jsonld_path.exists()
+    assert result.exit_code == expected_exit_code
+    assert temp_output_jsonld_path.exists() == is_output_expected
     assert len(caplog.records) == 1
     assert "Failed to load the imaging modality vocabulary" in caplog.text
 
 
-def test_app_exits_for_bids_and_pheno_subject_id_mismatch(
+@pytest.mark.parametrize(
+    "strict_flag,expected_exit_code,is_output_expected",
+    [
+        (["--strict"], 1, False),
+        ([], 0, True),
+    ],
+)
+def test_app_raises_error_for_bids_and_pheno_subject_id_mismatch(
     runner,
     synthetic_dataset_phenotypic_inputs,
     tmp_path,
     temp_output_jsonld_path,
     caplog,
     propagate_errors,
+    strict_flag,
+    expected_exit_code,
+    is_output_expected,
 ):
     """
     Test that if the subject IDs in the BIDS table do not match those in the phenotypic data,
-    the app exits gracefully with an informative error.
+    the app logs an informative error and exits gracefully when strict mode is enabled.
     """
     expected_error_message = [
         "2 subject IDs not found in the phenotypic table",
@@ -658,12 +704,13 @@ def test_app_exits_for_bids_and_pheno_subject_id_mismatch(
             tmp_path / "bids.tsv",
             "--output",
             temp_output_jsonld_path,
+            *strict_flag,
         ],
         catch_exceptions=False,
     )
 
-    assert result.exit_code != 0
-    assert not temp_output_jsonld_path.exists()
+    assert result.exit_code == expected_exit_code
+    assert temp_output_jsonld_path.exists() == is_output_expected
     assert len(caplog.records) == 1
     assert all(
         expected_substr in caplog.text

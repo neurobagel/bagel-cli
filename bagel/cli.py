@@ -587,27 +587,41 @@ def create(
         hasSamples=subject_list,
     )
 
-    if bids_table and bids_files_valid:
-        logger.info("Adding BIDS metadata to subjects...")
-        try:
-            updated_graph_dataset = process_bids(
-                bids_dataset, imaging_source_dir, graph_dataset, verbosity
+    if bids_table:
+        bids_processing_succeeded = False
+        if bids_files_valid:
+            logger.info("Adding BIDS metadata to subjects...")
+            try:
+                updated_graph_dataset = process_bids(
+                    bids_dataset, imaging_source_dir, graph_dataset, verbosity
+                )
+                graph_dataset = updated_graph_dataset
+                bids_processing_succeeded = True
+            except _StopProcessing:
+                if strict:
+                    raise typer.Exit(code=1)
+        if not bids_processing_succeeded:
+            logger.warning(
+                "Imaging metadata could not be added to the subject graph data due to errors."
             )
-            graph_dataset = updated_graph_dataset
-        except _StopProcessing:
-            if strict:
-                raise typer.Exit(code=1)
 
-    if processing_status and derivatives_files_valid:
-        logger.info("Adding subject-level derivative metadata...")
-        try:
-            updated_graph_dataset = process_derivatives(
-                processing_status_df, graph_dataset
+    if processing_status:
+        derivatives_processing_succeeded = False
+        if derivatives_files_valid:
+            logger.info("Adding subject-level derivative metadata...")
+            try:
+                updated_graph_dataset = process_derivatives(
+                    processing_status_df, graph_dataset
+                )
+                graph_dataset = updated_graph_dataset
+                derivatives_processing_succeeded = True
+            except _StopProcessing:
+                if strict:
+                    raise typer.Exit(code=1)
+        if not derivatives_processing_succeeded:
+            logger.warning(
+                "Processing pipeline metadata could not be added to the subject graph data due to errors."
             )
-            graph_dataset = updated_graph_dataset
-        except _StopProcessing:
-            if strict:
-                raise typer.Exit(code=1)
 
     file_utils.save_jsonld(
         data=model_utils.dataset_to_jsonld(

@@ -22,6 +22,7 @@ class VerbosityLevel(str, Enum):
     DEBUG = "2"
 
 
+# TODO: Add a "WARNING" level to support showing only warning messages and above
 verbosity_log_levels = {
     VerbosityLevel.ERROR: logging.ERROR,
     VerbosityLevel.INFO: logging.INFO,

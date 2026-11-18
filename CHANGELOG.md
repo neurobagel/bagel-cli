@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.13.0](https://github.com/neurobagel/testplace/compare/bagel-cli-v0.12.0...bagel-cli-v0.13.0) (2026-11-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* Add `--verbosity` option for warning logs and above
+
+### Features
+
+* Add `--verbosity` option for warning logs and above ([ad60d67](https://github.com/neurobagel/testplace/commit/ad60d670719dea8663ba006599bd4a408ef44936))
+
 ## [0.12.0](https://github.com/neurobagel/testplace/compare/bagel-cli-v0.11.6...bagel-cli-v0.12.0) (2026-11-10)
 
 

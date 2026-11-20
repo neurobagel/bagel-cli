@@ -379,9 +379,8 @@ def create(
     """
     file_utils.check_overwrite(output, overwrite)
 
-    phenotypic_files_valid = True
-    bids_files_valid = True
-    derivatives_files_valid = True
+    are_files_valid = {"phenotypic": True, "bids": True, "derivatives": True}
+
     # The input files can be loaded independently of each other,
     # so we collect any file errors across all inputs before exiting to give the user
     # a complete picture of file formatting issues
@@ -389,19 +388,19 @@ def create(
         data_dictionary = file_utils.load_json(dictionary)
     except BagelFileError as e:
         logger.error(f"Error parsing data dictionary: {e}")
-        phenotypic_files_valid = False
+        are_files_valid["phenotypic"] = False
 
     try:
         pheno_df = file_utils.load_tabular(pheno)
     except BagelFileError as e:
         logger.error(f"Error parsing phenotypic TSV: {e}")
-        phenotypic_files_valid = False
+        are_files_valid["phenotypic"] = False
 
     try:
         dataset_metadata = file_utils.load_json(dataset_description)
     except BagelFileError as e:
         logger.error(f"Error parsing dataset description: {e}")
-        phenotypic_files_valid = False
+        are_files_valid["phenotypic"] = False
 
     if bids_table:
         try:
@@ -410,7 +409,7 @@ def create(
             )
         except BagelFileError as e:
             logger.error(f"Error parsing BIDS table: {e}.")
-            bids_files_valid = False
+            are_files_valid["bids"] = False
     if processing_status:
         try:
             processing_status_df = file_utils.load_tabular(
@@ -418,10 +417,11 @@ def create(
             )
         except BagelFileError as e:
             logger.error(f"Error parsing processing status TSV: {e}.")
-            derivatives_files_valid = False
+            are_files_valid["derivatives"] = False
 
-    if not phenotypic_files_valid or (
-        strict and not (bids_files_valid and derivatives_files_valid)
+    if not are_files_valid["phenotypic"] or (
+        strict
+        and not (are_files_valid["bids"] and are_files_valid["derivatives"])
     ):
         raise typer.Exit(code=1)
 
@@ -439,7 +439,7 @@ def create(
     )
     if config:
         logger.info("%-*s%s", width, "Vocabulary configuration:", config)
-    if bids_table and bids_files_valid:
+    if bids_table and are_files_valid["bids"]:
         logger.info("%-*s%s", width, "BIDS metadata table (.tsv):", bids_table)
         if imaging_source_dir:
             logger.info(
@@ -455,7 +455,7 @@ def create(
             "--imaging-source-dir will be ignored. "
             "To include imaging metadata, please specify a BIDS table using --bids-table."
         )
-    if processing_status and derivatives_files_valid:
+    if processing_status and are_files_valid["derivatives"]:
         logger.info(
             "%-*s%s", width, "Processing status (.tsv):", processing_status
         )
@@ -588,7 +588,7 @@ def create(
     )
 
     bids_processing_failed = False
-    if bids_table and bids_files_valid:
+    if bids_table and are_files_valid["bids"]:
         logger.info("Adding BIDS metadata to subjects...")
         try:
             updated_graph_dataset = process_bids(
@@ -601,7 +601,7 @@ def create(
                 raise typer.Exit(code=1)
 
     derivatives_processing_failed = False
-    if processing_status and derivatives_files_valid:
+    if processing_status and are_files_valid["derivatives"]:
         logger.info("Adding subject-level derivative metadata...")
         try:
             updated_graph_dataset = process_derivatives(

@@ -377,6 +377,8 @@ def create(
 
     This command will generate a .jsonld file compliant with the Neurobagel graph data model for a dataset. The output file can be uploaded to a Neurobagel graph store.
     """
+    no_output_note = "No JSON-LD output created."
+
     file_utils.check_overwrite(output, overwrite)
 
     are_files_valid = {"phenotypic": True, "bids": True, "derivatives": True}
@@ -408,7 +410,7 @@ def create(
                 bids_table, input_type="BIDS"
             )
         except BagelFileError as e:
-            logger.error(f"Error parsing BIDS table: {e}.")
+            logger.error(f"Error parsing BIDS table: {e}")
             are_files_valid["bids"] = False
     if processing_status:
         try:
@@ -416,13 +418,15 @@ def create(
                 processing_status, input_type="processing status"
             )
         except BagelFileError as e:
-            logger.error(f"Error parsing processing status TSV: {e}.")
+            logger.error(f"Error parsing processing status TSV: {e}")
             are_files_valid["derivatives"] = False
 
     if not are_files_valid["phenotypic"] or (
-        strict
-        and not (are_files_valid["bids"] and are_files_valid["derivatives"])
+        strict and not (all(are_files_valid.values()))
     ):
+        logger.error(
+            f"Error(s) encountered during input file parsing. {no_output_note}"
+        )
         raise typer.Exit(code=1)
 
     pheno_utils.check_if_remote_config_namespaces_used()
@@ -461,14 +465,80 @@ def create(
         )
 
     logger.info("Processing phenotypic annotations...")
+    try:
+        graph_dataset = process_pheno(
+            pheno_df, data_dictionary, dataset_metadata, config
+        )
+    except _StopProcessing:
+        # If phenotypic data is invalid, we always exit regardless of --strict setting
+        logger.error(
+            f"Error(s) encountered in phenotypic data. {no_output_note}"
+        )
+        raise typer.Exit(code=1)
 
+    secondary_processing_step_failed = {"bids": False, "derivatives": False}
+    if bids_table:
+        if not are_files_valid["bids"]:
+            secondary_processing_step_failed["bids"] = True
+        else:
+            try:
+                updated_graph_dataset = process_bids(
+                    bids_dataset, imaging_source_dir, graph_dataset, verbosity
+                )
+                graph_dataset = updated_graph_dataset
+            except _StopProcessing:
+                secondary_processing_step_failed["bids"] = True
+
+    if processing_status:
+        if not are_files_valid["derivatives"]:
+            secondary_processing_step_failed["derivatives"] = True
+        else:
+            try:
+                updated_graph_dataset = process_derivatives(
+                    processing_status_df, graph_dataset
+                )
+                graph_dataset = updated_graph_dataset
+            except _StopProcessing:
+                secondary_processing_step_failed["derivatives"] = True
+
+    if secondary_processing_step_failed["bids"]:
+        logger.warning(
+            "Imaging metadata could not be added to the subject graph data due to errors."
+        )
+    if secondary_processing_step_failed["derivatives"]:
+        logger.warning(
+            "Processing pipeline metadata could not be added to the subject graph data due to errors."
+        )
+    if any(secondary_processing_step_failed.values()):
+        if strict:
+            logger.error(no_output_note)
+            raise typer.Exit(code=1)
+        logger.warning("Partial JSON-LD output created.")
+
+    file_utils.save_jsonld(
+        data=model_utils.dataset_to_jsonld(
+            context=model_utils.generate_context(config),
+            dataset=graph_dataset,
+        ),
+        filename=output,
+    )
+
+
+def process_pheno(
+    pheno_df: pd.DataFrame,
+    data_dictionary: dict,
+    dataset_metadata: dict,
+    config: str,
+) -> models.Dataset:
+
+    logger.info("Processing phenotypic annotations...")
     phenotypic_input_errors = []
     try:
         pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
     except BagelValidationError as e:
         phenotypic_input_errors.append(str(e))
     try:
-        dataset_metadata = pheno_utils.parse_dataset_description(
+        parsed_dataset_metadata = pheno_utils.parse_dataset_description(
             dataset_metadata
         )
     except BagelValidationError as e:
@@ -477,7 +547,7 @@ def create(
     for error in phenotypic_input_errors:
         logger.error(error)
     if phenotypic_input_errors:
-        raise typer.Exit(code=1)
+        raise _StopProcessing()
 
     # TODO: Remove once we no longer support annotation tool v1 data dictionaries
     data_dictionary = pheno_utils.convert_transformation_to_format(
@@ -556,7 +626,7 @@ def create(
                     )
                 except BagelValidationError as e:
                     logger.error(str(e))
-                    raise typer.Exit(code=1)
+                    raise _StopProcessing()
                 if _age_vals:
                     session.hasAge = _age_vals[0]
 
@@ -579,58 +649,16 @@ def create(
         subject_list.append(subject)
 
     dataset_graph_attributes = (
-        pheno_utils.dataset_description_to_graph_attributes(dataset_metadata)
+        pheno_utils.dataset_description_to_graph_attributes(
+            parsed_dataset_metadata
+        )
     )
 
     graph_dataset = models.Dataset(
         **dataset_graph_attributes,
         hasSamples=subject_list,
     )
-
-    bids_processing_failed = False
-    if bids_table and are_files_valid["bids"]:
-        logger.info("Adding BIDS metadata to subjects...")
-        try:
-            updated_graph_dataset = process_bids(
-                bids_dataset, imaging_source_dir, graph_dataset, verbosity
-            )
-            graph_dataset = updated_graph_dataset
-        except _StopProcessing:
-            bids_processing_failed = True
-            if strict:
-                raise typer.Exit(code=1)
-
-    derivatives_processing_failed = False
-    if processing_status and are_files_valid["derivatives"]:
-        logger.info("Adding subject-level derivative metadata...")
-        try:
-            updated_graph_dataset = process_derivatives(
-                processing_status_df, graph_dataset
-            )
-            graph_dataset = updated_graph_dataset
-        except _StopProcessing:
-            derivatives_processing_failed = True
-            if strict:
-                raise typer.Exit(code=1)
-
-    if bids_processing_failed:
-        logger.warning(
-            "Imaging metadata could not be added to the subject graph data due to errors."
-        )
-    if derivatives_processing_failed:
-        logger.warning(
-            "Processing pipeline metadata could not be added to the subject graph data due to errors."
-        )
-    if bids_processing_failed or derivatives_processing_failed:
-        logger.warning("Partial JSON-LD output generated.")
-
-    file_utils.save_jsonld(
-        data=model_utils.dataset_to_jsonld(
-            context=model_utils.generate_context(config),
-            dataset=graph_dataset,
-        ),
-        filename=output,
-    )
+    return graph_dataset
 
 
 def process_bids(
@@ -643,6 +671,7 @@ def process_bids(
     Extract and integrate imaging metadata from a BIDS dataset with harmonized subject graph data.
     """
 
+    logger.info("Validating BIDS table...")
     try:
         # Check that all expected columns are present
         validated_bids_table = bids_utils.validate_bids_table(bids_dataset)
@@ -716,6 +745,7 @@ def process_bids(
         f"will be added: {list(neurobagel_supported_suffixes)}"
     )
 
+    logger.info("Adding BIDS metadata to subjects...")
     disable_progress_bar = verbosity == VerbosityLevel.ERROR
     for bids_sub_id in track(
         bids_subject_ids,
@@ -774,6 +804,7 @@ def process_derivatives(
     Extract subject processing pipeline and derivative metadata from a tabular processing status file and integrate it with harmonized subject graph data.
     """
 
+    logger.info("Validating processing status table...")
     # We don't allow empty values in the participant ID column
     if missing_id_rows := pheno_utils.get_rows_with_empty_strings(
         status_df, [PROC_STATUS_COLS["participant"]]
@@ -830,6 +861,7 @@ def process_derivatives(
         logger.error(str(e))
         raise _StopProcessing()
 
+    logger.info("Adding subject-level derivative metadata...")
     # Create sub-dataframes for each subject
     for subject, sub_proc_df in status_df.groupby(
         PROC_STATUS_COLS["participant"]

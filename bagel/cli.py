@@ -464,7 +464,6 @@ def create(
             "%-*s%s", width, "Processing status (.tsv):", processing_status
         )
 
-    logger.info("Processing phenotypic annotations...")
     try:
         graph_dataset = process_pheno(
             pheno_df, data_dictionary, dataset_metadata, config

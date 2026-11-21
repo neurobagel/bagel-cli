@@ -183,6 +183,84 @@ def test_partial_jsonld_created_when_only_phenotypic_inputs_valid(
         assert session_types.count("ImagingSession") == 0
 
 
+def test_errors_collected_across_all_processing_steps_in_strict_mode(
+    runner,
+    test_data,
+    tmp_path,
+    temp_output_jsonld_path,
+    valid_synthetic_phenotypic_inputs,
+    caplog,
+    propagate_errors,
+):
+    """
+    Test that in strict mode, the CLI still proceeds with checks from all processing steps and
+    collects all errors possible before exiting.
+    """
+
+    expected_errors = [
+        "subject IDs not found in the phenotypic table",
+        "no recognized versions of any pipelines",
+        "No JSON-LD output created",
+    ]
+
+    invalid_bids_table_path = tmp_path / "bids_with_unrecognized_subjects.tsv"
+    invalid_bids_table = pd.DataFrame(
+        [
+            [
+                "sub-990",
+                "ses-01",
+                "T1w",
+                "/data/synthetic/sub-01/ses-01/anat/sub-990_ses-01_T1w.nii.gz",
+            ],
+            [
+                "sub-990",
+                "ses-01",
+                "bold",
+                "/data/synthetic/sub-01/ses-01/func/sub-990_ses-01_task-nback_run-01_bold.nii.gz",
+            ],
+            [
+                "sub-991",
+                "ses-01",
+                "T1w",
+                "/data/synthetic/sub-02/ses-01/anat/sub-991_ses-01_T1w.nii.gz",
+            ],
+            [
+                "sub-991",
+                "ses-01",
+                "bold",
+                "/data/synthetic/sub-02/ses-01/func/sub-991_ses-01_task-nback_run-01_bold.nii.gz",
+            ],
+        ],
+        columns=["sub", "ses", "suffix", "path"],
+    )
+    invalid_bids_table.to_csv(invalid_bids_table_path, sep="\t", index=False)
+    invalid_proc_status_table_path = (
+        test_data / "proc_status_no_recognized_pipelines.tsv"
+    )
+
+    result = runner.invoke(
+        bagel,
+        [
+            "create",
+            *valid_synthetic_phenotypic_inputs,
+            "--bids-table",
+            invalid_bids_table_path,
+            "--processing-status",
+            invalid_proc_status_table_path,
+            "--output",
+            temp_output_jsonld_path,
+            "--strict",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code != 0
+    assert not temp_output_jsonld_path.exists()
+    assert len(caplog.records) == 3
+    for expected_error in expected_errors:
+        assert expected_error in caplog.text
+
+
 def test_partial_jsonld_created_when_only_phenotypic_and_derivatives_inputs_valid(
     runner,
     test_data_upload_path,

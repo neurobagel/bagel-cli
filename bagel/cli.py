@@ -111,6 +111,11 @@ def show_version(value: bool):
         raise typer.Exit()
 
 
+def log_no_output_error():
+    """Log an error message indicating that no JSON-LD output was created."""
+    logger.error("No JSON-LD output created.")
+
+
 class _StopProcessing(Exception):
     """Custom exception that signals the current processing step should be stopped."""
 
@@ -364,7 +369,8 @@ def create(
     strict: bool = typer.Option(
         False,
         "--strict",
-        help="Fail if any errors are encountered during processing, without attempting to generate a partial JSON-LD output.",
+        help="Exit without attempting to generate a valid partial JSON-LD if errors are encountered in any optional input. "
+        "[red]NOTE: Errors in required phenotypic inputs will always result in no JSON-LD output, regardless of this flag.[/red]",
     ),
     overwrite: bool = overwrite_option(),
     verbosity: VerbosityLevel = verbosity_option(),
@@ -377,7 +383,6 @@ def create(
 
     This command will generate a .jsonld file compliant with the Neurobagel graph data model for a dataset. The output file can be uploaded to a Neurobagel graph store.
     """
-    no_output_note = "No JSON-LD output created."
 
     file_utils.check_overwrite(output, overwrite)
 
@@ -424,9 +429,7 @@ def create(
     if not are_files_valid["phenotypic"] or (
         strict and not (all(are_files_valid.values()))
     ):
-        logger.error(
-            f"Error(s) encountered during input file parsing. {no_output_note}"
-        )
+        log_no_output_error()
         raise typer.Exit(code=1)
 
     pheno_utils.check_if_remote_config_namespaces_used()
@@ -470,9 +473,7 @@ def create(
         )
     except _StopProcessing:
         # If phenotypic data is invalid, we always exit regardless of --strict setting
-        logger.error(
-            f"Error(s) encountered in phenotypic data. {no_output_note}"
-        )
+        log_no_output_error()
         raise typer.Exit(code=1)
 
     secondary_processing_step_failed = {"bids": False, "derivatives": False}
@@ -500,18 +501,19 @@ def create(
             except _StopProcessing:
                 secondary_processing_step_failed["derivatives"] = True
 
-    if secondary_processing_step_failed["bids"]:
-        logger.warning(
-            "Imaging metadata could not be added to the subject graph data due to errors."
-        )
-    if secondary_processing_step_failed["derivatives"]:
-        logger.warning(
-            "Processing pipeline metadata could not be added to the subject graph data due to errors."
-        )
     if any(secondary_processing_step_failed.values()):
         if strict:
-            logger.error(no_output_note)
+            log_no_output_error()
             raise typer.Exit(code=1)
+
+        if secondary_processing_step_failed["bids"]:
+            logger.warning(
+                "Imaging metadata could not be added to the subject graph data due to errors."
+            )
+        if secondary_processing_step_failed["derivatives"]:
+            logger.warning(
+                "Processing pipeline metadata could not be added to the subject graph data due to errors."
+            )
         logger.warning("Partial JSON-LD output created.")
 
     file_utils.save_jsonld(

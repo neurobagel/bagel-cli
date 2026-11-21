@@ -23,10 +23,27 @@ def valid_synthetic_phenotypic_inputs(
 
 
 @pytest.mark.parametrize(
-    "additional_cli_option,is_output_expected",
+    "additional_cli_option,num_expected_errors,expected_err_messages,is_output_expected",
     [
-        (["--strict"], False),
-        ([], True),
+        (
+            ["--strict"],
+            3,
+            [
+                "Error parsing BIDS table",
+                "Error parsing processing status TSV",
+                "No JSON-LD output",
+            ],
+            False,
+        ),
+        (
+            [],
+            2,
+            [
+                "Error parsing BIDS table",
+                "Error parsing processing status TSV",
+            ],
+            True,
+        ),
     ],
 )
 def test_strict_mode_for_non_phenotypic_file_parsing_errors(
@@ -37,6 +54,8 @@ def test_strict_mode_for_non_phenotypic_file_parsing_errors(
     caplog,
     propagate_errors,
     additional_cli_option,
+    num_expected_errors,
+    expected_err_messages,
     is_output_expected,
 ):
     """
@@ -61,9 +80,9 @@ def test_strict_mode_for_non_phenotypic_file_parsing_errors(
         catch_exceptions=False,
     )
 
-    assert len(caplog.records) == 2
-    assert "Error parsing BIDS table" in caplog.text
-    assert "Error parsing processing status TSV" in caplog.text
+    assert len(caplog.records) == num_expected_errors
+    for expected_message in expected_err_messages:
+        assert expected_message in caplog.text
     assert temp_output_jsonld_path.exists() == is_output_expected
 
 
@@ -90,7 +109,7 @@ def test_partial_jsonld_created_when_only_phenotypic_inputs_valid(
     expected_warnings = [
         "Imaging metadata could not be added",
         "Processing pipeline metadata could not be added",
-        "Partial JSON-LD output generated",
+        "Partial JSON-LD output created",
     ]
 
     invalid_bids_table_path = tmp_path / "bids_with_unrecognized_subjects.tsv"
@@ -182,7 +201,7 @@ def test_partial_jsonld_created_when_only_phenotypic_and_derivatives_inputs_vali
     expected_error = "subject IDs not found in the phenotypic table"
     expected_warnings = [
         "Imaging metadata could not be added",
-        "Partial JSON-LD output generated",
+        "Partial JSON-LD output created",
     ]
 
     invalid_bids_table = pd.DataFrame(

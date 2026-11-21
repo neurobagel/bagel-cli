@@ -116,10 +116,10 @@ def test_pipeline_info_added_to_existing_imaging_sessions(
 
 
 @pytest.mark.parametrize(
-    "strict_flag,expected_exit_code,is_output_expected",
+    "strict_flag,expected_exit_code,num_expected_errors,is_output_expected",
     [
-        (["--strict"], 1, False),
-        ([], 0, True),
+        (["--strict"], 1, 2, False),
+        ([], 0, 1, True),
     ],
 )
 @pytest.mark.parametrize(
@@ -150,6 +150,7 @@ def test_derivatives_invalid_inputs_raise_error(
     propagate_errors,
     strict_flag,
     expected_exit_code,
+    num_expected_errors,
     is_output_expected,
 ):
     """Assure that we handle expected user errors from the processing status file gracefully."""
@@ -168,7 +169,7 @@ def test_derivatives_invalid_inputs_raise_error(
     )
 
     assert result.exit_code == expected_exit_code
-    assert len(caplog.records) == 1
+    assert len(caplog.records) == num_expected_errors
     for substring in expected_message:
         assert substring in caplog.text
 
@@ -290,10 +291,10 @@ def test_unrecognized_pipelines_and_versions_excluded_from_output(
 
 
 @pytest.mark.parametrize(
-    "strict_flag,expected_exit_code,is_output_expected",
+    "strict_flag,expected_exit_code,num_expected_errors,is_output_expected",
     [
-        (["--strict"], 1, False),
-        ([], 0, True),
+        (["--strict"], 1, 2, False),
+        ([], 0, 1, True),
     ],
 )
 def test_error_when_no_pipeline_version_combos_recognized(
@@ -305,6 +306,7 @@ def test_error_when_no_pipeline_version_combos_recognized(
     propagate_errors,
     strict_flag,
     expected_exit_code,
+    num_expected_errors,
     is_output_expected,
 ):
     """
@@ -326,7 +328,7 @@ def test_error_when_no_pipeline_version_combos_recognized(
     )
 
     assert result.exit_code == expected_exit_code
-    assert len(caplog.records) == 1
+    assert len(caplog.records) == num_expected_errors
     assert "no recognized versions" in caplog.text
     assert temp_output_jsonld_path.exists() == is_output_expected
 
@@ -360,10 +362,10 @@ def test_failed_pipeline_catalog_fetching_does_not_raise_error_for_help(
 
 
 @pytest.mark.parametrize(
-    "strict_flag,expected_exit_code,is_output_expected",
+    "strict_flag,expected_exit_code,num_expected_errors,is_output_expected",
     [
-        (["--strict"], 1, False),
-        ([], 0, True),
+        (["--strict"], 1, 2, False),
+        ([], 0, 1, True),
     ],
 )
 def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_input(
@@ -376,6 +378,7 @@ def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_input(
     monkeypatch,
     strict_flag,
     expected_exit_code,
+    num_expected_errors,
     is_output_expected,
 ):
     """
@@ -406,7 +409,7 @@ def test_failed_pipeline_catalog_fetching_raises_err_for_derivatives_input(
     )
 
     assert result.exit_code == expected_exit_code
-    assert len(caplog.records) == 1
+    assert len(caplog.records) == num_expected_errors
     assert "Failed to load the pipeline catalog" in caplog.text
     assert temp_output_jsonld_path.exists() == is_output_expected
 

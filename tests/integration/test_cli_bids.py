@@ -325,10 +325,10 @@ def test_some_unsupported_suffixes_in_bids_table_raises_warning(
 
 
 @pytest.mark.parametrize(
-    "strict_flag,expected_exit_code,is_output_expected",
+    "strict_flag,expected_exit_code,num_expected_errors,is_output_expected",
     [
-        (["--strict"], 1, False),
-        ([], 0, True),
+        (["--strict"], 1, 2, False),
+        ([], 0, 1, True),
     ],
 )
 def test_all_unsupported_suffixes_in_bids_table_raises_error(
@@ -341,6 +341,7 @@ def test_all_unsupported_suffixes_in_bids_table_raises_error(
     caplog,
     strict_flag,
     expected_exit_code,
+    num_expected_errors,
     is_output_expected,
 ):
     """
@@ -394,15 +395,15 @@ def test_all_unsupported_suffixes_in_bids_table_raises_error(
 
     assert result.exit_code == expected_exit_code
     assert temp_output_jsonld_path.exists() == is_output_expected
-    assert len(caplog.records) == 1
+    assert len(caplog.records) == num_expected_errors
     assert "No Neurobagel-supported BIDS suffixes found" in caplog.text
 
 
 @pytest.mark.parametrize(
-    "strict_flag,expected_exit_code,is_output_expected",
+    "strict_flag,expected_exit_code,num_expected_errors,is_output_expected",
     [
-        (["--strict"], 1, False),
-        ([], 0, True),
+        (["--strict"], 1, 2, False),
+        ([], 0, 1, True),
     ],
 )
 def test_bids_table_missing_required_columns_raises_error(
@@ -415,6 +416,7 @@ def test_bids_table_missing_required_columns_raises_error(
     caplog,
     strict_flag,
     expected_exit_code,
+    num_expected_errors,
     is_output_expected,
 ):
     """
@@ -464,7 +466,7 @@ def test_bids_table_missing_required_columns_raises_error(
 
     assert result.exit_code == expected_exit_code
     assert temp_output_jsonld_path.exists() == is_output_expected
-    assert len(caplog.records) == 1
+    assert len(caplog.records) == num_expected_errors
     assert "BIDS table does not match the expected schema" in caplog.text
     assert "suffix" in caplog.text
 
@@ -588,10 +590,10 @@ def test_warning_when_bids_source_dir_provided_without_bids_table(
 
 
 @pytest.mark.parametrize(
-    "strict_flag,expected_exit_code,is_output_expected",
+    "strict_flag,expected_exit_code,num_expected_errors,is_output_expected",
     [
-        (["--strict"], 1, False),
-        ([], 0, True),
+        (["--strict"], 1, 2, False),
+        ([], 0, 1, True),
     ],
 )
 def test_app_raises_error_given_bids_inputs_and_failed_imaging_vocab_fetching(
@@ -604,6 +606,7 @@ def test_app_raises_error_given_bids_inputs_and_failed_imaging_vocab_fetching(
     monkeypatch,
     strict_flag,
     expected_exit_code,
+    num_expected_errors,
     is_output_expected,
 ):
     """
@@ -632,15 +635,15 @@ def test_app_raises_error_given_bids_inputs_and_failed_imaging_vocab_fetching(
 
     assert result.exit_code == expected_exit_code
     assert temp_output_jsonld_path.exists() == is_output_expected
-    assert len(caplog.records) == 1
+    assert len(caplog.records) == num_expected_errors
     assert "Failed to load the imaging modality vocabulary" in caplog.text
 
 
 @pytest.mark.parametrize(
-    "strict_flag,expected_exit_code,is_output_expected",
+    "strict_flag,expected_exit_code,num_expected_errors,is_output_expected",
     [
-        (["--strict"], 1, False),
-        ([], 0, True),
+        (["--strict"], 1, 2, False),
+        ([], 0, 1, True),
     ],
 )
 def test_app_raises_error_for_bids_and_pheno_subject_id_mismatch(
@@ -652,6 +655,7 @@ def test_app_raises_error_for_bids_and_pheno_subject_id_mismatch(
     propagate_errors,
     strict_flag,
     expected_exit_code,
+    num_expected_errors,
     is_output_expected,
 ):
     """
@@ -711,7 +715,7 @@ def test_app_raises_error_for_bids_and_pheno_subject_id_mismatch(
 
     assert result.exit_code == expected_exit_code
     assert temp_output_jsonld_path.exists() == is_output_expected
-    assert len(caplog.records) == 1
+    assert len(caplog.records) == num_expected_errors
     assert all(
         expected_substr in caplog.text
         for expected_substr in expected_error_message

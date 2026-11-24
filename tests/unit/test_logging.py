@@ -7,7 +7,7 @@ from bagel.cli import bagel
 
 @pytest.mark.parametrize(
     "verbosity_level,expected_log_levels",
-    [("1", {logging.INFO, logging.ERROR}), ("0", {logging.ERROR})],
+    [("2", {logging.INFO, logging.ERROR}), ("0", {logging.ERROR})],
 )
 def test_verbosity_level(
     runner,
@@ -78,3 +78,41 @@ def test_no_progress_graphic_with_min_verbosity(
 
     assert result.exit_code == 0
     assert result.output.strip() == ""
+
+
+def test_only_errors_and_warnings_logged_for_verbosity_level_1(
+    runner,
+    test_data_upload_path,
+    test_data,
+    tmp_path,
+    caplog,
+):
+    """
+    Test that info logs are suppressed when verbosity is set to 1 (warnings logs and above only).
+    """
+    result = runner.invoke(
+        bagel,
+        [
+            "create",
+            "--pheno",
+            # example with >1 columns annotated to sex and diagnosis - warning expected
+            test_data / "example20.tsv",
+            "--dictionary",
+            test_data / "example20.json",
+            "--dataset-description",
+            test_data_upload_path / "synthetic_dataset_description.json",
+            "--processing-status",
+            # example with subject IDs missing from phenotypic data - error expected
+            test_data / "proc_status_unique_subs.tsv",
+            "--output",
+            tmp_path / "pheno_derivatives.jsonld",
+            "--strict",
+            "--verbosity",
+            "1",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code != 0
+    captured_log_levels = {record.levelno for record in caplog.records}
+    assert captured_log_levels == {logging.WARNING, logging.ERROR}

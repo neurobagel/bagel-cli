@@ -17,14 +17,16 @@ class VerbosityLevel(str, Enum):
     """Enum for verbosity levels."""
 
     ERROR = "0"
-    INFO = "1"
+    WARNING = "1"
+    INFO = "2"
     # NOTE: We currently do not have any debug logs, but can add them in the future
-    DEBUG = "2"
+    DEBUG = "3"
 
 
 # TODO: Add a "WARNING" level to support showing only warning messages and above
 verbosity_log_levels = {
     VerbosityLevel.ERROR: logging.ERROR,
+    VerbosityLevel.WARNING: logging.WARNING,
     VerbosityLevel.INFO: logging.INFO,
     VerbosityLevel.DEBUG: logging.DEBUG,
 }

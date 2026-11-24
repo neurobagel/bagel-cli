@@ -87,7 +87,9 @@ def test_only_errors_and_warnings_logged_for_verbosity_level_1(
     tmp_path,
     caplog,
 ):
-    """Test that info logs are suppressed when verbosity is set to 1 (warnings logs and above only)."""
+    """
+    Test that info logs are suppressed when verbosity is set to 1 (warnings logs and above only).
+    """
     result = runner.invoke(
         bagel,
         [
@@ -104,6 +106,7 @@ def test_only_errors_and_warnings_logged_for_verbosity_level_1(
             test_data / "proc_status_unique_subs.tsv",
             "--output",
             tmp_path / "pheno_derivatives.jsonld",
+            "--strict",
             "--verbosity",
             "1",
         ],

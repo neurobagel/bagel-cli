@@ -115,4 +115,4 @@ def test_only_errors_and_warnings_logged_for_verbosity_level_1(
 
     assert result.exit_code != 0
     captured_log_levels = {record.levelno for record in caplog.records}
-    assert set(captured_log_levels) == {logging.WARNING, logging.ERROR}
+    assert captured_log_levels == {logging.WARNING, logging.ERROR}

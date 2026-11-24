@@ -145,7 +145,10 @@ def test_invalid_inputs_are_handled_gracefully(
     caplog,
     propagate_errors,
 ):
-    """Assures that we handle expected user errors in phenotypic input files gracefully"""
+    """
+    Assures that we handle expected user errors in phenotypic input files gracefully,
+    and that the command is always aborted if phenotypic input processing fails.
+    """
     result = runner.invoke(
         bagel,
         [
@@ -163,9 +166,10 @@ def test_invalid_inputs_are_handled_gracefully(
     )
 
     assert result.exit_code != 0
-    assert len(caplog.records) == 1
+    assert len(caplog.records) == 2
     for substring in expected_message:
         assert substring in caplog.text
+    assert "No JSON-LD output created" in caplog.text
 
 
 def test_multiple_columns_about_single_column_variable_raises_warning(
@@ -355,9 +359,10 @@ def test_providing_non_tsv_file_raises_error(
     )
 
     assert result.exit_code != 0
-    assert len(caplog.records) == 1
+    assert len(caplog.records) == 2
     for substring in expected_err:
         assert substring in caplog.text
+    assert "No JSON-LD output created" in caplog.text
 
 
 def test_output_file_contains_dataset_level_attributes(
@@ -1055,10 +1060,11 @@ def test_invalid_dataset_description_handled_gracefully(
     )
 
     assert result.exit_code != 0
-    assert len(caplog.records) == 1
+    assert len(caplog.records) == 2
     assert (
         "dataset description does not match the expected schema" in caplog.text
     )
+    assert "No JSON-LD output created" in caplog.text
 
 
 def test_phenotypic_file_parsing_errors_returned_together(
@@ -1078,6 +1084,7 @@ def test_phenotypic_file_parsing_errors_returned_together(
         "Error parsing phenotypic TSV",
         "Error parsing data dictionary",
         "Error parsing dataset description",
+        "No JSON-LD output created",
     ]
     result = runner.invoke(
         bagel,
@@ -1103,6 +1110,6 @@ def test_phenotypic_file_parsing_errors_returned_together(
     ]
 
     assert result.exit_code != 0
-    assert len(errors) == 3
+    assert len(errors) == 4
     for err_message in expected_err_messages:
         assert any(err_message in error for error in errors)
